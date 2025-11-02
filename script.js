@@ -11,68 +11,99 @@ document.addEventListener('DOMContentLoaded', () => {
     const visitorCountTextElement = document.getElementById('visitor-count-text');
 
     // Müzik Kontrolleri
-    let isMusicManuallyPaused = true; 
+    let isMusicManuallyPaused = false; // Müzik varsayılan olarak çalıyor (muted da olsa)
     
-    backgroundMusic.volume = 0;
-    volumeSlider.value = 0;
+    // Ses seviyesini sıfırla (HTML'de muted olduğu için)
+    backgroundMusic.volume = 0.5; // Başlangıç ses seviyesini ayarla
+    volumeSlider.value = 0.5;
     
     // İkonu güncelleyen yardımcı fonksiyon
-    const updateVolumeIcon = (volume) => {
-        if (volume > 0) {
-            volumeIcon.textContent = '🔊';
-            musicToggle.classList.remove('paused');
-        } else {
+    const updateVolumeIcon = (volume, isMuted) => {
+        if (isMuted || volume === 0) {
             volumeIcon.textContent = '🔇';
             musicToggle.classList.add('paused');
+        } else if (volume < 0.5) {
+            volumeIcon.textContent = '🔉';
+            musicToggle.classList.remove('paused');
+        } else {
+            volumeIcon.textContent = '🔊';
+            musicToggle.classList.remove('paused');
         }
     };
     
-    updateVolumeIcon(backgroundMusic.volume); 
+    // Sayfa yüklendiğinde iconu sessiz (muted) olarak ayarla
+    updateVolumeIcon(backgroundMusic.volume, backgroundMusic.muted); 
+
+
+    // YENİ: Otomatik oynatma kısıtlamasını aşmak için kullanıcı etkileşimini dinle
+    const handleFirstInteraction = () => {
+         // Eğer müzik sessizse, sesi açmayı dene ve çalmaya başla
+         if (backgroundMusic.muted) {
+            backgroundMusic.muted = false;
+            // Volume slider'ı güncel volume'e ayarla (0.5)
+            volumeSlider.value = backgroundMusic.volume;
+            updateVolumeIcon(backgroundMusic.volume, backgroundMusic.muted);
+         }
+
+         // Eğer tarayıcı otomatik çalmayı engellediyse, ilk tıklamada oynatmayı dene
+         if (backgroundMusic.paused) {
+             backgroundMusic.play().catch(error => {
+                 console.error("Oynatma hatası:", error);
+             });
+         }
+
+         // Bu dinleyiciyi sadece bir kez kaldır
+         document.removeEventListener('click', handleFirstInteraction);
+         document.removeEventListener('keydown', handleFirstInteraction);
+    };
+
+    // Sayfadaki ilk tıklama veya tuş basma etkileşimini dinle
+    document.addEventListener('click', handleFirstInteraction);
+    document.addEventListener('keydown', handleFirstInteraction);
+
 
     // Sesi açma/kapama fonksiyonu
     musicToggle.addEventListener('click', () => {
-        if (isMusicManuallyPaused) {
-            backgroundMusic.play().then(() => {
-                isMusicManuallyPaused = false;
-                if (volumeSlider.value == 0) {
-                    backgroundMusic.volume = 0.5;
-                    volumeSlider.value = 0.5;
-                }
-                updateVolumeIcon(backgroundMusic.volume);
-            }).catch(error => {
-                console.error("Oynatma hatası:", error);
-                alert("Müzik otomatik olarak başlatılamadı.");
-            });
+        // Tamamen sessiz ise (hem muted hem de volume 0 ise), sesi aç (volume'ü 0.5'e)
+        if (backgroundMusic.muted || backgroundMusic.volume === 0) {
+            backgroundMusic.muted = false; 
+            backgroundMusic.volume = 0.5;
+            volumeSlider.value = 0.5; 
+            backgroundMusic.play().catch(error => console.error("Oynatma hatası:", error));
+            isMusicManuallyPaused = false;
         } else {
+            // Sesi kapat (muted değil, volume > 0 ise)
+            backgroundMusic.volume = 0;
+            volumeSlider.value = 0;
             backgroundMusic.pause();
             isMusicManuallyPaused = true;
-            updateVolumeIcon(0);
         }
+        updateVolumeIcon(backgroundMusic.volume, backgroundMusic.muted);
     });
 
     // Ses seviyesi kontrolü
     volumeSlider.addEventListener('input', (e) => {
         const volume = parseFloat(e.target.value);
         backgroundMusic.volume = volume;
-
-        updateVolumeIcon(volume);
-
+        
+        // Eğer ses açılırsa, muted durumunu kaldır ve oynat
         if (volume > 0) {
-             isMusicManuallyPaused = false;
-             if (backgroundMusic.paused) {
-                 backgroundMusic.play().catch(error => {
-                     console.error("Oynatma hatası:", error);
-                 });
+             backgroundMusic.muted = false;
+             if (backgroundMusic.paused && !isMusicManuallyPaused) {
+                 backgroundMusic.play().catch(error => console.error("Oynatma hatası:", error));
              }
         } else {
+             // Ses 0'a inerse, duraklat
              backgroundMusic.pause();
              isMusicManuallyPaused = true;
         }
+        
+        updateVolumeIcon(backgroundMusic.volume, backgroundMusic.muted);
     });
 
 
     // ====================================
-    // DISCORD LANYARD API ENTEGRASYONU
+    // DISCORD LANYARD API ENTEGRASYONU (Aynı Kaldı)
     // ====================================
     const DISCORD_ID = '1252284892457468026'; 
     const LANYARD_API_URL = `https://api.lanyard.rest/v1/users/${DISCORD_ID}`;
@@ -89,35 +120,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error("Discord verileri alınamadı.");
                 }
 
-                // 1. Durum Rengi (Sadece yuvarlak nokta rengi için kullanılır)
                 const status = user.discord_status || 'offline';
                 let statusColor;
                 
                 switch (status) {
                     case 'online': 
-                        statusColor = '#43B581'; // Yeşil 
+                        statusColor = '#43B581'; 
                         break; 
                     case 'idle': 
-                        statusColor = '#FAA61A';   // Turuncu 
+                        statusColor = '#FAA61A';   
                         break;
                     case 'dnd': 
-                        statusColor = '#F04747';    // Kırmızı 
+                        statusColor = '#F04747';    
                         break;
                     case 'invisible':
                     case 'offline':
                     default: 
-                        statusColor = '#747F8D'; // Gri 
+                        statusColor = '#747F8D'; 
                         break;
                 }
 
-                // 2. Aktivite Metni
                 let activityText = 'Şu anda bir aktivite yok...';
                 
-                // Spotify'ı kontrol et 
                 if (user.listening_to_spotify) {
                     activityText = `Dinliyor: <strong>${user.spotify.song}</strong> - ${user.spotify.artist}`;
                 } 
-                // Diğer aktiviteler
                 else if (user.activities && user.activities.length > 0) {
                     const activity = user.activities.find(act => act.type === 0 || act.type === 1 || act.type === 4); 
                     
@@ -138,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const displayName = user.discord_user.global_name || user.discord_user.username;
 
 
-                // 3. KARTIN HTML YAPISI İLE GÜNCELLEMESİ (Sadece status-dot kaldı)
                 discordCard.innerHTML = `
                     <div class="discord-header">
                         <div style="position: relative;">
@@ -168,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ====================================
-    // ZİYARETÇİ SAYACI ENTEGRASYONU
+    // ZİYARETÇİ SAYACI ENTEGRASYONU (Aynı Kaldı)
     // ====================================
     const COUNT_API_NAMESPACE = 'https://bak1kara.github.io/bakikara/';
     const COUNT_API_KEY = 'bakikara';
