@@ -1,188 +1,178 @@
-// ** Ayarlar **
-const DISCORD_USER_ID = '1252284892457468026'; // Discord ID'nizi buraya yazın
-const LANYARD_API_URL = `https://api.lanyard.rest/v1/users/${DISCORD_USER_ID}`;
-const cardElement = document.getElementById('discord-card');
+document.addEventListener('DOMContentLoaded', () => {
+    const discordCard = document.getElementById('discord-card');
+    const backgroundMusic = document.getElementById('background-music');
+    const musicToggle = document.getElementById('music-toggle');
+    const volumeSlider = document.getElementById('volume-slider');
+    const volumeIcon = document.getElementById('volume-icon');
 
-// 1. MÜZİK KONTROLÜ
-const music = document.getElementById('background-music');
-const musicToggle = document.getElementById('music-toggle');
-const volumeSlider = document.getElementById('volume-slider');
-const volumeIcon = document.getElementById('volume-icon');
+    // Müzik Kontrolleri
+    let isPlaying = false;
 
-// Başlangıç ayarları: Ses kapalı (0)
-music.volume = 0; 
-volumeSlider.value = 0;
-
-// Ses seviyesi değişince müzik sesini ayarla
-volumeSlider.addEventListener('input', () => {
-    music.volume = volumeSlider.value;
-    updateVolumeIcon(music.volume);
-    
-    // Eğer kullanıcı sesi açarsa, müziği çalmaya zorla
-    if (music.volume > 0 && music.paused) {
-        music.play().catch(e => console.log("Müzik çalma denemesi başarısız: ", e));
-    }
-    
-    // Ses açılırsa "paused" sınıfını kaldır, tam kapanırsa ekle
-    if (music.volume > 0) {
-        musicToggle.classList.remove('paused');
-    } else {
-        musicToggle.classList.add('paused');
-    }
-});
-
-// Ses seviyesine göre emojiyi güncelleyen fonksiyon
-function updateVolumeIcon(volume) {
-    const vol = parseFloat(volume);
-    if (vol === 0) {
-        volumeIcon.textContent = '🔇'; // Sessiz
-    } else if (vol <= 0.4) {
-        volumeIcon.textContent = '🔈'; // Düşük
-    } else if (vol <= 0.7) {
-        volumeIcon.textContent = '🔉'; // Orta
-    } else {
-        volumeIcon.textContent = '🔊'; // Yüksek
-    }
-}
+    // Başlangıçta sesi kapalı (mute) ve ikon 🔇 olarak ayarla
+    backgroundMusic.volume = 0;
+    volumeSlider.value = 0;
+    musicToggle.classList.add('paused');
+    musicToggle.setAttribute('aria-label', 'Sesi Aç');
 
 
-// Mute/Unmute düğmesine basıldığında
-musicToggle.addEventListener('click', () => {
-    if (music.volume > 0 || !music.paused) {
-        // Şu an ses açıksa veya çalıyorsa, kapat
-        music.volume = 0;
-        volumeSlider.value = 0;
-        music.pause(); // Müzik durdurulur
-        musicToggle.classList.add('paused');
-    } else {
-        // Şu an kapalıysa, sesi varsayılan olarak 0.5'e aç ve oynat
-        music.volume = 0.5; 
-        volumeSlider.value = 0.5;
-        music.play().catch(e => console.error("Oynatma hatası:", e));
-        musicToggle.classList.remove('paused');
-    }
-    updateVolumeIcon(music.volume);
-});
-
-// Tarayıcı kısıtlaması: Kullanıcının ilk etkileşiminde sesi başlatma
-function handleFirstInteraction() {
-    document.body.removeEventListener('click', handleFirstInteraction);
-    // Sadece play'i deneriz, ses seviyesi 0'da kalır (muted)
-    music.play().catch(e => {
-        console.log("Müzik otomatik oynatma engellendi.");
-    });
-}
-
-document.body.addEventListener('click', handleFirstInteraction, { once: true });
-
-
-// 2. DİSCORD VERİ ÇEKME VE GÜNCELLEME
-async function fetchDiscordData() {
-    try {
-        const response = await fetch(LANYARD_API_URL);
-        const data = await response.json();
-
-        if (data.success && data.data) {
-            const user = data.data;
-            updateDiscordCard(user);
+    // Sesi açma/kapama fonksiyonu
+    musicToggle.addEventListener('click', () => {
+        if (isPlaying) {
+            backgroundMusic.pause();
+            isPlaying = false;
+            musicToggle.classList.add('paused');
+            volumeIcon.textContent = '🔇'; // Kapalı ikon
+            musicToggle.setAttribute('aria-label', 'Sesi Aç');
         } else {
-            showOfflineState();
-        }
-    } catch (error) {
-        console.error("Lanyard API hatası:", error);
-        showOfflineState();
-    }
-    
-    // Her 10 saniyede bir verileri güncelle
-    setTimeout(fetchDiscordData, 10000); 
-}
-
-function updateDiscordCard(user) {
-    let activityText = 'Şu anda oynamıyor...'; 
-    let statusColor = '#99aab5'; // Varsayılan: Gri (Çevrimdışı)
-    let activityDotColor = '#99aab5'; // Varsayılan: Gri (Aktivite yok)
-
-    // Discord Durum Rengini Ayarla
-    if (user.discord_status === 'online') {
-        statusColor = '#43b581'; // Yeşil
-    } else if (user.discord_status === 'idle') {
-        statusColor = '#faa61a'; // Sarı
-    } else if (user.discord_status === 'dnd') {
-        statusColor = '#f04747'; // Kırmızı
-    }
-    
-    // Aktivite Kontrolü: Spotify ve Diğer aktiviteler (Oyun/Stream)
-    const spotifyActivity = user.activities.find(act => act.name === 'Spotify' && act.type === 2);
-    const mainActivity = user.activities.find(act => act.type === 0 || act.type === 1); 
-
-    if (spotifyActivity) {
-        activityText = `Spotify'da ${spotifyActivity.details}`;
-        activityDotColor = '#1DB954'; // Spotify Yeşili
-    } else if (mainActivity) {
-        // Oyun/Stream varsa
-        activityDotColor = '#43b581'; // Genel Aktivite Yeşili
-        if (mainActivity.details) {
-            if (mainActivity.state) {
-                 activityText = `${mainActivity.details} (${mainActivity.state})`;
-            } else {
-                 activityText = mainActivity.details;
+            // İlk tıklamada müziği başlat
+            backgroundMusic.play().catch(error => {
+                console.log("Oynatma hatası:", error);
+            });
+            isPlaying = true;
+            musicToggle.classList.remove('paused');
+            
+            // Eğer slider 0'da değilse, sesi aç (varsayılan: 0.5)
+            if (volumeSlider.value == 0) {
+                backgroundMusic.volume = 0.5;
+                volumeSlider.value = 0.5;
             }
-        } else if (mainActivity.name) {
-            activityText = mainActivity.name;
-        } 
-    } else {
-        // Aktif değilse (Boşta/Çevrimiçi ama bir şey yapmıyorsa)
-        activityDotColor = '#99aab5'; // Gri
-        
-        // **DÜZELTME BURADA**
-        // Kullanıcı online olsa bile aktif bir şey yapmıyorsa
-        activityText = 'Şu anda bir aktivite yok...';
-    }
-    
-    // Discord CDN'den avatar çekme
-    let avatarUrl = `https://cdn.discordapp.com/avatars/${user.discord_user.id}/${user.discord_user.avatar}.png?size=256`;
-    
-    // Kartın HTML içeriğini oluştur
-    cardElement.innerHTML = `
-        <div class="discord-header">
-            <img src="${avatarUrl}" alt="${user.discord_user.username}" class="discord-avatar">
-            <div>
-                <span class="discord-username">${user.discord_user.global_name || user.discord_user.username}</span>
-                <span class="discord-tag">#${user.discord_user.discriminator === '0' ? '' : user.discord_user.discriminator}</span>
-            </div>
-        </div>
-        <div class="status-indicator-wrapper">
-            <span class="status-dot" style="background-color: ${statusColor};"></span>
-            Durum: <strong>${user.discord_status === 'online' ? 'Çevrimiçi' : user.discord_status === 'idle' ? 'Boşta' : user.discord_status === 'dnd' ? 'Rahatsız Etmeyin' : 'Çevrimdışı'}</strong>
-        </div>
-        <div class="discord-status">
-            <span class="activity-dot" style="background-color: ${activityDotColor};"></span>
-            Aktivite: <strong>${activityText}</strong>
-        </div>
-    `;
+            // Sesi açtıktan sonra ikonu kontrol et
+            volumeIcon.textContent = (backgroundMusic.volume > 0) ? '🔊' : '🔇';
+            musicToggle.setAttribute('aria-label', 'Sesi Kapat');
+        }
+    });
 
-    cardElement.style.display = 'block';
-    cardElement.classList.add('active'); 
-}
+    // Ses seviyesi kontrolü
+    volumeSlider.addEventListener('input', (e) => {
+        const volume = parseFloat(e.target.value);
+        backgroundMusic.volume = volume;
 
-function showOfflineState() {
-     // **DÜZELTME BURADA**
-     // showOfflineState fonksiyonunda da parantezli ifadeyi kaldırıyoruz.
-     cardElement.innerHTML = `
-        <div class="discord-header">
-            <img src="avatar_placeholder.png" alt="Çevrimdışı" class="discord-avatar">
-            <span class="discord-username">Veri Çekilemiyor</span>
-        </div>
-        <div class="discord-status">
-            Durum: <strong>Çevrimdışı</strong>
-        </div>
-        <div class="discord-status">
-            Aktivite: <span class="activity-dot" style="background-color: #99aab5;"></span> <strong>Kullanıcı aktif değil</strong>
-        </div>
-    `;
-    cardElement.style.display = 'block';
-    cardElement.classList.add('active');
-}
+        // Ses seviyesine göre ikon güncelleme
+        if (volume === 0) {
+            volumeIcon.textContent = '🔇'; // Sessiz
+            musicToggle.classList.add('paused');
+        } else {
+            volumeIcon.textContent = '🔊'; // Sesli
+            musicToggle.classList.remove('paused');
+        }
 
-// Uygulamayı Başlat
-document.addEventListener('DOMContentLoaded', fetchDiscordData);
+        // Eğer slider 0'dan yukarı çekilirse ve müzik duraklatılmışsa, oynatmayı başlat
+        if (volume > 0 && !isPlaying) {
+             backgroundMusic.play().catch(error => {
+                console.log("Oynatma hatası:", error);
+            });
+            isPlaying = true;
+            musicToggle.classList.remove('paused');
+        }
+    });
+
+    // Discord API'den verileri çekme (Buraya kendi API URL'nizi girin)
+    // Örnek: 'https://api.lanyard.rest/v1/users/YOUR_DISCORD_ID'
+    const DISCORD_ID = '1252284892457468026';
+    const API_URL = `https://api.lanyard.rest/v1/users/${DISCORD_ID}`;
+
+    const fetchDiscordStatus = () => {
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                const user = data.data;
+
+                if (!user || user.listening_to_spotify === undefined) {
+                    throw new Error("Discord verileri alınamadı.");
+                }
+
+                // 1. Durum Rengi
+                const status = user.discord_status || 'offline';
+                let statusColor;
+                switch (status) {
+                    case 'online':
+                        statusColor = '#43B581'; // Yeşil
+                        break;
+                    case 'idle':
+                        statusColor = '#FAA61A'; // Turuncu
+                        break;
+                    case 'dnd':
+                        statusColor = '#F04747'; // Kırmızı
+                        break;
+                    default:
+                        statusColor = '#747F8D'; // Gri (çevrimdışı/görünmez)
+                }
+
+                // 2. Aktivite
+                let activityText;
+                let activityDotColor = 'transparent'; // Varsayılan: Yok
+                let activityDotVisible = false;
+
+                if (user.activities && user.activities.length > 0) {
+                    const activity = user.activities[0];
+                    activityDotVisible = true;
+                    
+                    if (activity.type === 0) { // Playing
+                        activityText = `Oynuyor: <strong>${activity.name}</strong>`;
+                        activityDotColor = '#1DB954'; // Oyun yeşili
+                    } else if (activity.type === 1) { // Streaming
+                        activityText = `Yayın yapıyor: <strong>${activity.name}</strong>`;
+                        activityDotColor = '#9400D3'; // Twitch moru
+                    } else if (activity.type === 2) { // Listening (Spotify)
+                        if (user.spotify) {
+                            activityText = `Dinliyor: <strong>${user.spotify.song}</strong> - ${user.spotify.artist}`;
+                            activityDotColor = '#1DB954'; // Spotify yeşili
+                        } else {
+                             // Aktivite metni boşluksuz olarak düzeltildi
+                            activityText = 'Şu anda bir aktivite yok...';
+                            activityDotVisible = false;
+                        }
+                    } else {
+                        // Aktivite metni boşluksuz olarak düzeltildi
+                        activityText = 'Şu anda bir aktivite yok...';
+                        activityDotVisible = false;
+                    }
+
+                } else {
+                    // Aktivite metni boşluksuz olarak düzeltildi
+                    activityText = 'Şu anda bir aktivite yok...';
+                    activityDotVisible = false;
+                }
+
+                // 3. Kartı HTML ile güncelleme
+                discordCard.innerHTML = `
+                    <div class="discord-header">
+                        <div style="position: relative;">
+                            <img src="https://cdn.discordapp.com/avatars/${DISCORD_ID}/${user.discord_user.avatar}.png?size=1024" alt="Avatar" class="discord-avatar">
+                            <span class="status-dot" style="background-color: ${statusColor}; border-color: ${statusColor}; position: absolute; bottom: 0; right: 0;"></span>
+                        </div>
+                        
+                        <div>
+                            <span class="discord-username">${user.discord_user.username}</span>
+                            <span class="discord-tag">#${user.discord_user.discriminator === '0' ? '' : user.discord_user.discriminator}</span>
+                        </div>
+                    </div>
+
+                    <div class="status-indicator-wrapper">
+                        ${activityDotVisible ? `<span class="activity-dot" style="background-color: ${activityDotColor}; border-color: ${activityDotColor};"></span>` : ''}
+                        <span class="discord-status">${activityText}</span>
+                    </div>
+
+                    <div class="status-indicator-wrapper" style="margin-bottom: 0;">
+                        <span style="font-size: 1.1em;">👁️‍🗨️</span>
+                        <span style="font-size: 0.95em; color: #b9bbbe; margin-left: 10px;">
+                            kaç kişi baktıysa
+                        </span>
+                    </div>
+                `;
+                discordCard.style.display = 'block';
+                discordCard.classList.remove('loading');
+
+            })
+            .catch(error => {
+                console.error("Discord verileri çekilirken hata oluştu:", error);
+                discordCard.innerHTML = `<span style="color: #f04747;">Discord verileri yüklenemedi.</span>`;
+                discordCard.style.display = 'block';
+                discordCard.classList.remove('loading');
+            });
+    };
+
+    // İlk yüklemede ve ardından her 10 saniyede bir çek
+    fetchDiscordStatus();
+    setInterval(fetchDiscordStatus, 10000); 
+});
