@@ -9,7 +9,6 @@ body {
     color: white;
     overflow: hidden; 
     cursor: default;
-    /* Sayfanın tamamının zarifçe görünmesi */
     animation: fadeInPage 1.5s ease-out forwards;
     opacity: 0; 
 }
@@ -39,7 +38,7 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    filter: brightness(50%) blur(2px); /* Daha koyu ve daha bulanık */
+    filter: brightness(50%) blur(2px);
     transition: filter 0.5s ease;
 }
 
@@ -58,12 +57,12 @@ body {
 
 /* 3. BAŞLIK STİLİ - NEON ETKİSİ */
 .title {
-    font-size: 6em; 
+    font-size: 6em;
     font-weight: 800;
-    letter-spacing: 7px; 
+    letter-spacing: 7px;
     margin-bottom: 40px;
     
-    /* Neon Gölge Efekti (Mavi/Camgöbeği Tonlarında) */
+    /* Neon Gölge Efekti */
     text-shadow: 
         0 0 7px #00FFFF,   
         0 0 10px #00FFFF,
@@ -80,8 +79,8 @@ body {
 
 /* 4. DİSCORD BİLGİ KARTI */
 .discord-info {
-    background: rgba(18, 18, 18, 0.85); 
-    backdrop-filter: blur(12px); 
+    background: rgba(18, 18, 18, 0.85);
+    backdrop-filter: blur(12px);
     padding: 20px 30px;
     border-radius: 15px;
     max-width: 380px;
@@ -151,11 +150,58 @@ body {
     color: #7289DA; 
 }
 
-/* 7. SOSYAL MEDYA LİNKLERİ STİLİ */
-.social-links {
-    margin-top: 30px;
+/* 5. MÜZİK KONTROL SİSTEMİ (SOL ÜST) */
+#music-controls-wrapper {
+    position: fixed;
+    top: 30px;
+    left: 30px;
+    z-index: 20;
     display: flex;
-    gap: 20px; 
+    align-items: center;
+    gap: 15px;
+}
+
+#volume-slider {
+    /* Varsayılan olarak gizli kalacak, sadece butona hover'da görünecek */
+    width: 0; 
+    opacity: 0;
+    transition: all 0.5s ease;
+    cursor: grab;
+}
+
+/* Mause tuşa geldiğinde slider'ı göster */
+#music-controls-wrapper:hover #volume-slider {
+    width: 120px;
+    opacity: 1;
+    margin-left: 5px;
+}
+
+.music-button {
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    border: 2px solid #5865F2; 
+    color: white;
+    width: 50px; /* Daha küçük buton */
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5em; /* Emoji boyutu */
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(88, 101, 242, 0.5); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.music-button:hover {
+    background: rgba(88, 101, 242, 0.3); 
+    transform: scale(1.1);
+}
+
+/* 6. SOSYAL MEDYA LİNKLERİ STİLİ (BÜYÜK İKONLAR VE ANİMASYON) */
+.social-links {
+    margin-top: 35px; /* Karttan biraz daha fazla boşluk */
+    display: flex;
+    gap: 30px; /* İkonlar arasındaki boşluk artırıldı */
     animation: fadeIn 2s ease-out 0.5s forwards; 
     opacity: 0;
 }
@@ -167,70 +213,39 @@ body {
 
 .social-icon {
     color: white;
-    font-size: 1.8em; 
-    transition: all 0.3s ease-in-out;
-    padding: 10px;
+    font-size: 2.2em; /* İkonlar BÜYÜTÜLDÜ */
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Yaylı (Springy) Animasyon */
+    padding: 12px; /* Hover alanını genişletir */
     border-radius: 50%;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); 
 }
 
 .social-icon:hover {
-    transform: scale(1.2) translateY(-3px); 
+    transform: scale(1.3) rotate(5deg); /* Büyüme ve Hafif Dönme Animasyonu */
 }
 
 /* İkona Özgü Renkler ve Gölgeleme (Hover) */
 .instagram:hover {
     color: #E1306C; 
-    box-shadow: 0 0 15px #E1306C;
+    box-shadow: 0 0 20px #E1306C; /* Gölge büyütüldü */
 }
 
 .twitter:hover {
     color: #1DA1F2; 
-    box-shadow: 0 0 15px #1DA1F2;
+    box-shadow: 0 0 20px #1DA1F2;
 }
 
 .twitch:hover {
     color: #6441A4; 
-    box-shadow: 0 0 15px #6441A4;
+    box-shadow: 0 0 20px #6441A4;
 }
 
 .youtube:hover {
     color: #FF0000; 
-    box-shadow: 0 0 15px #FF0000;
+    box-shadow: 0 0 20px #FF0000;
 }
 
-/* 5. MÜZİK KONTROL DÜĞMESİ */
-.music-controls {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 20;
-}
-.music-button {
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
-    border: 2px solid #5865F2; 
-    color: white;
-    width: 65px; 
-    height: 65px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 2em;
-    transition: all 0.3s ease;
-    box-shadow: 0 0 20px rgba(88, 101, 242, 0.5); 
-}
-.music-button:hover {
-    background: rgba(88, 101, 242, 0.3); 
-    transform: scale(1.15);
-}
-.music-button.paused .icon::after {
-    content: "🔇";
-}
-.music-button:not(.paused) .icon::after {
-    content: "🔊";
-}
-
-/* 6. YÜKLEME (LOADING) ANİMASYONU */
+/* 7. YÜKLEME (LOADING) ANİMASYONU */
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
