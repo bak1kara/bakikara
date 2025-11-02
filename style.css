@@ -98,7 +98,8 @@ body {
     margin: 0 auto 15px; 
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7); 
     border: 3px solid rgba(255, 255, 255, 0.15); /* Statik kenarlık kalır */
-    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+    /* YENİLENDİ: Opaklık geçişi eklendi (Flickering'i önlemek için) */
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease; 
     display: flex;
     flex-direction: column; 
     align-items: flex-start;
@@ -112,10 +113,9 @@ body {
     content: none; 
 }
 
-/* YENİ: Discord kartının içindeki tüm öğelere yumuşak geçiş ekle */
-.discord-info * {
-    transition: opacity 0.5s ease; 
-}
+/* Önceki denemeden kalan alt element geçişini kaldırın (Eğer varsa) */
+/* .discord-info * { transition: opacity 0.5s ease; } */
+
 
 .discord-info:hover {
     transform: scale(1.02); 
