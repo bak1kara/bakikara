@@ -18,6 +18,11 @@ volumeSlider.addEventListener('input', () => {
     music.volume = volumeSlider.value;
     updateVolumeIcon(music.volume);
     
+    // Eğer kullanıcı sesi açarsa, müziği çalmaya zorla
+    if (music.volume > 0 && music.paused) {
+        music.play().catch(e => console.log("Müzik çalma denemesi başarısız: ", e));
+    }
+    
     // Ses açılırsa "paused" sınıfını kaldır, tam kapanırsa ekle
     if (music.volume > 0) {
         musicToggle.classList.remove('paused');
@@ -53,26 +58,25 @@ musicToggle.addEventListener('click', () => {
         // Şu an kapalıysa, sesi varsayılan olarak 0.5'e aç ve oynat
         music.volume = 0.5; 
         volumeSlider.value = 0.5;
-        music.play();
+        music.play().catch(e => console.error("Oynatma hatası:", e));
         musicToggle.classList.remove('paused');
     }
     updateVolumeIcon(music.volume);
 });
 
-// Kullanıcının ilk etkileşimini yakalama (Tarayıcı kısıtlamaları için)
+// Tarayıcı kısıtlaması: Kullanıcının ilk etkileşiminde sesi başlatma
 function handleFirstInteraction() {
     document.body.removeEventListener('click', handleFirstInteraction);
-    
-    // Sadece play'i deneriz, ses seviyesi 0'da kalır
+    // Sadece play'i deneriz, ses seviyesi 0'da kalır (muted)
     music.play().catch(e => {
-        console.error("Müzik çalma engellendi, manuel başlatılması gerekiyor.");
+        console.log("Müzik otomatik oynatma engellendi.");
     });
 }
 
 document.body.addEventListener('click', handleFirstInteraction, { once: true });
 
 
-// 2. DİSCORD VERİ ÇEKME VE GÜNCELLEME (GÜVENİLİR VERSİYON)
+// 2. DİSCORD VERİ ÇEKME VE GÜNCELLEME
 async function fetchDiscordData() {
     try {
         const response = await fetch(LANYARD_API_URL);
@@ -94,27 +98,23 @@ async function fetchDiscordData() {
 }
 
 function updateDiscordCard(user) {
-    // Varsayılan aktivite metni
     let activityText = 'Şu anda oynamıyor...'; 
-    let statusColor = '#99aab5'; // Varsayılan: Gri (Çevrimdışı)
+    let statusColor = '#99aab5'; 
 
-    // Durum rengini ayarla
     if (user.discord_status === 'online') {
-        statusColor = '#43b581'; // Yeşil
+        statusColor = '#43b581'; 
     } else if (user.discord_status === 'idle') {
-        statusColor = '#faa61a'; // Sarı
+        statusColor = '#faa61a'; 
     } else if (user.discord_status === 'dnd') {
-        statusColor = '#f04747'; // Kırmızı (Rahatsız Etmeyin)
+        statusColor = '#f04747'; 
     }
 
-    // Aktivite kontrolü: Spotify ve Diğer aktiviteler (Oyun/Stream)
     const spotifyActivity = user.activities.find(act => act.name === 'Spotify' && act.type === 2);
-    const mainActivity = user.activities.find(act => act.type === 0 || act.type === 1); // 0=Oynuyor, 1=Streaming
+    const mainActivity = user.activities.find(act => act.type === 0 || act.type === 1); 
 
     if (spotifyActivity) {
         activityText = `Spotify'da ${spotifyActivity.details}`;
     } else if (mainActivity) {
-        // Ne oynuyorsa onu yazsın
         if (mainActivity.details) {
             if (mainActivity.state) {
                  activityText = `${mainActivity.details} (${mainActivity.state})`;
@@ -126,10 +126,8 @@ function updateDiscordCard(user) {
         } 
     }
     
-    // Discord CDN'den avatar çekme
     let avatarUrl = `https://cdn.discordapp.com/avatars/${user.discord_user.id}/${user.discord_user.avatar}.png?size=256`;
     
-    // Kartın HTML içeriğini oluştur
     cardElement.innerHTML = `
         <div class="discord-header">
             <img src="${avatarUrl}" alt="${user.discord_user.username}" class="discord-avatar">
