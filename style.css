@@ -1,4 +1,6 @@
-/* Genel Ayarlar ve Fontlar */
+/* ========================= */
+/* 0. GENEL AYARLAR */
+/* ========================= */
 body {
     font-family: 'Poppins', sans-serif;
     color: #fff;
@@ -47,6 +49,7 @@ body {
     font-weight: 800;
     letter-spacing: 7px;
     margin-bottom: 40px;
+    /* Kırmızımsı parlaklık */
     text-shadow: 
         0 0 7px rgba(255, 0, 0, 0.7), 
         0 0 15px rgba(255, 0, 0, 0.5);
@@ -55,6 +58,7 @@ body {
 }
 
 .title:hover {
+    /* Mavi/Cyan parlaklık */
     text-shadow: 
         0 0 8px #00FFFF, 
         0 0 15px #00FFFF,
@@ -69,7 +73,9 @@ body {
 }
 
 
+/* ========================= */
 /* 4. DİSCORD KARTI STİLİ */
+/* ========================= */
 .discord-info {
     width: 550px; 
     min-height: 200px;
@@ -79,7 +85,6 @@ body {
     margin: 0 auto 15px; 
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7); 
     border: 3px solid rgba(255, 255, 255, 0.15); 
-    
     transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
     display: flex;
     flex-direction: column; 
@@ -93,7 +98,6 @@ body {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 1.0);
 }
 
-/* Üst Kısım: Avatar ve Kullanıcı Adı */
 .discord-header {
     display: flex;
     align-items: center;
@@ -127,22 +131,49 @@ body {
     color: #b9bbbe;
 }
 
-/* Durum Noktaları */
-.status-dot {
+/* Durum Noktaları - Simülasyon Kapsayıcısı */
+.status-dot, .activity-dot {
     width: 18px; 
     height: 18px;
-    /* Durum rengi JS tarafından veriliyor. */
+    border-radius: 50%; 
     border: 5px solid #1e2024; 
     box-shadow: 0 0 10px rgba(0, 0, 0, 1.0);
+    position: relative;
+    overflow: hidden; 
 }
-/* Aktivite Noktası (Spotify, Oyun vb.) - Artık durumu da simgeliyor. */
-.activity-dot {
-    width: 18px; 
-    height: 18px;
-    /* Aktivite rengi JS tarafından veriliyor. */
-    border: 5px solid #1e2024;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 1.0);
+
+/* Boşta (Ay) Simülasyonu */
+.idle-sim { 
+    background-color: #FAA61A !important; 
 }
+.idle-sim::after {
+    content: '☾'; 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #1e2024; 
+    font-size: 10px; 
+    line-height: 1;
+}
+
+/* Rahatsız Etme (Tire) Simülasyonu */
+.dnd-sim {
+    background-color: #F04747 !important; 
+    border-radius: 20%; 
+}
+.dnd-sim::after {
+    content: '—'; 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #1e2024; 
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 800;
+}
+
 
 /* AKTİVİTE METNİ */
 .status-indicator-wrapper {
@@ -164,87 +195,9 @@ body {
 }
 
 
-/* 6. MÜZİK KONTROLLERİ - ZARİF VE ARKA PLANSIZ */
-#music-controls-wrapper {
-    position: fixed; 
-    top: 30px;
-    left: 30px;
-    display: flex;
-    align-items: center;
-    z-index: 10;
-    /* ARKA PLAN VE GÖLGE KALDIRILDI */
-    padding: 0; 
-    background-color: transparent; 
-    box-shadow: none;
-    transition: all 0.3s ease;
-}
-
-/* Zarif bir hover efekti ekleyelim */
-#music-controls-wrapper:hover {
-    padding: 5px 10px;
-    background-color: rgba(0, 0, 0, 0.3); /* Hover'da hafif bir arka plan gelsin */
-    border-radius: 10px;
-}
-
-.music-button {
-    background: none;
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    font-size: 28px; /* İkon büyütüldü */
-    padding: 5px; /* Daha zarif bir padding */
-    transition: color 0.3s, transform 0.3s;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7); /* İkona hafif parlaklık */
-}
-
-.music-button:hover {
-    color: #9400D3; /* Hafif mor vurgu */
-    transform: scale(1.1);
-}
-
-#volume-slider {
-    width: 150px; 
-    margin-left: 15px;
-    height: 5px; /* Slider inceltildi */
-    background: #5865f2;
-    -webkit-appearance: none; /* Varsayılan tarayıcı stilini kaldır */
-    appearance: none;
-    border-radius: 5px;
-}
-
-#volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 15px; /* Thumb küçültüldü */
-    height: 15px;
-    border-radius: 50%;
-    background: #fff;
-    cursor: pointer;
-    box-shadow: 0 0 8px #fff; 
-}
-
-
-/* 7. ZİYARETÇİ SAYACI STİLİ */
-.visitor-counter-display {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 5px; 
-    margin-bottom: 20px; 
-    font-size: 1.2em; 
-    color: #fff;
-    width: 550px; 
-    box-sizing: border-box; 
-}
-
-.visitor-icon {
-    font-size: 1.4em; 
-    margin-right: 10px;
-    color: #fff; 
-    text-shadow: 0 0 7px rgba(255, 255, 255, 0.7); 
-}
-
-/* 5. SOSYAL LİNKLER (Büyük ve Animasyonlu İkon) */
+/* ========================= */
+/* 5. SOSYAL LİNKLER */
+/* ========================= */
 .social-links {
     display: flex;
     justify-content: center;
@@ -253,6 +206,7 @@ body {
 }
 .social-icon {
     font-size: 70px; 
+    color: #fff;
     transition: color 0.4s, transform 0.4s, filter 0.4s;
 }
 
@@ -277,4 +231,87 @@ body {
     100% {
         filter: drop-shadow(0 0 15px rgba(255, 255, 255, 1.0)) drop-shadow(0 0 25px rgba(88, 101, 242, 0.8));
     }
+}
+
+
+/* ========================= */
+/* 6. MÜZİK KONTROLLERİ - ZARİF */
+/* ========================= */
+#music-controls-wrapper {
+    position: fixed; 
+    top: 30px;
+    left: 30px;
+    display: flex;
+    align-items: center;
+    z-index: 10;
+    padding: 0; 
+    background-color: transparent; 
+    box-shadow: none;
+    transition: all 0.3s ease;
+}
+
+#music-controls-wrapper:hover {
+    padding: 5px 10px;
+    background-color: rgba(0, 0, 0, 0.3); 
+    border-radius: 10px;
+}
+
+.music-button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 28px; 
+    padding: 5px; 
+    transition: color 0.3s, transform 0.3s;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7); 
+}
+
+.music-button:hover {
+    color: #9400D3; 
+    transform: scale(1.1);
+}
+
+#volume-slider {
+    width: 150px; 
+    margin-left: 15px;
+    height: 5px; 
+    background: #5865f2;
+    -webkit-appearance: none; 
+    appearance: none;
+    border-radius: 5px;
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px; 
+    height: 15px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 8px #fff; 
+}
+
+
+/* ========================= */
+/* 7. ZİYARETÇİ SAYACI STİLİ */
+/* ========================= */
+.visitor-counter-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5px; 
+    margin-bottom: 20px; 
+    font-size: 1.2em; 
+    color: #fff;
+    width: 550px; 
+    box-sizing: border-box; 
+}
+
+.visitor-icon {
+    font-size: 1.4em; 
+    margin-right: 10px;
+    color: #fff; 
+    text-shadow: 0 0 7px rgba(255, 255, 255, 0.7); 
 }
