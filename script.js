@@ -1,39 +1,74 @@
 // ** Ayarlar **
-// ❗ KENDİ DISCORD ID'NİZİ BURAYA YAZMALISINIZ ❗
-const DISCORD_USER_ID = '1252284892457468026'; 
+const DISCORD_USER_ID = '1252284892457468026'; // KENDİ DISCORD ID'NİZİ BURAYA YAZMALISINIZ
 const LANYARD_API_URL = `https://api.lanyard.rest/v1/users/${DISCORD_USER_ID}`;
 const cardElement = document.getElementById('discord-card');
 
-// 1. MÜZİK KONTROLÜ
+// 1. MÜZİK KONTROLÜ (YENİ VE SEVİYELİ)
 const music = document.getElementById('background-music');
 const musicToggle = document.getElementById('music-toggle');
+const volumeSlider = document.getElementById('volume-slider');
+const volumeIcon = document.getElementById('volume-icon');
 
-// Kullanıcının ilk etkileşimini yakalama (Müzik başlatma kısıtlamasını aşmak için)
-function handleFirstInteraction() {
-    // Sadece bir kere çalışsın ve dinleyiciyi kaldır
-    document.body.removeEventListener('click', handleFirstInteraction);
+// Başlangıç ayarları: Ses kapalı (0)
+music.volume = 0; 
+volumeSlider.value = 0;
+
+// Ses seviyesi değişince müzik sesini ayarla
+volumeSlider.addEventListener('input', () => {
+    music.volume = volumeSlider.value;
+    updateVolumeIcon(music.volume);
     
-    // Sesin çalmasını dene
-    music.play().then(() => {
-        musicToggle.classList.remove('paused');
-    }).catch(e => {
-        console.error("Müzik çalma engellendi, manuel başlatılması gerekiyor.");
-        musicToggle.classList.add('paused');
-    });
-}
-
-// Müzik düğmesine basıldığında çalma/durdurma
-musicToggle.addEventListener('click', () => {
-    if (music.paused) {
-        music.play();
+    // Ses açılırsa "paused" sınıfını kaldır, tam kapanırsa ekle
+    if (music.volume > 0) {
         musicToggle.classList.remove('paused');
     } else {
-        music.pause();
         musicToggle.classList.add('paused');
     }
 });
 
-// Sayfadaki herhangi bir yere tıklama olayını dinle
+// Ses seviyesine göre emojiyi güncelleyen fonksiyon
+function updateVolumeIcon(volume) {
+    const vol = parseFloat(volume);
+    if (vol === 0) {
+        volumeIcon.textContent = '🔇'; // Sessiz
+    } else if (vol <= 0.4) {
+        volumeIcon.textContent = '🔈'; // Düşük
+    } else if (vol <= 0.7) {
+        volumeIcon.textContent = '🔉'; // Orta
+    } else {
+        volumeIcon.textContent = '🔊'; // Yüksek
+    }
+}
+
+
+// Mute/Unmute düğmesine basıldığında
+musicToggle.addEventListener('click', () => {
+    if (music.volume > 0 || !music.paused) {
+        // Şu an ses açıksa veya çalıyorsa, kapat
+        music.volume = 0;
+        volumeSlider.value = 0;
+        music.pause(); // Müzik durdurulur
+        musicToggle.classList.add('paused');
+    } else {
+        // Şu an kapalıysa, sesi varsayılan olarak 0.5'e aç ve oynat
+        music.volume = 0.5; 
+        volumeSlider.value = 0.5;
+        music.play();
+        musicToggle.classList.remove('paused');
+    }
+    updateVolumeIcon(music.volume);
+});
+
+// Kullanıcının ilk etkileşimini yakalama (Tarayıcı kısıtlamaları için)
+function handleFirstInteraction() {
+    document.body.removeEventListener('click', handleFirstInteraction);
+    
+    // Sadece play'i deneriz, ses seviyesi 0'da kalır
+    music.play().catch(e => {
+        console.error("Müzik çalma engellendi, manuel başlatılması gerekiyor.");
+    });
+}
+
 document.body.addEventListener('click', handleFirstInteraction, { once: true });
 
 
