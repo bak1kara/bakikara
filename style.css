@@ -99,7 +99,8 @@ body {
 .discord-avatar {
     width: 50px;
     height: 50px;
-    border-radius: 50%;
+    /* AVATAR ŞEKLİ KARE/HAFİF YUVARLAK YAPILDI */
+    border-radius: 10px; 
     margin-right: 15px;
     position: relative;
     border: 3px solid #1e2024; /* Kartın arkaplanı ile uyumlu kalın border */
@@ -113,9 +114,8 @@ body {
     display: block;
 }
 .discord-tag {
-    font-size: 0.85em;
-    color: #b9bbbe;
-    display: block;
+    /* Etiket (#) alanı boş bırakıldığı için gizlendi */
+    display: none;
 }
 
 /* Durum Noktası (Çevrimiçi, Boşta vb.) */
@@ -179,7 +179,7 @@ body {
     color: #5865f2;
 }
 
-/* 7. ZİYARETÇİ SAYACI STİLİ (TAM ŞEFFAF VE İSTENİLEN GÖRÜNÜM) */
+/* 7. ZİYARETÇİ SAYACI STİLİ (ARKA PLANSIZ VE HER ZAMAN GÖRÜNÜR İKON) */
 .visitor-counter-display {
     display: flex;
     align-items: center;
@@ -187,36 +187,23 @@ body {
     margin-top: -15px; 
     margin-bottom: 20px; 
     font-size: 0.95em;
-    color: #b9bbbe;
+    color: #fff;
     
-    /* ARKA PLAN ŞEFFAF YAPILDI */
+    /* ARKA PLAN VE GÖLGE KALDIRILDI */
     background: transparent; 
-    border-radius: 8px;
-    padding: 8px 15px;
+    padding: 0; /* Boşluk kaldırıldı */
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
-    box-shadow: none; /* Gölge kaldırıldı */
-    transition: all 0.3s ease;
-}
-
-.visitor-counter-display:hover {
-    background: transparent; /* Hover'da bile şeffaf kalsın */
-    transform: none; /* Hover efekti kaldırıldı */
+    box-shadow: none; 
 }
 
 .visitor-icon {
     font-size: 1.1em; 
     margin-right: 8px;
     vertical-align: middle;
-    /* İKON RENGİ ŞEFFAF YAPILDI */
-    color: rgba(255, 255, 255, 0.0); /* Tamamen şeffaf beyaz */
-    transition: color 0.3s; 
-}
-
-/* Göz ikonunun üzerine gelince rengi beyaz olsun */
-.visitor-counter-display:hover .visitor-icon {
-    color: #fff; /* Hover'da beyaz */
+    /* İKON HER ZAMAN BEYAZ VE GÖRÜNÜR */
+    color: #fff; 
 }
 
 #visitor-count-text {
