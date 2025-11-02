@@ -50,7 +50,7 @@ body {
     letter-spacing: 7px;
     margin-bottom: 40px;
     
-    /* YENİLENDİ: Normalde KIRMIZI parlama */
+    /* Normalde KIRMIZI parlama */
     text-shadow: 
         0 0 7px rgba(255, 0, 0, 0.7), 
         0 0 15px rgba(255, 0, 0, 0.5);
@@ -58,14 +58,13 @@ body {
     transition: text-shadow 0.4s ease-in-out;
     animation: fadeInDown 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
     
-    /* Çerçeve kaldığı için bu stiller temizlendi */
     position: static; 
     display: inline-block; 
     padding: 0;
     overflow: visible; 
 }
 
-/* YENİLENDİ: Fare gelince MAVİ/CYAN parlama */
+/* Fare gelince MAVİ/CYAN parlama */
 .title:hover {
     text-shadow: 
         0 0 8px #00FFFF, 
@@ -74,9 +73,6 @@ body {
         0 0 60px #00A9A9; 
     cursor: default; 
 }
-
-/* BAŞLIK ÇERÇEVE KODLARI BURADAN KALDIRILDI (.title::before, .title:hover::before) */
-
 
 @keyframes fadeInDown {
     0% { opacity: 0; transform: translateY(-50px); }
@@ -90,7 +86,7 @@ body {
 .discord-info {
     width: 550px; 
     min-height: 200px;
-    /* Hafif şeffaf arka plan korunuyor */
+    /* ARKA PLAN HAFİF ŞEFFAF KALIYOR (0.8) */
     background: rgba(47, 49, 54, 0.8); 
     border-radius: 15px;
     padding: 30px; 
@@ -106,21 +102,21 @@ body {
     overflow: hidden; 
 }
 
-/* KART ANİMASYONLU KENARLIK */
+/* KART ANİMASYONLU KENARLIK (YILAN ÇERÇEVE) */
 .discord-info::before {
     content: '';
     position: absolute;
-    /* Çizgi gibi görünmesi için 2px'e düşürüldü */
+    /* İnce çerçeve */
     top: -2px; 
     left: -2px; 
     right: -2px; 
     bottom: -2px; 
     background: linear-gradient(45deg, #FF0000, #FF7F00, #FFFF00, #00FF00, #0000FF, #4B0082, #9400D3);
-    /* Yılan gibi dolaşması için boyut 600% 600% yapıldı */
+    /* Yılan hareketini daha belirgin yapmak için boyut 600% 600% */
     background-size: 600% 600%; 
     border-radius: 17px; 
     z-index: -1; 
-    /* Yavaş yılan hareketi için süre 12 saniyeye çıkarıldı */
+    /* Yavaş yılan hareketi */
     animation: gradientBorder 12s ease infinite; 
     filter: blur(0px); 
 }
@@ -135,7 +131,7 @@ body {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 1.0);
 }
 
-/* YENİLENDİ: KENARLIK ANİMASYONU (Yavaş ve Dolaşan) */
+/* KENARLIK ANİMASYONU (Yavaş ve Dolaşan) */
 @keyframes gradientBorder {
     0% {
         background-position: 0% 50%;
@@ -150,7 +146,6 @@ body {
 
 
 .discord-header {
-/* ... (Diğer Discord stilleri aynı kalır) ... */
     display: flex;
     align-items: center;
     margin-bottom: 30px; 
