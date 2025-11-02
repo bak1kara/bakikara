@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const musicToggle = document.getElementById('music-toggle');
     const volumeSlider = document.getElementById('volume-slider');
     const volumeIcon = document.getElementById('volume-icon');
-    const visitorCountTextElement = document.getElementById('visitor-count-text');
+    // visitorCountTextElement artık Busuanzi ile kullanılmadığı için kaldırıldı.
 
     // Müzik Kontrolleri
     let isMusicManuallyPaused = false; 
@@ -31,23 +31,20 @@ document.addEventListener('DOMContentLoaded', () => {
     updateVolumeIcon(backgroundMusic.volume, backgroundMusic.muted); 
 
 
-    // YENİ: Otomatik oynatma kısıtlamasını aşmak için kullanıcı etkileşimini dinle
+    // Otomatik oynatma kısıtlamasını aşmak için kullanıcı etkileşimini dinle
     const handleFirstInteraction = () => {
-         // Eğer müzik sessizse, sesi açmayı dene ve çalmaya başla
          if (backgroundMusic.muted) {
             backgroundMusic.muted = false;
             volumeSlider.value = backgroundMusic.volume;
             updateVolumeIcon(backgroundMusic.volume, backgroundMusic.muted);
          }
 
-         // Eğer tarayıcı otomatik çalmayı engellediyse, ilk tıklamada oynatmayı dene
          if (backgroundMusic.paused) {
              backgroundMusic.play().catch(error => {
                  console.error("Oynatma hatası:", error);
              });
          }
 
-         // Bu dinleyiciyi sadece bir kez kaldır
          document.removeEventListener('click', handleFirstInteraction);
          document.removeEventListener('keydown', handleFirstInteraction);
     };
@@ -98,13 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const LANYARD_API_URL = `https://api.lanyard.rest/v1/users/${DISCORD_ID}`;
 
     const fetchDiscordStatus = () => {
-        // Flickering'i önlemek için: Mevcut içeriği yumuşakça gizle
-        const innerElements = discordCard.querySelectorAll('*');
-        innerElements.forEach(el => {
-            el.style.opacity = '0';
-        });
+        // Flickering'i önlemek için: Kartı yumuşakça gizle
+        discordCard.style.opacity = '0'; 
 
-        // CSS transition süresi kadar bekle ve veriyi çek
+        // 500ms sonra (CSS transition süresi kadar) veriyi çekmeye başla
         setTimeout(() => {
             
             fetch(LANYARD_API_URL)
@@ -153,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const displayName = user.discord_user.global_name || user.discord_user.username;
 
 
-                    // YENİ: InnerHTML'i güncelle
+                    // İçeriği güncelle (Gizliyken yapıldığı için göz kırpma olmaz)
                     discordCard.innerHTML = `
                         <div class="discord-header">
                             <div style="position: relative;">
@@ -174,11 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                     discordCard.classList.remove('loading');
                     
-                    // YENİ: Yeni içeriği yumuşakça görünür yap
-                    const newInnerElements = discordCard.querySelectorAll('*');
-                    newInnerElements.forEach(el => {
-                        el.style.opacity = '1';
-                    });
+                    // Kartı tekrar göster (Yumuşak geçiş CSS tarafından sağlanacak)
+                    discordCard.style.opacity = '1';
 
                 })
                 .catch(error => {
@@ -186,42 +177,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     discordCard.innerHTML = `<span style="color: #f04747; display: block; text-align: center; padding: 10px;">Discord verileri yüklenemedi. (API Hatası)</span>`;
                     discordCard.classList.remove('loading');
                     
-                    // Hata durumunda bile görünürlüğü sağla
                     discordCard.style.opacity = '1';
                 });
-        }, 500); // 500ms bekleme süresi
+        }, 500); 
     };
 
     // ====================================
-    // ZİYARETÇİ SAYACI ENTEGRASYONU (Anahtarlar basitleştirildi)
+    // ZİYARETÇİ SAYACI (Eski API kodları kaldırıldı)
+    // Busuanzi sayacı artık doğrudan HTML'den çalışır.
     // ====================================
-    const COUNT_API_NAMESPACE = 'https://bak1kara.github.io/bakikara/'; 
-    const COUNT_API_KEY = 'v1-total-visits'; 
 
-    const fetchVisitorCount = () => {
-        fetch(`https://api.countapi.xyz/hit/${COUNT_API_NAMESPACE}/${COUNT_API_KEY}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('API yanıtı başarısız oldu.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (visitorCountTextElement) {
-                    visitorCountTextElement.textContent = data.value.toLocaleString('tr-TR');
-                }
-            })
-            .catch(error => {
-                console.error("Sayaç verileri çekilirken hata oluştu:", error);
-                if (visitorCountTextElement) {
-                    visitorCountTextElement.textContent = 'Sayaç Hatası';
-                }
-            });
-    };
 
     // İlk çalıştırma ve yenileme
     fetchDiscordStatus();
-    fetchVisitorCount();
+    // fetchVisitorCount() kaldırıldı
     setInterval(fetchDiscordStatus, 10000); 
 });
-
