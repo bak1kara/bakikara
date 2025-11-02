@@ -181,7 +181,7 @@ body {
     color: #5865f2;
 }
 
-/* 7. ZİYARETÇİ SAYACI STİLİ (Şeffaf/Hover efekti) */
+/* 7. ZİYARETÇİ SAYACI STİLİ (Göz ikonu artık her zaman görünür ve arkaplan şeffaf) */
 .visitor-counter-display {
     display: flex;
     align-items: center;
@@ -199,24 +199,18 @@ body {
     margin-left: auto;
     margin-right: auto;
     box-shadow: none; 
-    transition: all 0.3s ease;
-}
-
-.visitor-counter-display:hover {
-    background: transparent; 
-    transform: none; 
 }
 
 .visitor-icon {
     font-size: 1.1em; 
     margin-right: 8px;
     vertical-align: middle;
-    /* İKON RENGİ ŞEFFAF (Normalde görünmez) */
-    color: rgba(255, 255, 255, 0.0); 
+    /* İKON RENGİ ARTIK BEYAZ VE GÖRÜNÜR */
+    color: #fff; 
     transition: color 0.3s; 
 }
 
-/* Göz ikonunun üzerine gelince rengi beyaz olsun */
+/* Göz ikonunda hover efekti kaldırıldı, çünkü zaten görünür */
 .visitor-counter-display:hover .visitor-icon {
     color: #fff; 
 }
@@ -260,7 +254,7 @@ body {
 #volume-slider {
     width: 100px;
     margin-left: 10px;
-    /* Slider görünümünü özelleştirme (Tarayıcıya göre farklılık gösterebilir) */
+    /* Slider görünümünü özelleştirme */
     -webkit-appearance: none;
     appearance: none;
     height: 5px;
