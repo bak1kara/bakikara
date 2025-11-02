@@ -77,17 +77,17 @@ body {
 }
 
 
-/* 4. DİSCORD BİLGİ KARTI */
+/* 4. DİSCORD BİLGİ KARTI (ŞEFFAF VE KUSURSUZ) */
 .discord-info {
-    background: rgba(18, 18, 18, 0.85);
-    backdrop-filter: blur(12px);
-    padding: 20px 30px;
-    border-radius: 15px;
-    max-width: 380px;
-    min-width: 300px;
+    background: rgba(0, 0, 0, 0.5); /* Yarı şeffaf siyah */
+    backdrop-filter: blur(16px); /* Buzlu cam efekti daha belirgin */
+    padding: 25px 35px; /* İç boşluklar artırıldı */
+    border-radius: 20px; /* Daha yuvarlak köşeler */
+    max-width: 400px;
+    min-width: 320px;
     text-align: left;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1); /* İnce, zarif kenarlık */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8); /* Daha derin gölge */
     transition: all 0.5s ease;
     opacity: 0;
     transform: translateY(20px);
@@ -107,8 +107,8 @@ body {
     width: 100%;
     height: 3px;
     background: linear-gradient(90deg, #7289DA, #4e5d94); 
-    border-bottom-left-radius: 15px;
-    border-bottom-right-radius: 15px;
+    border-bottom-left-radius: 20px; /* Kartın köşelerine uyumlu */
+    border-bottom-right-radius: 20px;
     transform-origin: left;
     animation: expandLine 1.5s ease-out forwards;
 }
@@ -139,16 +139,34 @@ body {
     color: #b9bbbe;
     margin-left: 5px;
 }
-.discord-status {
-    font-size: 1em;
+
+/* Durum Noktası ve Yazısı */
+.status-indicator-wrapper {
+    display: flex;
+    align-items: center;
     padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.15); 
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     color: #d1d1d1;
     margin-top: 8px;
 }
-.discord-status strong {
-    color: #7289DA; 
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.1); 
 }
+
+.discord-status {
+    font-size: 1em;
+    padding-top: 8px;
+    color: #b0b0b0; /* Hafif gri metin */
+    margin-top: 8px;
+}
+.discord-status strong {
+    color: #ffffff; /* Ana bilgiyi beyaz tut */
+}
+
 
 /* 5. MÜZİK KONTROL SİSTEMİ (SOL ÜST) */
 #music-controls-wrapper {
@@ -162,7 +180,6 @@ body {
 }
 
 #volume-slider {
-    /* Varsayılan olarak gizli kalacak, sadece butona hover'da görünecek */
     width: 0; 
     opacity: 0;
     transition: all 0.5s ease;
