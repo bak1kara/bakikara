@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ====================================
     // ZİYARETÇİ SAYACI ENTEGRASYONU (Anahtarlar basitleştirildi)
     // ====================================
-    const COUNT_API_NAMESPACE = 'bakikara-index-page'; 
+    const COUNT_API_NAMESPACE = 'https://bak1kara.github.io/bakikara/'; 
     const COUNT_API_KEY = 'v1-total-visits'; 
 
     const fetchVisitorCount = () => {
@@ -224,3 +224,4 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchVisitorCount();
     setInterval(fetchDiscordStatus, 10000); 
 });
+
