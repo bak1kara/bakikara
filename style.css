@@ -67,7 +67,7 @@ body {
 
 @keyframes fadeInDown {
     0% { opacity: 0; transform: translateY(-50px); }
-    100% { opacity: 1; transform: translateY(0); }
+    100% { transform: translateY(0); }
 }
 
 /* 4. DİSCORD KARTI STİLİ */
@@ -176,6 +176,17 @@ body {
 }
 .social-icon.discord:hover {
     color: #5865f2;
+}
+
+/* 7. ZİYARETÇİ SAYACI STİLİ (YENİ) */
+.visitor-counter-wrapper {
+    margin-bottom: 20px; /* Sosyal ikonlardan biraz yukarıda boşluk bırakır */
+    text-align: center;
+}
+
+.visitor-badge {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
 }
 
 
