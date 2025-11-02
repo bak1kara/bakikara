@@ -1,7 +1,6 @@
 /* JavaScript dosyanızın güncellenmiş hali */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // ... (Müzik Kontrolleri ve diğer başlangıç kodları aynı kalır) ...
     const discordCard = document.getElementById('discord-card');
     const backgroundMusic = document.getElementById('background-music');
     const musicToggle = document.getElementById('music-toggle');
@@ -9,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const volumeIcon = document.getElementById('volume-icon');
     const visitorCountTextElement = document.getElementById('visitor-count-text');
 
-    // Müzik Kontrolleri
+    // Müzik Kontrolleri (Aynı kalır, CSS'te zarifleştirildi)
     let isMusicManuallyPaused = true;
     
     backgroundMusic.volume = 0;
@@ -25,9 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    updateVolumeIcon(backgroundMusic.volume);
+    updateVolumeIcon(backgroundMusic.volume); 
 
-    // Sesi açma/kapama fonksiyonu (Aynı kalır)
     musicToggle.addEventListener('click', () => {
         if (isMusicManuallyPaused) {
             backgroundMusic.play().then(() => {
@@ -47,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Ses seviyesi kontrolü (Aynı kalır)
     volumeSlider.addEventListener('input', (e) => {
         const volume = parseFloat(e.target.value);
         backgroundMusic.volume = volume;
@@ -69,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Müzik Kontrolleri Sonu ---
 
 
-    // Discord API'den verileri çekme 
+    // Discord API'den verileri çekme
     const DISCORD_ID = '1252284892457468026';
     const LANYARD_API_URL = `https://api.lanyard.rest/v1/users/${DISCORD_ID}`;
 
@@ -89,47 +86,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 const status = user.discord_status || 'offline';
                 let statusColor;
                 switch (status) {
-                    case 'online': statusColor = '#43B581'; break;
-                    case 'idle': statusColor = '#FAA61A'; break;
-                    case 'dnd': statusColor = '#F04747'; break;
+                    case 'online': statusColor = '#43B581'; break; // Yeşil
+                    case 'idle': statusColor = '#FAA61A'; break;   // Turuncu (Ay)
+                    case 'dnd': statusColor = '#F04747'; break;    // Kırmızı (Rahatsız Etme)
                     default: statusColor = '#747F8D'; 
                 }
 
                 // 2. Aktivite
                 let activityText = 'Şu anda bir aktivite yok...';
-                let activityDotColor = 'transparent';
+                let activityDotColor = statusColor; // ⚠️ Aktivite noktası durumu yansıtacak
                 let activityDotVisible = false;
                 
-                // Aktivite mantığı (Aynı kalır)
+                // Spotify'ı kontrol et 
                 if (user.listening_to_spotify) {
                     activityText = `Dinliyor: <strong>${user.spotify.song}</strong> - ${user.spotify.artist}`;
-                    activityDotColor = '#1DB954';
+                    activityDotColor = '#1DB954'; // Spotify Yeşil
                     activityDotVisible = true;
-                } else if (user.activities && user.activities.length > 0) {
+                } 
+                // Diğer aktiviteleri kontrol et
+                else if (user.activities && user.activities.length > 0) {
                     const activity = user.activities.find(act => act.type === 0 || act.type === 1 || act.type === 4); 
                     
                     if (activity) {
                         activityDotVisible = true;
                         if (activity.type === 0) {
                             activityText = `Oynuyor: <strong>${activity.name}</strong>`;
-                            activityDotColor = '#5865f2'; 
+                            activityDotColor = statusColor; // Durum rengini kullan
                         } else if (activity.type === 1) {
                             activityText = `Yayın yapıyor: <strong>${activity.name}</strong>`;
-                            activityDotColor = '#9400D3';
+                            activityDotColor = statusColor; // Durum rengini kullan
                         } else if (activity.type === 4) {
                              activityText = `Durum: <strong>${activity.state || activity.name || 'Özel Durum'}</strong>`;
-                             activityDotColor = '#747F8D';
+                             activityDotColor = statusColor; // Durum rengini kullan
                         }
                     }
+                }
+                
+                // Eğer özel aktivite yoksa ama online ise, sadece online durumu gösterilir.
+                if (!activityDotVisible && status !== 'offline') {
+                    activityDotVisible = true;
+                    activityDotColor = statusColor;
                 }
 
                 const avatarUrl = `https://cdn.discordapp.com/avatars/${DISCORD_ID}/${user.discord_user.avatar}.png?size=1024`;
                 const tag = user.discord_user.discriminator === '0' ? '' : `#${user.discord_user.discriminator}`;
-                // Discord'da global_name yoksa username kullanılır.
                 const displayName = user.discord_user.global_name || user.discord_user.username;
 
 
-                // 3. KARTIN YENİ HTML YAPISI İLE GÜNCELLEMESİ
+                // 3. KARTIN HTML YAPISI İLE GÜNCELLEMESİ
                 discordCard.innerHTML = `
                     <div class="discord-header">
                         <div style="position: relative;">
