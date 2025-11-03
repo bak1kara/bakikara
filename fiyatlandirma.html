@@ -14,6 +14,15 @@
         .price-card { background: rgba(255, 255, 255, 0.05); border-radius: 1rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); transition: transform 0.3s ease; }
         .price-card:hover { transform: translateY(-5px); }
         .price-card-premium { border: 2px solid var(--purple); background: rgba(108, 92, 231, 0.1); }
+        .btn-purple {
+            background-color: var(--purple);
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-purple:hover {
+            background-color: #5c4cd9;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -41,17 +50,22 @@
         
         <div class="grid md:grid-cols-3 gap-8 w-full max-w-6xl">
             
-            <!-- Temel Plan -->
+            <!-- Temel Plan (Güncellendi) -->
             <div class="price-card p-8 flex flex-col items-center text-center">
                 <h2 class="text-3xl font-bold mb-4 text-white">Temel</h2>
                 <p class="text-gray-400 mb-6">Başlangıç için mükemmel.</p>
-                <p class="text-5xl font-extrabold mb-8 text-purple">84.99₺</p>
+                <!-- Fiyat formatı Premium ile uyumlu hale getirildi -->
+                <p class="text-5xl font-extrabold mb-8 text-purple">
+                    ₺84.99
+                    <span class="text-xl text-gray-400 font-normal">/ay</span>
+                </p>
                 <ul class="text-left space-y-3 mb-10 text-gray-300 w-full">
                     <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> 1 Biyolink Sayfası</li>
                     <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> Sınırsız Link</li>
                     <li class="flex items-center"><i class="fas fa-times mr-3 text-red-400"></i> Özel Alan Adı</li>
                 </ul>
-                <a href="kaydol.html" class="bg-gray-700 w-full py-3 rounded-lg font-semibold hover:bg-gray-600 transition">Hemen Başlayın</a>
+                <!-- Buton rengi mor olarak değiştirildi -->
+                <a href="kaydol.html" class="btn-purple w-full py-3 rounded-lg font-semibold transition">Hemen Başlayın</a>
             </div>
 
             <!-- Premium Plan -->
@@ -59,7 +73,10 @@
                 <span class="absolute top-0 right-0 bg-purple text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">POPÜLER</span>
                 <h2 class="text-3xl font-bold mb-4 text-white">Premium</h2>
                 <p class="text-gray-400 mb-6">Tüm özelliklere erişin.</p>
-                <p class="text-5xl font-extrabold mb-8 text-white">₺119.99<span class="text-xl text-gray-400 font-normal">/ay</span></p>
+                <p class="text-5xl font-extrabold mb-8 text-white">
+                    ₺119.99
+                    <span class="text-xl text-gray-400 font-normal">/ay</span>
+                </p>
                 <ul class="text-left space-y-3 mb-10 text-gray-300 w-full">
                     <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> Sınırsız Biyolink Sayfası</li>
                     <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> Özel Alan Adı Desteği</li>
