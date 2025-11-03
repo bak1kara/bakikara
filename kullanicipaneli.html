@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yönetim Paneli | BAKİ S2</title>
+    <title>Kullanıcı Paneli | BAKİ S2</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -12,277 +12,358 @@
     <style>
         :root {
             --purple: #6c5ce7;
-            --dark-bg: #1a0e21; /* Sayfa Arka Planı */
-            --sidebar-bg: #2a1b3a; /* Sidebar Arka Planı (Daha koyu mor) */
-            --card-bg: #1f112c; /* Kart Arka Planı */
-            --accent-purple: #9c84ff; /* Vurgu Moru */
+            --dark-bg: #1a0e21;
+            --card-bg: #1f112c;
+            --sidebar-bg: #140b1b;
+            --accent-purple: #9c84ff;
         }
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--dark-bg);
-            color: #e0e0e0;
-            transition: all 0.3s ease-in-out;
+            color: #ffffff;
+            display: flex;
+            min-height: 100vh;
         }
-
-        /* Navigasyon Aktif Stil */
-        .nav-link.active {
-            background-color: rgba(108, 92, 231, 0.2);
-            color: white;
-            border-left-color: var(--purple);
-        }
-
-        /* Sidebar Geçiş Efekti (Mobil Görünüm için) */
         .sidebar {
-            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
-        /* Kart Stilleri */
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            color: #ccc;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--purple);
+            color: white;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.4);
+        }
         .stat-card {
             background-color: var(--card-bg);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(108, 92, 231, 0.3);
         }
-        
-        /* Ana İçerik Alanı */
-        #main-content {
-            transition: margin-left 0.3s ease-in-out;
+        .stat-icon {
+            color: var(--accent-purple);
         }
-
-        /* Mobil Cihazlarda Sidebar'ı Gizleme */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-                z-index: 50;
-                top: 0;
-                height: 100%;
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            #main-content {
-                margin-left: 0 !important;
-            }
+        .cta-button {
+            background-color: var(--purple);
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #5c4cd9;
+        }
+        .chart-mock {
+            background-color: #2a1b3a;
+            border-radius: 0.5rem;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+            font-size: 1.2rem;
         }
     </style>
 </head>
-<body class="flex min-h-screen">
-
-    <!-- Mobile Menu Button (Hamburger) -->
-    <button id="menu-toggle" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-full bg-gray-800 text-white shadow-lg">
-        <i class="fas fa-bars"></i>
-    </button>
-
-    <!-- Sidebar (Sol Menü) -->
-    <div id="sidebar" class="sidebar bg-gray-900 w-64 p-6 flex flex-col space-y-8 border-r border-gray-700 md:translate-x-0" style="background-color: var(--sidebar-bg); border-right: 1px solid rgba(255, 255, 255, 0.1);">
-        
-        <!-- Logo -->
-        <div class="mb-8 flex items-center justify-start">
-            <a href="index.html" class="text-2xl font-extrabold text-white flex items-center">
-                <i class="fas fa-terminal mr-2" style="color: var(--accent-purple);"></i> BAKİ S2
+<body class="min-h-screen flex">
+    
+    <!-- Sidebar / Navigasyon -->
+    <aside class="sidebar w-64 p-6 hidden md:block flex-shrink-0">
+        <h1 class="text-2xl font-extrabold text-white mb-8 flex items-center">
+            <i class="fas fa-terminal mr-2" style="color: var(--accent-purple);"></i> BAKİ S2
+        </h1>
+        <nav class="space-y-2">
+            <a href="#" class="nav-item active">
+                <i class="fas fa-chart-line w-6"></i>
+                <span class="ml-3">Kontrol Paneli</span>
             </a>
-        </div>
-
-        <!-- Navigasyon Menüsü -->
-        <nav class="space-y-2 flex-grow">
-            <!-- Menü Başlığı -->
-            <p class="text-xs font-semibold uppercase text-gray-500 mb-3 ml-3">Ana Menü</p>
-            
-            <a href="#" class="nav-link flex items-center p-3 text-lg font-medium rounded-xl hover:bg-gray-800 active" style="border-left: 4px solid transparent;">
-                <i class="fas fa-chart-line w-6 mr-3"></i> Kontrol Paneli
+            <a href="#" class="nav-item">
+                <i class="fas fa-link w-6"></i>
+                <span class="ml-3">Biyolinkler</span>
             </a>
-            
-            <a href="#" class="nav-link flex items-center p-3 text-lg font-medium rounded-xl hover:bg-gray-800" style="border-left: 4px solid transparent;">
-                <i class="fas fa-user-circle w-6 mr-3"></i> Hesap Ayarları
+            <a href="#" class="nav-item">
+                <i class="fas fa-cog w-6"></i>
+                <span class="ml-3">Ayarlar</span>
             </a>
-            
-            <a href="#" class="nav-link flex items-center p-3 text-lg font-medium rounded-xl hover:bg-gray-800" style="border-left: 4px solid transparent;">
-                <i class="fas fa-link w-6 mr-3"></i> Biyolinkler
-            </a>
-
-            <a href="#" class="nav-link flex items-center p-3 text-lg font-medium rounded-xl hover:bg-gray-800" style="border-left: 4px solid transparent;">
-                <i class="fas fa-cloud-upload-alt w-6 mr-3"></i> Görsel Barındırma
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home w-6"></i>
+                <span class="ml-3">Ana Sayfa</span>
             </a>
         </nav>
-
-        <!-- Alt kısım (Yardım ve Çıkış) -->
-        <div class="pt-8 space-y-2 border-t border-gray-700" style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
-            <a href="yardim.html" class="flex items-center p-3 text-sm rounded-xl hover:bg-gray-800">
-                <i class="fas fa-question-circle w-6 mr-3"></i> Yardım Merkezi
-            </a>
-            <a href="girisyap.html" class="flex items-center p-3 text-sm rounded-xl text-red-400 hover:bg-gray-800">
-                <i class="fas fa-sign-out-alt w-6 mr-3"></i> Çıkış Yap
-            </a>
-        </div>
-    </div>
-
-    <!-- Ana İçerik Alanı -->
-    <div id="main-content" class="flex-grow p-6 md:p-10 w-full">
         
-        <!-- Üst Başlık ve Kullanıcı Bilgisi -->
-        <div class="flex justify-between items-center mb-10">
-            <h1 class="text-4xl font-extrabold text-white">Kontrol Paneli</h1>
-            <div class="flex items-center space-x-3">
-                <div class="text-right hidden sm:block">
-                    <p class="text-sm font-semibold text-white">Kullanıcı Adı</p>
-                    <p class="text-xs text-gray-400">Premium Kullanıcı</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-lg font-bold" style="background-color: var(--accent-purple);">
-                    KA
-                </div>
-            </div>
+        <div class="mt-12 pt-6 border-t border-gray-700">
+            <div class="text-sm text-gray-500">Kullanıcı ID:</div>
+            <div id="userIdDisplay" class="text-xs text-gray-400 truncate">Yükleniyor...</div>
+            <a href="girisyap.html" class="nav-item mt-4 text-sm bg-gray-700 hover:bg-red-600">
+                <i class="fas fa-sign-out-alt w-6"></i>
+                <span class="ml-3">Çıkış Yap</span>
+            </a>
         </div>
+    </aside>
 
-        <!-- İstatistik Kartları (Revenue Overview) -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <!-- Ana İçerik -->
+    <div class="flex-grow p-4 md:p-10 overflow-y-auto">
+        
+        <header class="mb-8 flex justify-between items-center">
+            <h2 class="text-3xl font-bold">Kontrol Paneli</h2>
+            <button class="cta-button px-4 py-2 rounded-lg font-semibold text-white text-sm">
+                <i class="fas fa-plus mr-2"></i> Yeni Biyolink Oluştur
+            </button>
+        </header>
+
+        <!-- İstatistik Kartları (Realtime data gelecek) -->
+        <!-- Finansal veriler silindi, sadece Tıklama ve Ziyaretçi kalıyor -->
+        <section id="statsSection" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             
-            <!-- Kart 1: Aylık Gelir -->
-            <div class="stat-card p-6 rounded-2xl">
-                <p class="text-sm text-gray-400 mb-2 flex items-center justify-between">
-                    Aylık Gelir 
-                    <i class="fas fa-dollar-sign text-green-400"></i>
-                </p>
-                <p class="text-3xl font-bold text-white mb-1">
-                    ₺1,500.00
-                </p>
-                <div class="text-xs text-green-400 font-semibold">
-                    <i class="fas fa-arrow-up mr-1"></i> %12 artış
+            <!-- Tıklama Sayısı -->
+            <div class="stat-card p-6 rounded-xl shadow-lg flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-400 font-medium">Toplam Tıklama</p>
+                    <p id="totalClicks" class="text-4xl font-extrabold mt-1">
+                        <i class="fas fa-spinner fa-spin text-lg"></i> <!-- Loading state -->
+                    </p>
+                </div>
+                <div class="stat-icon bg-gray-900 p-3 rounded-full">
+                    <i class="fas fa-hand-pointer text-xl"></i>
                 </div>
             </div>
 
-            <!-- Kart 2: Toplam Tıklama -->
-            <div class="stat-card p-6 rounded-2xl">
-                <p class="text-sm text-gray-400 mb-2 flex items-center justify-between">
-                    Toplam Tıklama
-                    <i class="fas fa-hand-point-up text-blue-400"></i>
-                </p>
-                <p class="text-3xl font-bold text-white mb-1">
-                    12,450
-                </p>
-                <div class="text-xs text-red-400 font-semibold">
-                    <i class="fas fa-arrow-down mr-1"></i> %3 düşüş
+            <!-- Ziyaretçi Sayısı -->
+            <div class="stat-card p-6 rounded-xl shadow-lg flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-400 font-medium">Benzersiz Ziyaretçi</p>
+                    <p id="uniqueVisitors" class="text-4xl font-extrabold mt-1">
+                        <i class="fas fa-spinner fa-spin text-lg"></i> <!-- Loading state -->
+                    </p>
+                </div>
+                <div class="stat-icon bg-gray-900 p-3 rounded-full">
+                    <i class="fas fa-users text-xl"></i>
                 </div>
             </div>
-
-            <!-- Kart 3: Benzersiz Ziyaretçi -->
-            <div class="stat-card p-6 rounded-2xl">
-                <p class="text-sm text-gray-400 mb-2 flex items-center justify-between">
-                    Benzersiz Ziyaretçi
-                    <i class="fas fa-users" style="color: var(--accent-purple);"></i>
-                </p>
-                <p class="text-3xl font-bold text-white mb-1">
-                    8,123
-                </p>
-                <div class="text-xs text-green-400 font-semibold">
-                    <i class="fas fa-arrow-up mr-1"></i> %5 artış
-                </div>
-            </div>
-
-            <!-- Kart 4: Depolama Kullanımı -->
-            <div class="stat-card p-6 rounded-2xl">
-                <p class="text-sm text-gray-400 mb-2 flex items-center justify-between">
-                    Depolama Kullanımı
-                    <i class="fas fa-hdd text-yellow-400"></i>
-                </p>
-                <p class="text-3xl font-bold text-white mb-1">
-                    2.1 GB
-                </p>
-                <div class="text-xs text-gray-400 font-semibold">
-                    <span class="text-white">50 GB</span> Limit
-                </div>
-            </div>
-
+            
         </section>
 
-        <!-- Hesap İstatistikleri ve Grafik Alanı -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Büyük Grafik Alanı (Placeholder) -->
-            <div class="lg:col-span-2 stat-card p-6 rounded-2xl">
-                <h2 class="text-xl font-bold mb-4 text-white">Hesap İstatistikleri (Son 30 Gün)</h2>
-                <!-- Grafik simülasyonu için görsel yer tutucu -->
-                <div class="h-80 bg-gray-800 rounded-lg flex items-center justify-center text-gray-500 text-lg border border-gray-700">
-                    [Gerçek Zamanlı Grafik Verisi Buraya Gelecektir]
+        <!-- Grafik Alanı -->
+        <section class="mb-10">
+            <div class="stat-card p-6 rounded-xl shadow-lg">
+                <h3 class="text-xl font-semibold mb-4">Aylık Performans</h3>
+                <div class="chart-mock">
+                    Grafik Verileri Yükleniyor...
                 </div>
             </div>
+        </section>
 
-            <!-- Son İşlemler/Bildirimler -->
-            <div class="stat-card p-6 rounded-2xl">
-                <h2 class="text-xl font-bold mb-4 text-white">Son İşlemler</h2>
-                <ul class="space-y-4">
-                    <!-- İşlem 1 -->
-                    <li class="flex justify-between items-center py-2 border-b border-gray-700 last:border-b-0">
-                        <div class="flex items-center">
-                            <i class="fas fa-arrow-up text-sm text-green-400 mr-3"></i>
-                            <div>
-                                <p class="text-sm font-semibold">Premium Abonelik Yenilendi</p>
-                                <p class="text-xs text-gray-500">2 saat önce</p>
-                            </div>
-                        </div>
-                        <span class="text-sm font-semibold text-green-400">+₺150</span>
-                    </li>
-                    <!-- İşlem 2 -->
-                    <li class="flex justify-between items-center py-2 border-b border-gray-700 last:border-b-0">
-                        <div class="flex items-center">
-                            <i class="fas fa-download text-sm text-blue-400 mr-3"></i>
-                            <div>
-                                <p class="text-sm font-semibold">Yeni Dosya Yüklendi</p>
-                                <p class="text-xs text-gray-500">1 gün önce</p>
-                            </div>
-                        </div>
-                        <span class="text-sm text-gray-500">0.5 GB</span>
-                    </li>
-                    <!-- İşlem 3 -->
-                    <li class="flex justify-between items-center py-2 border-b border-gray-700 last:border-b-0">
-                        <div class="flex items-center">
-                            <i class="fas fa-arrow-down text-sm text-red-400 mr-3"></i>
-                            <div>
-                                <p class="text-sm font-semibold">Bağlantı Erişim Hatası</p>
-                                <p class="text-xs text-gray-500">4 gün önce</p>
-                            </div>
-                        </div>
-                        <span class="text-sm font-semibold text-red-400">Düzeltildi</span>
-                    </li>
-                    <!-- İşlem 4 -->
-                    <li class="flex justify-between items-center py-2 border-b border-gray-700 last:border-b-0">
-                        <div class="flex items-center">
-                            <i class="fas fa-link text-sm text-yellow-400 mr-3"></i>
-                            <div>
-                                <p class="text-sm font-semibold">Yeni Biyolink Oluşturuldu</p>
-                                <p class="text-xs text-gray-500">1 hafta önce</p>
-                            </div>
-                        </div>
-                        <span class="text-sm text-gray-500">/proje-x</span>
-                    </li>
-                </ul>
+        <!-- Son Linkler Tablosu -->
+        <section>
+            <h3 class="text-xl font-semibold mb-4">Son Oluşturulan Biyolinkler</h3>
+            <div class="stat-card p-4 rounded-xl shadow-lg overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-700">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Adı</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Hedef URL</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Tıklama</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Oluşturulma</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800" id="linkTableBody">
+                        <!-- Veriler JavaScript ile yüklenecek -->
+                        <tr class="hover:bg-gray-800">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" colspan="4">Link verileri yükleniyor...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
-
-    </div>
-
-    <script>
-        const sidebar = document.getElementById('sidebar');
-        const menuToggle = document.getElementById('menu-toggle');
-        const mainContent = document.getElementById('main-content');
+        </section>
         
-        // Mobil menü açma/kapama
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
+    </div>
+    
+    <!-- Firebase ve Uygulama Scriptleri -->
+    <script type="module">
+        // Firebase Modülleri
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, getDoc, collection, query, getDocs, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Firestore loglarını etkinleştir (Geliştirme için)
+        setLogLevel('Debug');
 
-        // Masaüstü için sayfa yüklendiğinde main içeriğin soldan boşluğunu ayarla
-        function setMainContentMargin() {
-            if (window.innerWidth >= 768) {
-                // Tailwind'deki w-64 (16rem = 256px) değerine eşdeğer
-                mainContent.style.marginLeft = '256px'; 
-                sidebar.classList.remove('open'); // Masaüstünde açık kalmasını sağla
-            } else {
-                mainContent.style.marginLeft = '0';
+        // Global Değişkenler (Canvas tarafından sağlanır)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db, auth, userId = null;
+        let isAuthReady = false;
+
+        // UI Elementleri
+        const totalClicksEl = document.getElementById('totalClicks');
+        const uniqueVisitorsEl = document.getElementById('uniqueVisitors');
+        const userIdDisplayEl = document.getElementById('userIdDisplay');
+        const linkTableBodyEl = document.getElementById('linkTableBody');
+        const chartMockEl = document.querySelector('.chart-mock');
+
+        // Firestore Yolunu oluşturur (Özel Kullanıcı Verisi)
+        const getDashboardDocRef = (uid) => doc(db, `/artifacts/${appId}/users/${uid}/dashboard_stats/main`);
+        const getLinksCollectionRef = (uid) => collection(db, `/artifacts/${appId}/users/${uid}/links`);
+        
+        // Basit bir sayıyı okunabilir formatta döndürür
+        const formatNumber = (num) => {
+            if (num === null || isNaN(num)) return 'N/A';
+            return num.toLocaleString('tr-TR');
+        };
+
+        // Firebase Başlatma ve Kimlik Doğrulama
+        async function initializeFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Kimlik doğrulama işlemi
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        isAuthReady = true;
+                        userIdDisplayEl.textContent = userId;
+                        console.log("Kullanıcı doğrulandı. UID:", userId);
+                        
+                        // Ana veri dinleyicilerini başlat
+                        setupDashboardListener(userId);
+                        setupLinksListener(userId);
+                        
+                        // Eğer ilk kullanıcıysa, varsayılan istatistik belgesini oluştur.
+                        checkAndCreateDefaultStats(userId);
+                    } else {
+                         // Bu senaryo normalde Firebase Güvenlik Kuralları ile engellenir, ancak örnek için:
+                        console.log("Kullanıcı anonim olarak doğrulandı veya oturum açılmadı.");
+                        userId = auth.currentUser ? auth.currentUser.uid : 'anonim';
+                        userIdDisplayEl.textContent = userId + " (Anonim)";
+                        isAuthReady = true;
+                        // Anonim kullanıcılar için dinleyici başlat (Veri alımı güvenlik kurallarına bağlıdır)
+                        setupDashboardListener(userId);
+                        setupLinksListener(userId);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase başlatılırken hata oluştu:", error);
+                totalClicksEl.textContent = "Hata";
+                uniqueVisitorsEl.textContent = "Hata";
             }
         }
 
-        // Sayfa yüklendiğinde ve yeniden boyutlandırıldığında çalıştır
-        window.addEventListener('resize', setMainContentMargin);
-        document.addEventListener('DOMContentLoaded', setMainContentMargin);
+        // Varsayılan istatistik belgesini kontrol et ve oluştur
+        async function checkAndCreateDefaultStats(uid) {
+            const docRef = getDashboardDocRef(uid);
+            try {
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) {
+                    console.log("Varsayılan istatistik belgesi oluşturuluyor...");
+                    // Para birimi ile ilgili veriler kaldırıldı
+                    await setDoc(docRef, {
+                        totalClicks: 0,
+                        uniqueVisitors: 0,
+                        createdAt: new Date(),
+                    });
+                }
+            } catch (error) {
+                console.error("Varsayılan istatistik oluşturulurken hata:", error);
+            }
+        }
+
+        // Dashboard istatistiklerini gerçek zamanlı dinle
+        function setupDashboardListener(uid) {
+            const docRef = getDashboardDocRef(uid);
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const clicks = data.totalClicks || 0;
+                    const visitors = data.uniqueVisitors || 0;
+                    
+                    // UI Güncelleme
+                    totalClicksEl.textContent = formatNumber(clicks);
+                    uniqueVisitorsEl.textContent = formatNumber(visitors);
+                    
+                    chartMockEl.textContent = `Analiz Grafiği (${new Date().toLocaleTimeString('tr-TR')} itibarıyla güncel)`;
+
+                } else {
+                    // Belge yoksa, varsayılan değerleri göster
+                    totalClicksEl.innerHTML = formatNumber(0);
+                    uniqueVisitorsEl.innerHTML = formatNumber(0);
+                    chartMockEl.textContent = "Veri Yok (Yeni Hesap)";
+                }
+            }, (error) => {
+                console.error("Dashboard verisi dinlenirken hata:", error);
+                totalClicksEl.textContent = "Yükleme Hatası";
+                uniqueVisitorsEl.textContent = "Yükleme Hatası";
+            });
+        }
+        
+        // Son linkleri getir ve tabloyu güncelle (Sıralama JS tarafında yapılır)
+        async function setupLinksListener(uid) {
+            linkTableBodyEl.innerHTML = `
+                <tr class="hover:bg-gray-800">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-400" colspan="4">Linkler Yükleniyor...</td>
+                </tr>
+            `;
+
+            try {
+                // Link koleksiyonundan ilk 10 belgeyi çek
+                const q = query(getLinksCollectionRef(uid), limit(10));
+                const querySnapshot = await getDocs(q);
+                let links = [];
+                querySnapshot.forEach((doc) => {
+                    links.push({ id: doc.id, ...doc.data() });
+                });
+
+                linkTableBodyEl.innerHTML = ''; // Tabloyu temizle
+
+                if (links.length === 0) {
+                     linkTableBodyEl.innerHTML = `
+                        <tr class="hover:bg-gray-800">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500" colspan="4">Henüz oluşturulmuş biyolink bulunmamaktadır.</td>
+                        </tr>
+                    `;
+                } else {
+                     // İstenirse burada linkleri JS ile sıralayabiliriz. (Örneğin createdAt alanına göre)
+                     
+                     links.forEach(link => {
+                        const date = link.createdAt ? new Date(link.createdAt.seconds * 1000) : null;
+                        const dateString = date ? date.toLocaleDateString('tr-TR') : 'Bilinmiyor';
+                        const row = `
+                            <tr class="hover:bg-gray-800">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${link.name || 'İsimsiz Link'}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">baki-s2.com/link/${link.id.substring(0, 8)}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-400">${formatNumber(link.clicks || 0)}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${dateString}</td>
+                            </tr>
+                        `;
+                        linkTableBodyEl.innerHTML += row;
+                    });
+                }
+               
+            } catch (error) {
+                 console.error("Linkler yüklenirken hata:", error);
+                 linkTableBodyEl.innerHTML = `
+                    <tr class="hover:bg-gray-800">
+                        <td class="px-6 py-4 text-sm text-red-500" colspan="4">Linkler yüklenirken bir hata oluştu. Lütfen konsolu kontrol edin.</td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Sayfa yüklendiğinde Firebase'i başlat
+        window.onload = initializeFirebase;
     </script>
 </body>
 </html>
