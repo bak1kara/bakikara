@@ -51,7 +51,7 @@
             <nav class="hidden md:flex space-x-6 text-lg">
                 <a href="yardim.html" class="text-gray-300 hover:text-purple transition duration-200">Yardım Merkezi</a>
                 <a href="discord.html" class="text-gray-300 hover:text-purple transition duration-200">Discord</a>
-                <a href="fiyatlandirma.html" class="text-gray-300 hover:text-purple transition duration-200">Fiyatlandırma</a>
+                <a href="fiyatlandirma.html" class="text-gray-300 hover:text-purple transition duration-200">Fiyatlandirma</a>
             </nav>
             <div class="flex space-x-3">
                 <a href="girisyap.html" class="hidden sm:inline-block px-4 py-2 text-purple transition duration-200 rounded-lg">Giriş Yap</a>
@@ -75,7 +75,7 @@
                     <input type="password" id="login_password" required class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple focus:ring focus:ring-purple focus:ring-opacity-50 text-white" placeholder="Şifreniz">
                 </div>
                 
-                <!-- Şifremi Unuttum Bağlantısı Eklendi -->
+                <!-- Şifremi Unuttum Bağlantısı -->
                 <div class="text-right">
                     <a href="sifremiunuttum.html" class="text-sm text-purple hover:underline font-medium">Şifremi Unuttum?</a>
                 </div>
@@ -102,11 +102,21 @@
 
     <!-- Firebase Kodu -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Firebase SDK v12.5.0 kullanılıyor
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
         
-        // Globallerden Firebase yapılandırmasını alma
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // Yeni Firebase yapılandırması
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNlqHUC3n8OD0qKIwUibHlG_zb5-mwb-U",
+            authDomain: "bakikaraxyz.firebaseapp.com",
+            projectId: "bakikaraxyz",
+            storageBucket: "bakikaraxyz.firebasestorage.app",
+            messagingSenderId: "943266630443",
+            appId: "1:943266630443:web:f183bee1e4765460d5136e",
+            measurementId: "G-VYGDTHD960"
+        };
+
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // --- DOM Elementlerini Başlat ---
@@ -127,95 +137,76 @@
         }
 
         // Firebase Uygulamasını Başlat
-        let app;
-        let auth = null; 
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        setPersistence(auth, browserLocalPersistence); 
 
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            setPersistence(auth, browserLocalPersistence); 
-        } catch (error) {
-            console.error("Firebase başlatma hatası (API Anahtarı / Yapılandırma):", error);
-            showMessage("KRİTİK HATA: Firebase sunucuları başlatılamadı. API anahtarınızı kontrol edin.", "error"); 
-        }
-
-        // --- AUTH Kontrolleri ve İşlemler (Sadece auth tanımlıysa çalışır) ---
-        if (auth) {
-            
-            // Oturum Açma Kontrolü (Canvas Gereksinimi)
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    console.log("Kullanıcı durumu kontrol edildi. UID:", user.uid);
-                } else if (!initialAuthToken) {
-                    signInAnonymously(auth).catch(e => console.error("Anonim giriş hatası:", e));
-                }
-            });
-
-            // Custom Token ile Giriş
-            if (initialAuthToken) {
-                signInWithCustomToken(auth, initialAuthToken).catch(e => {
-                    console.error("Custom token ile giriş hatası:", e);
-                    showMessage("Hata: Oturum tokeni ile giriş yapılamadı.", "error");
-                });
+        // Oturum Açma Kontrolü (Canvas Gereksinimi)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Kullanıcı durumu kontrol edildi. UID:", user.uid);
+            } else if (!initialAuthToken) {
+                signInAnonymously(auth).catch(e => console.error("Anonim giriş hatası:", e));
             }
+        });
 
-            // --- Giriş İşlemi ---
-            document.getElementById('loginForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('login_email').value;
-                const password = document.getElementById('login_password').value;
-
-                const button = document.getElementById('loginButton');
-                button.disabled = true;
-                button.textContent = 'Giriş Yapılıyor...';
-
-                try {
-                    // Firebase Auth ile giriş yap
-                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                    
-                    // Başarılı olursa kullanıcıyı ana sayfaya yönlendir
-                    showMessage("Başarılı! Giriş yapıldı. Yönlendiriliyorsunuz...", "success");
-                    
-                    // Başarılı giriş sonrası 2 saniye bekleyip yönlendir
-                    setTimeout(() => {
-                        window.location.href = 'panel.html'; 
-                    }, 2000);
-
-                } catch (error) {
-                    console.error("Giriş hatası:", error);
-                    let errorMessage = "Giriş işlemi sırasında bir hata oluştu.";
-
-                    // Firebase hata kodlarına göre mesajları özelleştirme
-                    switch (error.code) {
-                        case 'auth/invalid-email':
-                            errorMessage = "Geçersiz e-posta adresi formatı.";
-                            break;
-                        case 'auth/user-not-found':
-                        case 'auth/wrong-password':
-                            errorMessage = "Hatalı e-posta veya şifre.";
-                            break;
-                        case 'auth/operation-not-allowed':
-                             errorMessage = "Bu kimlik doğrulama yöntemi (E-posta/Şifre) Firebase projesinde etkin değil. Lütfen Firebase konsolundan etkinleştirin.";
-                             break;
-                        default:
-                            errorMessage = "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.";
-                    }
-                    
-                    showMessage("Giriş hatası: " + errorMessage, "error");
-
-                } finally {
-                    button.disabled = false;
-                    button.textContent = 'Giriş Yap';
-                }
+        // Custom Token ile Giriş
+        if (initialAuthToken) {
+            signInWithCustomToken(auth, initialAuthToken).catch(e => {
+                console.error("Custom token ile giriş hatası:", e);
+                showMessage("Hata: Oturum tokeni ile giriş yapılamadı.", "error");
             });
-            
-        } else {
-            // auth nesnesi yoksa, formu ve butonu devre dışı bırak.
-             document.getElementById('loginButton').disabled = true;
-             document.getElementById('loginButton').textContent = 'Servis Kullanılamıyor (Firebase Hatası)';
-             console.error("Kimlik doğrulama işlemleri atlandı, çünkü Firebase Auth başlatılamadı.");
         }
 
+        // --- Giriş İşlemi ---
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login_email').value;
+            const password = document.getElementById('login_password').value;
+
+            const button = document.getElementById('loginButton');
+            button.disabled = true;
+            button.textContent = 'Giriş Yapılıyor...';
+
+            try {
+                // Firebase Auth ile giriş yap
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                
+                // Başarılı olursa kullanıcıyı ana sayfaya yönlendir
+                showMessage("Başarılı! Giriş yapıldı. Yönlendiriliyorsunuz...", "success");
+                
+                // Başarılı giriş sonrası 2 saniye bekleyip yönlendir
+                setTimeout(() => {
+                    window.location.href = 'panel.html'; 
+                }, 2000);
+
+            } catch (error) {
+                console.error("Giriş hatası:", error);
+                let errorMessage = "Giriş işlemi sırasında bir hata oluştu.";
+
+                // Firebase hata kodlarına göre mesajları özelleştirme
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                        errorMessage = "Geçersiz e-posta adresi formatı.";
+                        break;
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        errorMessage = "Hatalı e-posta veya şifre.";
+                        break;
+                    case 'auth/operation-not-allowed':
+                         errorMessage = "Bu kimlik doğrulama yöntemi Firebase'de etkin değil. Lütfen konsolda 'Authentication' -> 'Sign-in method' kısmından E-posta/Şifre'yi etkinleştirin.";
+                         break;
+                    default:
+                        errorMessage = "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin. Kod: " + error.code;
+                }
+                
+                showMessage("Giriş hatası: " + errorMessage, "error");
+
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Giriş Yap';
+            }
+        });
     </script>
 </body>
 </html>
