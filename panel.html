@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetim Paneli | BAKİ S2</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red-neon: #FF0000;
+            --dark-bg: #111827; /* Tailwind gray-900 */
+            --card-bg: rgba(31, 41, 55, 0.95); /* Tailwind gray-800 */
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+            color: #ffffff;
+        }
+        .neon-text-red {
+            color: var(--red-neon);
+            text-shadow: 0 0 2px var(--red-neon), 0 0 4px rgba(255, 0, 0, 0.2);
+        }
+        .status-card {
+            background-color: var(--card-bg);
+            border-left: 5px solid;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+        .status-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navbar/Header -->
+    <header class="bg-gray-800 shadow-md p-4 flex justify-between items-center sticky top-0 z-10">
+        <div class="text-2xl font-extrabold neon-text-red">
+            <i class="fas fa-server mr-2"></i> Yönetim Paneli
+        </div>
+        <a href="index.html" class="text-gray-300 hover:text-white transition duration-200 text-lg">
+            <i class="fas fa-home mr-2"></i> Ana Sayfaya Dön
+        </a>
+    </header>
+
+    <!-- Ana İçerik Alanı -->
+    <main class="flex-grow container mx-auto p-4 md:p-8">
+        
+        <!-- Ana Başlık ve Selamlama -->
+        <h1 class="text-3xl font-bold mb-6 text-gray-100">Hoş Geldin, BAKİ!</h1>
+        <p class="text-gray-400 mb-8">Sunucunuzun ve hizmetlerinizin mevcut durumunu buradan yönetebilirsiniz.</p>
+
+        <!-- Durum Gösterge Kartları -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            
+            <!-- Sunucu Durumu -->
+            <div class="status-card p-5 rounded-xl border-green-500">
+                <i class="fas fa-heartbeat text-3xl text-green-500 mb-3"></i>
+                <p class="text-gray-300 text-sm">Sunucu Durumu</p>
+                <h2 class="text-2xl font-bold text-green-400">AKTİF</h2>
+            </div>
+
+            <!-- Kullanım Alanı -->
+            <div class="status-card p-5 rounded-xl border-blue-500">
+                <i class="fas fa-hdd text-3xl text-blue-500 mb-3"></i>
+                <p class="text-gray-300 text-sm">Disk Kullanımı</p>
+                <h2 class="text-2xl font-bold">12.4 GB / 100 GB</h2>
+            </div>
+            
+            <!-- Bant Genişliği -->
+            <div class="status-card p-5 rounded-xl border-yellow-500">
+                <i class="fas fa-tachometer-alt text-3xl text-yellow-500 mb-3"></i>
+                <p class="text-gray-300 text-sm">Bant Genişliği</p>
+                <h2 class="text-2xl font-bold">85% Kullanıldı</h2>
+            </div>
+            
+            <!-- Aktif Ziyaretçi -->
+            <div class="status-card p-5 rounded-xl border-purple-500">
+                <i class="fas fa-users text-3xl text-purple-500 mb-3"></i>
+                <p class="text-gray-300 text-sm">Aktif Ziyaretçi</p>
+                <h2 class="text-2xl font-bold">5 Kişi</h2>
+            </div>
+
+        </div>
+        
+        <!-- Hızlı İşlemler Bölümü -->
+        <h2 class="text-2xl font-bold mb-4 neon-text-red">Hızlı İşlemler</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Web Sitesini Yönet -->
+            <button onclick="showAlert('Web sitenizin yapılandırması açılıyor...')"
+                    class="p-4 rounded-lg bg-gray-700 hover:bg-gray-600 transition duration-300 flex items-center justify-center space-x-3 text-xl font-semibold">
+                <i class="fas fa-globe"></i> <span>Web Sitesini Yönet</span>
+            </button>
+            
+            <!-- Veritabanı -->
+            <button onclick="showAlert('Veritabanı yönetimi simülasyonu...')"
+                    class="p-4 rounded-lg bg-gray-700 hover:bg-gray-600 transition duration-300 flex items-center justify-center space-x-3 text-xl font-semibold">
+                <i class="fas fa-database"></i> <span>Veritabanları</span>
+            </button>
+            
+            <!-- Yedekleme -->
+            <button onclick="showAlert('Yedekleme başlatıldı simülasyonu...')"
+                    class="p-4 rounded-lg bg-gray-700 hover:bg-gray-600 transition duration-300 flex items-center justify-center space-x-3 text-xl font-semibold">
+                <i class="fas fa-cloud-upload-alt"></i> <span>Yedekleme Başlat</span>
+            </button>
+            
+        </div>
+        
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-500 text-center p-4 mt-8">
+        © 2025 BAKİ S2 Yönetim Hizmetleri. Tüm hakları saklıdır.
+    </footer>
+    
+    <script>
+        /**
+         * alert() yerine özel mesaj kutusu gösterir.
+         * @param {string} message - Gösterilecek mesaj.
+         */
+        function showAlert(message) {
+            // Kullanıcıya görünür bir geri bildirim sağlamak için geçici bir mesaj kutusu (Toast)
+            const mainCard = document.getElementById('main-card') || document.body;
+            let toast = document.getElementById('panel-toast');
+            
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'panel-toast';
+                toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #f59e0b; color: white; padding: 10px 20px; border-radius: 8px; z-index: 1000; opacity: 0; transition: opacity 0.5s ease;';
+                mainCard.appendChild(toast);
+            }
+
+            toast.textContent = message;
+            toast.style.opacity = 1;
+
+            setTimeout(() => {
+                toast.style.opacity = 0;
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
