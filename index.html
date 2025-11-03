@@ -20,7 +20,8 @@
             <i class="fas fa-download"></i> Video İndirici
         </a>
         <!-- 2. Sırada: Panel Butonu (Erişim Kontrolü artık Firestore ile yapılıyor) -->
-        <a href="javascript:void(0)" onclick="checkPanelAccess()" class="video-download-link panel-link" aria-label="Yönetim Paneline Git">
+        <!-- "onclick" kaldırıldı, JavaScript event listener ile bağlanacak -->
+        <a href="javascript:void(0)" id="panel-button" class="video-download-link panel-link" aria-label="Yönetim Paneline Git">
             <i class="fas fa-tools"></i> Panel
         </a>
     </div>
@@ -78,11 +79,12 @@
 
         // Global Canvas değişkenlerini kullanma
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        // DÜZELTME: Config boş gelirse "projectId" hatası vermemek için placeholder eklendi.
+        
+        // DÜZELTME: Config'in boş veya eksik gelme riskine karşı daha güçlü yedekleme yapıldı.
         const firebaseConfig = JSON.parse(
             typeof __firebase_config !== 'undefined' && __firebase_config.length > 2 
             ? __firebase_config 
-            : '{"projectId": "placeholder-baki-s2"}'
+            : '{"projectId": "placeholder-baki-s2", "apiKey": "placeholder-api-key"}' // apiKey de eklendi
         );
 
         let db;
@@ -128,7 +130,7 @@
          * Panel butonuna tıklandığında Firestore üzerinden yönetici erişimini kontrol eder.
          * Yönetici belgesi varsa erişim izni verir.
          */
-        window.checkPanelAccess = async function() {
+        async function checkPanelAccess() {
             if (!isAuthReady || !db || !userId) {
                 // Auth hazır değilse kullanıcıyı beklet
                 showAccessMessage("Lütfen bekleyin, kimlik doğrulanıyor...", false);
@@ -159,6 +161,14 @@
                 showAccessMessage("Bir veritabanı hatası oluştu. Konsolu kontrol edin.", false);
             }
         }
+
+        // Panel Butonunu JavaScript ile bağlama (Erişim hatasını çözer)
+        document.addEventListener('DOMContentLoaded', () => {
+            const panelButton = document.getElementById('panel-button');
+            if (panelButton) {
+                panelButton.addEventListener('click', checkPanelAccess);
+            }
+        });
 
     </script>
     
