@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Şifremi Unuttum | BAKİ S2</title>
+    <title>Şifremi Sıfırla | BAKİ S2</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
@@ -35,6 +35,9 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             opacity: 0;
             transition: opacity 0.3s, visibility 0.3s;
+            display: flex; 
+            align-items: center;
+            justify-content: center;
         }
         .message-success { background-color: #10b981; }
         .message-error { background-color: #ef4444; }
@@ -42,7 +45,7 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
-    <!-- Navbar -->
+    <!-- Navbar (girisyap.html ve kaydol.html ile aynı) -->
     <header class="header-bg p-4 flex justify-center sticky top-0 z-20">
         <div class="w-full max-w-6xl flex justify-between items-center">
             <a href="panel.html" class="text-3xl font-extrabold text-white flex items-center">
@@ -63,21 +66,21 @@
     <!-- İçerik Alanı -->
     <main class="flex-grow flex flex-col items-center justify-center py-12 px-4">
         <div class="form-card p-8 md:p-10 w-full max-w-md">
-            <h1 class="text-3xl font-extrabold mb-4 text-white text-center">Şifreni Sıfırla</h1>
-            <p class="text-center text-gray-400 mb-6">Lütfen şifresini sıfırlamak istediğiniz e-posta adresini girin.</p>
+            <h1 class="text-3xl font-extrabold mb-4 text-white text-center">Şifremi Sıfırla</h1>
+            <p class="text-center text-gray-400 mb-6">Hesabınızla ilişkili e-posta adresinizi girin. Size bir şifre sıfırlama bağlantısı göndereceğiz.</p>
             
-            <form id="resetForm" class="space-y-4">
+            <form id="passwordResetForm" class="space-y-4">
                 <div>
                     <label for="reset_email" class="block text-sm font-medium text-gray-400 text-left mb-1">E-posta</label>
                     <input type="email" id="reset_email" required class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple focus:ring focus:ring-purple focus:ring-opacity-50 text-white" placeholder="ornek@mail.com">
                 </div>
 
                 <button type="submit" id="resetButton" class="w-full btn-reset py-3 rounded-lg font-bold text-white text-lg mt-4">
-                    Şifre Sıfırlama Bağlantısı Gönder
+                    Sıfırlama Bağlantısı Gönder
                 </button>
             </form>
             
-            <p class="text-center text-sm text-gray-400 mt-6">
+            <p class="text-center text-sm text-gray-400 mt-4">
                 <a href="girisyap.html" class="text-purple hover:underline font-semibold">Giriş sayfasına geri dön</a>
             </p>
         </div>
@@ -93,20 +96,22 @@
 
     <!-- Firebase Kodu -->
     <script type="module">
-        // Firebase SDK v12.5.0 kullanılıyor
+        // Gerekli Firebase fonksiyonlarını içe aktar
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-        import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, setPersistence, browserLocalPersistence, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
         
-        // **GÜNCEL Firebase yapılandırması (Sizin projenizden alındı)**
+        // GÜNCEL Firebase yapılandırması (Önceki sayfalardan alınan)
         const firebaseConfig = {
-            apiKey: "AIzaSyDNlqHUC3n8OD0qKIwUibHlG_zb5-mwb-U",
-            authDomain: "bakikaraxyz.firebaseapp.com",
-            projectId: "bakikaraxyz",
-            storageBucket: "bakikaraxyz.firebasestorage.app",
-            messagingSenderId: "943266630443",
-            appId: "1:943266630443:web:f183bee1e4765460d5136e",
-            measurementId: "G-VYGDTHD960"
+            apiKey: "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao",
+            authDomain: "baki-s2-yonetim.firebaseapp.com",
+            projectId: "baki-s2-yonetim",
+            storageBucket: "baki-s2-yonetim.firebasestorage.app",
+            messagingSenderId: "692508919425",
+            appId: "1:692508919425:web:fac963c81c11b7be70af80",
+            measurementId: "G-Q52XG8GLB2"
         };
+
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // --- DOM Elementlerini Başlat ---
         let messageBox = document.getElementById('messageBox');
@@ -117,61 +122,72 @@
                 messageBox = document.getElementById('messageBox');
                 if (!messageBox) return; 
             }
-            messageBox.textContent = message;
+            messageBox.innerHTML = message;
             messageBox.className = type === 'success' ? 'message-success' : 'message-error';
             messageBox.classList.add('message-show');
             setTimeout(() => {
                 messageBox.classList.remove('message-show');
-            }, 5000); // Şifre sıfırlama mesajı daha uzun kalsın
+            }, 5000); // Mesaj 5 saniye kalsın
         }
 
         // Firebase Uygulamasını Başlat
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        setPersistence(auth, browserLocalPersistence); 
+
+        // Oturum Kontrolü (Canvas Gereksinimi)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Kullanıcı durumu kontrol edildi. UID:", user.uid);
+            } else if (!initialAuthToken) {
+                signInAnonymously(auth).catch(e => console.error("Anonim giriş hatası:", e));
+            }
+        });
+
+        if (initialAuthToken) {
+            signInWithCustomToken(auth, initialAuthToken).catch(e => {
+                console.error("Custom token ile giriş hatası:", e);
+            });
+        }
 
         // --- Şifre Sıfırlama İşlemi ---
-        document.getElementById('resetForm').addEventListener('submit', async (e) => {
+        document.getElementById('passwordResetForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('reset_email').value;
 
             const button = document.getElementById('resetButton');
             button.disabled = true;
-            button.textContent = 'Bağlantı Gönderiliyor...';
+            button.textContent = 'Gönderiliyor...';
 
             try {
-                // Firebase Auth ile şifre sıfırlama e-postası gönder
+                // Firebase Auth ile sıfırlama e-postası gönder
                 await sendPasswordResetEmail(auth, email);
                 
-                // Başarılı olursa kullanıcıya bilgi ver
-                showMessage("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu kontrol edin.", "success");
-                
-                // Formu temizle
-                document.getElementById('resetForm').reset();
+                // Başarılı mesaj
+                showMessage(`Şifre sıfırlama bağlantısı <strong>${email}</strong> adresine başarıyla gönderildi. Lütfen e-posta kutunuzu kontrol edin.`, "success");
+                document.getElementById('passwordResetForm').reset(); // Formu temizle
 
             } catch (error) {
                 console.error("Şifre sıfırlama hatası:", error);
                 let errorMessage = "İşlem sırasında bir hata oluştu.";
 
-                // Firebase hata kodlarına göre mesajları özelleştirme
+                // Hata kodlarına göre mesajları özelleştirme
                 switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = "Bu e-posta adresine sahip bir kullanıcı bulunamadı.";
+                        break;
                     case 'auth/invalid-email':
                         errorMessage = "Geçersiz e-posta adresi formatı.";
                         break;
-                    case 'auth/user-not-found':
-                        errorMessage = "Bu e-posta adresine kayıtlı bir kullanıcı bulunamadı.";
-                        break;
-                    case 'auth/operation-not-allowed':
-                         errorMessage = "Kimlik doğrulama yöntemi Firebase'de etkin değil.";
-                         break;
                     default:
-                        errorMessage = "Bilinmeyen bir hata oluştu. Kod: " + error.code;
+                        errorMessage = "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin. Kod: " + error.code;
                 }
                 
                 showMessage("Hata: " + errorMessage, "error");
 
             } finally {
                 button.disabled = false;
-                button.textContent = 'Şifre Sıfırlama Bağlantısı Gönder';
+                button.textContent = 'Sıfırlama Bağlantısı Gönder';
             }
         });
     </script>
