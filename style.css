@@ -1,6 +1,12 @@
 /* ========================= */
 /* 0. GENEL AYARLAR */
 /* ========================= */
+:root {
+    --red-neon: #FF0000;
+    --dark-bg: #1a1a1a;
+    --card-bg-transparent: rgba(47, 49, 54, 0.8);
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     color: #fff;
@@ -13,7 +19,9 @@ body {
     overflow: hidden; 
 }
 
+/* ========================= */
 /* 1. VİDEO ARKA PLAN */
+/* ========================= */
 .video-background {
     position: fixed;
     top: 0;
@@ -49,41 +57,22 @@ body {
     font-weight: 800;
     letter-spacing: 7px;
     margin-bottom: 40px;
-    
-    /* İstenen: Yazı rengi saf kırmızı */
-    color: #FF0000; 
-    
-    /* İstenen: Kırmızı bulanık parlaklık */
+    color: var(--red-neon); 
+    /* Parlaklık düşürüldü: 0 0 7px ve 0 0 15px yerine 0 0 5px ve 0 0 10px kullanıldı */
     text-shadow: 
-        0 0 7px rgba(255, 0, 0, 0.7), 
-        0 0 15px rgba(255, 0, 0, 0.5);
-        
+        0 0 5px rgba(255, 0, 0, 0.7), 
+        0 0 10px rgba(255, 0, 0, 0.5);
     transition: none; 
     animation: fadeInDown 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; 
-    
-    background: none;
-    -webkit-background-clip: unset;
-    background-clip: unset;
-    -webkit-text-fill-color: initial;
-    position: static; 
-    overflow: visible; 
 }
-
-/* İstenen: Üzerine gelince hiçbir şey olmayacak */
 .title:hover {
-    text-shadow: 
-        0 0 7px rgba(255, 0, 0, 0.7), 
-        0 0 15px rgba(255, 0, 0, 0.5); 
     cursor: default; 
-    color: #FF0000; 
+    color: var(--red-neon); 
 }
-
-
 @keyframes fadeInDown {
     0% { opacity: 0; transform: translateY(-50px); }
     100% { opacity: 1; transform: translateY(0); }
 }
-
 
 /* ========================= */
 /* 4. DİSCORD KARTI STİLİ */
@@ -91,15 +80,13 @@ body {
 .discord-info {
     width: 550px; 
     min-height: 200px;
-    /* İstenen: ARKA PLAN HAFİF ŞEFFAF KALIYOR (0.8) */
-    background: rgba(47, 49, 54, 0.8); 
+    background: var(--card-bg-transparent); 
     border-radius: 15px;
     padding: 30px; 
     margin: 0 auto 15px; 
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7); 
-    border: 3px solid rgba(255, 255, 255, 0.15); /* Statik kenarlık kalır */
-    /* YENİLENDİ: Opaklık geçişi eklendi (Flickering'i önlemek için) */
-    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease; 
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
     display: flex;
     flex-direction: column; 
     align-items: flex-start;
@@ -107,12 +94,6 @@ body {
     text-align: left;
     overflow: hidden; 
 }
-
-/* RGB Çerçeve (::before) tamamen iptal */
-.discord-info::before {
-    content: none; 
-}
-
 .discord-info:hover {
     transform: scale(1.02); 
     box-shadow: 0 15px 40px rgba(0, 0, 0, 1.0);
@@ -131,8 +112,6 @@ body {
     position: relative;
     border: 4px solid #1e2024;
 }
-
-/* KULLANICI ADI STİLİ */
 .username-and-tag {
     display: flex;
     flex-direction: column;
@@ -150,205 +129,230 @@ body {
     font-weight: 400;
     color: #b9bbbe;
 }
-
-/* Durum Noktaları */
 .status-dot {
     width: 18px; 
     height: 18px;
     border-radius: 50%; 
     border: 5px solid #1e2024; 
     box-shadow: 0 0 10px rgba(0, 0, 0, 1.0);
-    position: relative;
+    position: absolute;
+    bottom: 0;
+    right: 0;
     overflow: hidden; 
 }
+.online { background-color: #43b581; } 
+.offline { background-color: #747f8d; }
 
-/* AKTİVİTE METNİ */
 .status-indicator-wrapper {
     display: flex;
     align-items: center;
-    padding: 10px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1); 
+    justify-content: space-between;
     width: 100%;
-    box-sizing: border-box;
 }
-
-.discord-status {
-    font-size: 1.4em; 
-    color: #b9bbbe;
-}
-.discord-status strong {
-    color: #fff; 
+.activity-text {
+    font-size: 1.1em;
     font-weight: 600;
-}
-
-
-/* ========================= */
-/* 5. SOSYAL LİNKLER */
-/* ========================= */
-.social-links {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-top: 40px; 
-}
-.social-icon {
-    font-size: 70px; 
     color: #fff;
-    transition: color 0.4s, transform 0.4s, filter 0.4s;
+    line-height: 1.4;
+    padding-left: 5px; 
+    animation: pulse 1.5s infinite alternate;
 }
-
-.social-icon:hover {
-    transform: scale(1.2); 
+@keyframes pulse {
+    0% { opacity: 0.8; }
+    100% { opacity: 1; }
 }
-
-.social-icon.discord {
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
-}
-
-.social-icon.discord:hover {
-    color: #5865f2;
-    filter: drop-shadow(0 0 30px #5865f2); 
-}
-
 
 /* ========================= */
-/* 6. MÜZİK KONTROLLERİ - ZARİF */
+/* 5. ZİYARETÇİ SAYACI */
 /* ========================= */
-#music-controls-wrapper {
-    position: fixed; 
-    top: 30px;
-    left: 30px;
+.visitor-counter-display {
+    padding: 10px 20px;
+    margin-top: 15px;
+    border-radius: 50px;
+    background: var(--card-bg-transparent); 
+    border: 2px solid var(--red-neon);
+    box-shadow: 0 0 5px var(--red-neon), inset 0 0 5px var(--red-neon);
+    font-size: 1.1em;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    z-index: 10;
-    padding: 0; 
-    background-color: transparent; 
-    box-shadow: none;
+    color: #fff;
+    transition: all 0.3s;
+}
+.visitor-counter-display:hover {
+    background: rgba(255, 0, 0, 0.2); 
+    transform: scale(1.05);
+}
+.visitor-icon {
+    color: var(--red-neon);
+    text-shadow: 0 0 3px var(--red-neon);
+    margin-right: 10px;
+}
+
+/* ========================= */
+/* 6. SOSYAL LİNKLER */
+/* ========================= */
+.social-links {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+}
+.social-icon {
+    font-size: 2.5em;
+    color: #fff;
     transition: all 0.3s ease;
 }
-
-#music-controls-wrapper:hover {
-    padding: 5px 10px;
-    background-color: rgba(0, 0, 0, 0.3); 
-    border-radius: 10px;
+.social-icon:hover {
+    color: var(--red-neon);
+    text-shadow: 0 0 10px var(--red-neon);
+    transform: scale(1.15) rotate(5deg);
 }
 
+/* ========================= */
+/* 7. MÜZİK KONTROLLERİ */
+/* ========================= */
+#music-controls-wrapper {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    background-color: var(--card-bg-transparent);
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
 .music-button {
     background: none;
     border: none;
-    color: #fff;
+    color: white;
+    font-size: 1.5em;
     cursor: pointer;
-    font-size: 28px; 
-    padding: 5px; 
-    transition: color 0.3s, transform 0.3s;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.7); 
+    transition: transform 0.2s;
+    padding: 0;
+    margin-right: 10px;
 }
-
 .music-button:hover {
-    color: #9400D3; 
     transform: scale(1.1);
 }
-
 #volume-slider {
-    width: 150px; 
-    margin-left: 15px;
-    height: 5px; 
-    background: #5865f2;
-    -webkit-appearance: none; 
+    width: 100px;
+    height: 5px;
+    -webkit-appearance: none;
     appearance: none;
+    background: #555;
     border-radius: 5px;
+    cursor: pointer;
 }
-
 #volume-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 15px; 
+    width: 15px;
     height: 15px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--red-neon);
     cursor: pointer;
-    box-shadow: 0 0 8px #fff; 
+    box-shadow: 0 0 5px var(--red-neon);
 }
-
-
-/* ========================= */
-/* 7. ZİYARETÇİ SAYACI STİLİ */
-/* ========================= */
-.visitor-counter-display {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 5px; 
-    margin-bottom: 20px; 
-    font-size: 1.2em; 
-    color: #fff;
-    width: 550px; 
-    box-sizing: border-box; 
-}
-
-.visitor-icon {
-    font-size: 1.4em; 
-    margin-right: 10px;
-    color: #fff; 
-    text-shadow: 0 0 7px rgba(255, 255, 255, 0.7); 
+#volume-slider::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--red-neon);
+    cursor: pointer;
+    box-shadow: 0 0 5px var(--red-neon);
+    border: none;
 }
 
 /* ========================= */
-/* 8. VİDEO İNDİRME BUTONU (SAĞ ÜST KÖŞE) */
+/* 8. SAĞ ÜST KÖŞE LİNKLERİ (Panel ve İndirici) */
 /* ========================= */
-
-/* Ana sayfanızda, sosyal linkler içinde bulunan .video-download-btn sınıfını gizliyoruz */
-/* Çünkü butonu yeni bir pozisyonda, ayrı bir div içinde gösteriyoruz. */
-.social-links .video-download-btn {
-    display: none; 
-}
-
-/* YENİ BUTON KAPSAYICISI VE KONUMU */
-#video-download-wrapper {
-    position: fixed; /* Ekran pozisyonuna sabitle */
-    top: 30px; /* Üstten 30px boşluk */
-    right: 30px; /* Sağdan 30px boşluk */
-    z-index: 10; /* Diğer elementlerin üzerinde görünmesini sağla */
-    display: block; 
+#top-right-links {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex; 
+    gap: 10px; /* Butonlar arası boşluk */
 }
 
 .video-download-link {
-    /* Genel Görünüm */
-    font-family: 'Poppins', sans-serif;
+    font-size: 0.9em;
     font-weight: 600;
-    font-size: 1.1em; /* Orta büyüklük */
-    padding: 12px 20px;
+    padding: 8px 15px;
     border-radius: 8px;
-    
-    /* Kırmızı Tema ve Neon Efekti */
-    background-color: rgba(255, 0, 0, 0.15); /* Hafif şeffaf kırmızı arka plan */
-    color: #FF0000; /* Kırmızı metin rengi */
     text-decoration: none;
-    cursor: pointer;
-    border: 1px solid #FF0000; /* Kırmızı kenarlık */
+    color: #fff;
+    background-color: var(--card-bg-transparent); 
     
-    /* Neon Parlaklık Efekti */
-    box-shadow: 
-        0 0 5px rgba(255, 0, 0, 0.5),
-        0 0 10px rgba(255, 0, 0, 0.3);
-        
+    /* Neon Efekti */
+    border: 1px solid var(--red-neon);
+    box-shadow: 0 0 5px var(--red-neon), inset 0 0 5px var(--red-neon);
+    
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    
+    backdrop-filter: blur(5px);
     display: flex;
     align-items: center;
-    gap: 8px; /* İkon ve metin arası boşluk */
+}
+.video-download-link i {
+    margin-right: 5px;
 }
 
 .video-download-link:hover {
-    background-color: rgba(255, 0, 0, 0.3); /* Üzerine gelince arka planı koyulaştır */
-    color: #ffffff; /* Metin rengini beyaza çevir */
-    border-color: #ffffff; /* Kenarlığı beyaza çevir */
-    box-shadow: 
-        0 0 10px rgba(255, 255, 255, 0.6), /* Beyaz parlama */
-        0 0 20px rgba(255, 0, 0, 0.8); /* Güçlü kırmızı parlama */
-    transform: scale(1.05); /* Butonu hafifçe büyüt */
+    color: #fff;
+    background-color: var(--red-neon);
+    box-shadow: 0 0 10px #fff, 0 0 20px var(--red-neon);
+    transform: scale(1.05);
 }
 
-.video-download-link i {
-    font-size: 1.2em; /* İkon büyüklüğü */
+/* Panel butonu için özel bir stil gerekmez, genel .video-download-link sınıfını kullanır */
+/* .panel-link sınıfı bu nedenle sadece semantik olarak kalır, ek stil sağlamaz. */
+
+/* Mobil Cihazlar İçin Uyarlamalar */
+@media (max-width: 768px) {
+    .title {
+        font-size: 3.5em; 
+        letter-spacing: 4px;
+    }
+    .discord-info {
+        width: 95%;
+        padding: 20px;
+        align-items: center;
+    }
+    .discord-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    .discord-avatar {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    .username-and-tag {
+        align-items: center;
+    }
+    
+    /* Sağ Üst Köşe Butonları Mobil Uyarlama */
+    #top-right-links {
+        top: 10px;
+        right: 10px;
+        gap: 5px;
+        flex-direction: column; /* Mobil cihazlarda dikey sırala */
+        align-items: flex-end;
+    }
+    .video-download-link {
+        font-size: 0.8em;
+        padding: 6px 10px;
+    }
+    
+    /* Sol Üst Köşe Müzik Kontrolleri Mobil Uyarlama */
+    #music-controls-wrapper {
+        top: auto;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px 12px;
+    }
 }
