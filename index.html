@@ -152,7 +152,7 @@
                     }, 1000); 
                 } else {
                     // Yönetici değil
-                    showAccessMessage("Erişim Reddedildi. Yönetici yetkisi gereklidir.", false);
+                    showAccessMessage("Erişim Reddedildi. Buraya sadece yöneticiler girebilir.", false);
                 }
             } catch (error) {
                 console.error("Firestore Yönetici Kontrol Hatası:", error);
@@ -170,14 +170,24 @@
             if (!toast) {
                 toast = document.createElement('div');
                 toast.id = 'panel-access-toast';
-                // Temaya uygun stil ekleniyor
+                // Konum: SAĞ ALT KÖŞE olarak güncellendi.
                 toast.style.cssText = `
-                    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                    position: fixed; 
+                    bottom: 20px; 
+                    right: 20px; 
+                    transform: none; /* Orta pozisyon dönüşümünü kaldır */
                     background-color: ${isSuccess ? 'rgba(67, 181, 129, 0.9)' : 'rgba(255, 0, 0, 0.9)'}; 
-                    color: white; padding: 20px 30px; border-radius: 10px; z-index: 9999; 
+                    color: white; 
+                    padding: 15px 25px; 
+                    border-radius: 10px; 
+                    z-index: 9999; 
                     box-shadow: 0 0 15px ${isSuccess ? 'rgba(67, 181, 129, 0.7)' : 'rgba(255, 0, 0, 0.7)'};
-                    font-family: 'Poppins', sans-serif; font-size: 1.2em; font-weight: 600;
-                    text-align: center; opacity: 0; transition: opacity 0.5s ease;
+                    font-family: 'Poppins', sans-serif; 
+                    font-size: 1.1em; 
+                    font-weight: 600;
+                    text-align: center; 
+                    opacity: 0; 
+                    transition: opacity 0.5s ease;
                 `;
                 document.body.appendChild(toast);
             }
@@ -191,7 +201,7 @@
             
             setTimeout(() => {
                 toast.style.opacity = 0;
-            }, 3000);
+            }, 4000); // Mesajı daha uzun süre göster (4 saniye)
         }
     </script>
 
