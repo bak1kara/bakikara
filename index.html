@@ -19,7 +19,7 @@
         <a href="video-indir.html" class="video-download-link" aria-label="Video İndirme Sayfasına Git">
             <i class="fas fa-download"></i> Video İndirici
         </a>
-        <!-- 2. Sırada: Panel Butonu (Erişim Kontrolü eklendi) -->
+        <!-- 2. Sırada: Panel Butonu (Erişim Kontrolü artık Firestore ile yapılıyor) -->
         <a href="javascript:void(0)" onclick="checkPanelAccess()" class="video-download-link panel-link" aria-label="Yönetim Paneline Git">
             <i class="fas fa-tools"></i> Panel
         </a>
@@ -70,7 +70,94 @@
     
     <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script> 
     
-    <!-- YÖNETİCİ ERİŞİM KONTROLÜ -->
+    <!-- YÖNETİCİ ERİŞİM KONTROLÜ İÇİN FIREBASE ENTEGRASYONU -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Canvas değişkenlerini kullanma
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+        let db;
+        let auth;
+        let userId = null;
+        let isAuthReady = false;
+
+        // Hata ayıklama için (isteğe bağlı)
+        setLogLevel('Debug');
+
+        // Firebase Başlatma
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        // Kimlik doğrulama dinleyicisi
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+            } else {
+                // Kullanıcı yoksa anonim olarak oturum açmayı dene
+                try {
+                    const anonUserCredential = await signInAnonymously(auth);
+                    userId = anonUserCredential.user.uid;
+                } catch (error) {
+                    console.error("Anonim giriş başarısız:", error);
+                    userId = crypto.randomUUID(); // Yedek: Anonim giriş de olmazsa rastgele ID kullan
+                }
+            }
+            isAuthReady = true;
+            console.log("Firebase Auth Hazır. Kullanıcı ID:", userId);
+        });
+
+        // Custom Token ile oturum açma (Canvas ortamı için zorunlu)
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            signInWithCustomToken(auth, __initial_auth_token)
+                .catch(error => {
+                    console.error("Custom token ile giriş başarısız, anonim giriş denenecek:", error);
+                });
+        }
+        
+        /**
+         * Panel butonuna tıklandığında Firestore üzerinden yönetici erişimini kontrol eder.
+         * Yönetici belgesi varsa erişim izni verir.
+         */
+        window.checkPanelAccess = async function() {
+            if (!isAuthReady || !db || !userId) {
+                // Auth hazır değilse kullanıcıyı beklet
+                showAccessMessage("Lütfen bekleyin, kimlik doğrulanıyor...", false);
+                return;
+            }
+            
+            // YÖNETİCİ KONTROL YOLU: /artifacts/{appId}/public/data/admins/{userId}
+            const adminDocRef = doc(db, `artifacts/${appId}/public/data/admins`, userId);
+
+            try {
+                showAccessMessage("Yönetici yetkisi kontrol ediliyor...", false);
+
+                // Firestore'dan yönetici belgesini oku
+                const adminDoc = await getDoc(adminDocRef);
+
+                if (adminDoc.exists()) {
+                    // Yönetici doğrulandı
+                    showAccessMessage("Erişim Onaylandı! Panele yönlendiriliyor...", true);
+                    setTimeout(() => {
+                        window.location.href = 'panel.html';
+                    }, 1000); 
+                } else {
+                    // Yönetici değil
+                    showAccessMessage("Erişim Reddedildi. Yönetici yetkisi gereklidir.", false);
+                }
+            } catch (error) {
+                console.error("Firestore Yönetici Kontrol Hatası:", error);
+                showAccessMessage("Bir veritabanı hatası oluştu. Konsolu kontrol edin.", false);
+            }
+        }
+
+    </script>
+    
+    <!-- YÖNETİCİ ERİŞİM KONTROLÜ (Mesaj Kutusu Fonksiyonu) -->
     <script>
         // Simülasyon mesaj kutusu için basit bir fonksiyon
         function showAccessMessage(message, isSuccess) {
@@ -90,26 +177,16 @@
                 document.body.appendChild(toast);
             }
             
+            // Eğer başarı mesajı gelirse arka planı yeşil yap
+            toast.style.backgroundColor = isSuccess ? 'rgba(67, 181, 129, 0.9)' : 'rgba(255, 0, 0, 0.9)';
+            toast.style.boxShadow = `0 0 15px ${isSuccess ? 'rgba(67, 181, 129, 0.7)' : 'rgba(255, 0, 0, 0.7)'}`;
+            
             toast.textContent = message;
             toast.style.opacity = 1;
             
             setTimeout(() => {
                 toast.style.opacity = 0;
             }, 3000);
-        }
-
-        /**
-         * Panel butonuna tıklandığında erişim kontrolünü simüle eder.
-         * Gerçek uygulamada Firebase/Firestore ile yönetici rolü kontrol edilmelidir.
-         */
-        function checkPanelAccess() {
-            // İlk tıklamada uyarı gösterelim:
-            showAccessMessage("Erişim Kısıtlı: Yönetici kimliği gerekli.", false);
-
-            // Simülasyonun başarılı olması ve panel'e yönlendirme yapılması
-            setTimeout(() => {
-                 window.location.href = 'panel.html';
-            }, 2000);
         }
     </script>
 
