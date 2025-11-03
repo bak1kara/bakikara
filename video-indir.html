@@ -24,7 +24,7 @@
         }
         .neon-text-red {
             color: var(--red-neon);
-            /* PARLAKLIK DAHA DA DÜŞÜRÜLDÜ: 3px -> 2px ve 6px -> 4px */
+            /* PARLAKLIK DÜŞÜRÜLDÜ: 2px ve 4px */
             text-shadow: 0 0 2px var(--red-neon), 0 0 4px rgba(255, 0, 0, 0.2);
         }
         .neon-border-red {
@@ -111,7 +111,7 @@
                    class="w-full p-3 mb-4 text-gray-900 bg-gray-200 border border-gray-500 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
                    required>
                    
-            <button onclick="startDownload()" 
+            <button id="download-button" onclick="startDownload()" 
                     class="w-full py-3 font-bold text-lg rounded-lg bg-red-600 hover:bg-red-700 transition duration-300 text-white shadow-lg shadow-red-500/50">
                 <i class="fas fa-arrow-circle-down mr-2"></i> İNDİRMEYE BAŞLA
             </button>
@@ -122,7 +122,7 @@
         </div>
 
         <!-- Mesaj Alanı -->
-        <div id="message-box" class="mt-4 p-4 rounded-lg hidden bg-yellow-900/50 border border-yellow-500 text-yellow-300">
+        <div id="message-box" class="mt-4 p-4 rounded-lg hidden">
             <!-- Mesajlar buraya gelecek -->
         </div>
         
@@ -134,6 +134,7 @@
         const platformTitle = document.getElementById('platform-title');
         const videoUrlInput = document.getElementById('video-url');
         const messageBox = document.getElementById('message-box');
+        const downloadButton = document.getElementById('download-button');
         let selectedPlatform = '';
 
         /**
@@ -143,7 +144,6 @@
         function selectPlatform(platform) {
             selectedPlatform = platform;
             
-            // Başlıkları ve renkleri ayarla
             const platformNames = {
                 'youtube': 'YouTube',
                 'tiktok': 'TikTok',
@@ -151,56 +151,99 @@
             };
             
             platformTitle.textContent = `${platformNames[platform]} Video İndir`;
-            videoUrlInput.value = ''; // Input'u temizle
-            messageBox.classList.add('hidden'); // Mesaj kutusunu gizle
+            videoUrlInput.value = ''; 
+            messageBox.classList.add('hidden'); 
 
-            // Seçim ekranını gizle, URL giriş ekranını göster
             platformSelection.classList.add('hidden');
             urlInputSection.classList.remove('hidden');
+            downloadButton.disabled = false;
+            downloadButton.textContent = 'İNDİRMEYE BAŞLA';
+            downloadButton.classList.remove('bg-gray-500');
 
-            // URL girişine odaklan
             setTimeout(() => videoUrlInput.focus(), 100);
         }
 
         /**
-         * İndirme butonuna tıklandığında çalışır. URL'yi kontrol eder ve harici servise yönlendirme yapar.
+         * İndirme butonuna tıklandığında çalışır. URL'yi kontrol eder ve dahili işlem simülasyonunu başlatır.
          */
         function startDownload() {
             const url = videoUrlInput.value.trim();
             messageBox.classList.remove('hidden');
-            messageBox.className = 'mt-4 p-4 rounded-lg bg-yellow-900/50 border border-yellow-500 text-yellow-300';
             
             if (!url) {
                 // URL boşsa hata mesajı göster
-                messageBox.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i> Lütfen geçerli bir video URL\'si girin.';
-                messageBox.classList.remove('bg-yellow-900/50', 'border-yellow-500', 'text-yellow-300');
-                messageBox.classList.add('bg-red-900/50', 'border-red-500', 'text-red-300');
+                showMessage('Lütfen geçerli bir video URL\'si girin.', 'red');
                 return;
             }
             
-            // Yükleme mesajını göster
-            messageBox.innerHTML = `
-                <i class="fas fa-spinner fa-spin mr-2"></i> Video analiz ediliyor ve harici indirme sitesine yönlendiriliyorsunuz...
-            `;
-            messageBox.classList.add('bg-blue-900/50', 'border-blue-500', 'text-blue-300');
+            // Butonu devre dışı bırak ve yükleme durumunu göster
+            downloadButton.disabled = true;
+            downloadButton.textContent = 'Video Analiz Ediliyor...';
+            downloadButton.classList.add('bg-gray-500', 'cursor-not-allowed');
+
+            // Yükleme mesajını göster (Sizin sitenizde işlem yapılıyormuş gibi hissettiren simülasyon)
+            showMessage(`
+                <i class="fas fa-spinner fa-spin mr-2"></i> ${selectedPlatform.toUpperCase()} videosu sunucumuzda işleniyor ve indiriliyor... Lütfen bekleyin.
+            `, 'blue');
             
-            // Yönlendirme işlemi (Gerçekçi indirme deneyimi için)
-            const externalDownloaderUrl = `https://tr.savefrom.net/?url=${encodeURIComponent(url)}`;
-            
-            // 2 saniye sonra yönlendirmeyi başlat
+            // 5 saniyelik "sunucuda indirme" simülasyonu
             setTimeout(() => {
-                window.open(externalDownloaderUrl, '_blank');
                 
-                // Kullanıcıya bilgi ver ve yeni indirme seçeneği sun
-                messageBox.innerHTML = `
-                    <i class="fas fa-external-link-alt mr-2"></i> Yeni sekmede indirme sayfası açıldı. Lütfen indirmeyi oradan başlatın.
-                    <button onclick="resetPage()" class="ml-4 underline hover:text-white transition">Yeni İndirme</button>
-                `;
-                messageBox.classList.remove('bg-blue-900/50', 'border-blue-500', 'text-blue-300');
-                messageBox.classList.add('bg-green-900/50', 'border-green-500', 'text-green-300');
-            }, 2000); // 2 saniye yükleme simülasyonu
+                // Simülasyon bitti, sonuç mesajını göster
+                showMessage(`
+                    <i class="fas fa-check-circle mr-2"></i> İndirme işlemi sunucumuzda **tamamlandı**!
+                    <p class="mt-3 font-semibold">Ancak:</p>
+                    <p class="mt-2 text-sm">Bu ortam (Canvas) bir sunucuya sahip olmadığı için, dosyayı doğrudan size gönderemiyoruz. Lütfen indirmeyi tamamlamak için harici link oluşturucuyu kullanın.</p>
+                    <a href="https://tr.savefrom.net/?url=${encodeURIComponent(url)}" target="_blank" class="mt-3 block py-2 px-4 rounded-lg bg-red-700 hover:bg-red-800 text-white font-bold transition">
+                        <i class="fas fa-external-link-alt mr-2"></i> Harici İndirme Linkini Aç
+                    </a>
+                    <button onclick="resetPage()" class="mt-3 underline hover:text-white transition">Yeni İndirme</button>
+                `, 'green');
+
+                // Butonu tekrar kullanılabilir hale getir (Yeni indirme için)
+                downloadButton.disabled = false;
+                downloadButton.textContent = 'İNDİRMEYE BAŞLA';
+                downloadButton.classList.remove('bg-gray-500', 'cursor-not-allowed');
+
+            }, 5000); // 5 saniye simülasyon süresi
         }
         
+        /**
+         * Mesaj kutusunu gösterir ve stilini ayarlar.
+         * @param {string} content - Gösterilecek HTML/metin içeriği.
+         * @param {string} type - Mesaj tipi (red, blue, green, yellow).
+         */
+        function showMessage(content, type) {
+            messageBox.innerHTML = content;
+            let bgColor, borderColor, textColor;
+
+            switch(type) {
+                case 'red':
+                    bgColor = 'bg-red-900/50';
+                    borderColor = 'border-red-500';
+                    textColor = 'text-red-300';
+                    break;
+                case 'blue':
+                    bgColor = 'bg-blue-900/50';
+                    borderColor = 'border-blue-500';
+                    textColor = 'text-blue-300';
+                    break;
+                case 'green':
+                    bgColor = 'bg-green-900/50';
+                    borderColor = 'border-green-500';
+                    textColor = 'text-green-300';
+                    break;
+                default: // yellow
+                    bgColor = 'bg-yellow-900/50';
+                    borderColor = 'border-yellow-500';
+                    textColor = 'text-yellow-300';
+                    break;
+            }
+
+            messageBox.className = `mt-4 p-4 rounded-lg ${bgColor} border ${borderColor} ${textColor}`;
+            messageBox.classList.remove('hidden');
+        }
+
         /**
          * Sayfayı ilk platform seçimi durumuna geri döndürür.
          */
@@ -209,6 +252,10 @@
             urlInputSection.classList.add('hidden');
             platformSelection.classList.remove('hidden');
             selectedPlatform = '';
+            // Buton durumunu sıfırla
+            downloadButton.disabled = false;
+            downloadButton.textContent = 'İNDİRMEYE BAŞLA';
+            downloadButton.classList.remove('bg-gray-500', 'cursor-not-allowed');
         }
 
     </script>
