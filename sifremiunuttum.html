@@ -163,8 +163,14 @@
                 // Firebase Auth ile sıfırlama e-postası gönder
                 await sendPasswordResetEmail(auth, email);
                 
-                // Başarılı mesaj
-                showMessage(`Şifre sıfırlama bağlantısı <strong>${email}</strong> adresine başarıyla gönderildi. Lütfen e-posta kutunuzu kontrol edin.`, "success");
+                // BAŞARILI MESAJ GÜNCELLENDİ: Spam uyarısı eklendi.
+                const successMessage = `
+                    Şifre sıfırlama bağlantısı <strong>${email}</strong> adresine başarıyla gönderildi.
+                    <br>
+                    Lütfen e-posta kutunuzu ve **spam (gereksiz)** klasörlerini kontrol etmeyi unutmayın.
+                `;
+
+                showMessage(successMessage, "success");
                 document.getElementById('passwordResetForm').reset(); // Formu temizle
 
             } catch (error) {
