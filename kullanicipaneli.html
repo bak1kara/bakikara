@@ -90,6 +90,10 @@
             backdrop-filter: blur(3px);
             z-index: 50;
         }
+        /* Güvenlik Modalı için yüksek z-index */
+        #securityModal {
+            z-index: 1000;
+        }
 
         /* Tema Seçimi Stilleri */
         .theme-option {
@@ -302,6 +306,16 @@
         
     </div>
 
+    <!-- MODAL: GÜVENLİK VE YÖNLENDİRME MESAJI (YENİ EKLENDİ) -->
+    <div id="securityModal" class="modal fixed inset-0 flex items-center justify-center hidden">
+        <div class="bg-red-800 rounded-xl shadow-2xl p-8 w-full max-w-sm text-center border-4 border-red-600">
+            <i class="fas fa-lock text-5xl text-red-300 mb-4"></i>
+            <h3 class="text-2xl font-bold mb-3 text-white">Giriş Yapmanız Gerekli</h3>
+            <p id="securityMessage" class="text-gray-200 mb-6">Bu panele erişim yetkiniz bulunmamaktadır. Giriş sayfasına yönlendiriliyorsunuz...</p>
+            <div id="countdown" class="text-lg font-mono text-red-300">3 saniye</div>
+        </div>
+    </div>
+
     <!-- Modallar (Önceki Adımlardan) -->
     <div id="linkModal" class="modal fixed inset-0 flex items-center justify-center hidden">
         <div class="bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md">
@@ -411,6 +425,10 @@
         const messageModal = document.getElementById('messageModal');
         const messageTextEl = document.getElementById('messageText');
         const messageActionsEl = document.getElementById('messageActions');
+        
+        // GÜVENLİK MODALI ELEMENTLERİ (YENİ)
+        const securityModal = document.getElementById('securityModal');
+        const countdownEl = document.getElementById('countdown');
 
         // Navigasyon Elementleri
         const navItems = document.querySelectorAll('.nav-item[data-content]');
@@ -453,10 +471,38 @@
             document.documentElement.style.setProperty('--active-bg-color', theme.darkBg);
             document.documentElement.style.setProperty('--active-card-color', theme.cardBg);
         };
+        
+        /**
+         * Oturum açılmamış kullanıcıyı uyarıp belirtilen sayfaya yönlendirir.
+         * @param {string} redirectUrl - Yönlendirilecek sayfanın URL'si (örneğin: 'girisyap.html').
+         */
+        const showSecurityRedirect = (redirectUrl = 'girisyap.html') => {
+            // Panel içeriğini gizle
+            document.body.classList.add('hidden'); 
+            
+            securityModal.classList.remove('hidden');
+            let count = 3;
+            countdownEl.textContent = `${count} saniye`;
+            
+            const interval = setInterval(() => {
+                count--;
+                countdownEl.textContent = `${count} saniye`;
+                
+                if (count <= 0) {
+                    clearInterval(interval);
+                    // Güvenli sayfaya yönlendir
+                    window.location.href = redirectUrl; 
+                }
+            }, 1000);
+        };
+
 
         // --- Firebase Başlatma ve Kimlik Doğrulama ---
         
         async function initializeFirebase() {
+            // Yönlendirme yapılana kadar sayfa içeriğini gizle (opsiyonel ama iyi bir pratik)
+            document.body.style.display = 'none';
+
             try {
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
@@ -469,12 +515,14 @@
                 }
 
                 onAuthStateChanged(auth, (user) => {
-                    // ANONİM VE OTURUMSUZ KULLANICI KONTROLÜ
-                    // Anonim kullanıcılar da UID alır, ancak biz sadece gerçek oturumları kabul ediyoruz.
+                    // Kullanıcı oturumu açık ve anonim DEĞİLSE devam et
                     if (user && !user.isAnonymous) { 
                         userId = user.uid;
                         isAuthReady = true;
                         userIdDisplayEl.textContent = userId;
+                        
+                        // Panel içeriğini göster
+                        document.body.style.display = 'flex';
                         
                         setupDashboardListener(userId);
                         setupLinksListener(userId);
@@ -486,16 +534,15 @@
                         renderThemeOptions();
                         
                     } else {
-                        // Kullanıcı oturumu açık değilse veya anonimse, Ana Sayfaya yönlendir.
-                        console.log("Kullanıcı oturumu kapalı veya anonim. Yönlendiriliyor...");
-                        window.location.href = 'index.html'; 
+                        // Kullanıcı oturumu açık değilse veya anonimse, uyarı göster ve yönlendir
+                        showSecurityRedirect('girisyap.html'); 
                     }
                 });
 
             } catch (error) {
                 console.error("Firebase başlatılırken hata oluştu:", error);
-                // Bir hata olursa yine de yönlendir
-                window.location.href = 'index.html'; 
+                // Bir hata olursa yine de uyarı gösterip yönlendir
+                showSecurityRedirect('girisyap.html'); 
             }
         }
 
