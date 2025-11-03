@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video İndirme Servisi</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        input[type="text"] { width: 80%; padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 20px; background-color: #ff0000; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #cc0000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Video İndirici (Yönlendirme)</h1>
+        <p>İndirmek istediğiniz YouTube videosunun linkini aşağıya yapıştırın ve İndir düğmesine tıklayın. Güvenli bir dış indirme servisine yönlendirileceksiniz.</p>
+        
+        <input type="text" id="videoLink" placeholder="YouTube Linkini Buraya Yapıştırın (Örn: https://youtu.be/..." />
+        
+        <button onclick="redirectToDownloader()">İndir</button>
+        
+        <p style="margin-top: 30px; font-size: 0.8em; color: #666;">**Not:** Bu işlem, sunucu gerektirmeyen statik bir sayfa olduğundan, sizi üçüncü taraf güvenilir bir indirme servisine yönlendirecektir.</p>
+    </div>
+
+    <script>
+        function redirectToDownloader() {
+            const linkInput = document.getElementById('videoLink');
+            let videoUrl = linkInput.value.trim();
+
+            if (!videoUrl) {
+                alert("Lütfen geçerli bir YouTube linki girin.");
+                return;
+            }
+
+            // Basit bir kontrol: Linkin YouTube linki olup olmadığını denetler
+            if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+                
+                // Popüler bir indirme servisi olan 'ssyoutube' yönlendirme formatını kullanıyoruz.
+                // Kullanıcının linkini yeni bir sekmede açarak indirme aracına gönderir.
+                const redirectUrl = "https://www.ssyoutube.com/" + videoUrl;
+
+                // Yeni sekmede aç
+                window.open(redirectUrl, '_blank');
+
+            } else {
+                alert("Lütfen sadece bir YouTube linki girdiğinizden emin olun.");
+            }
+        }
+    </script>
+</body>
+</html>
