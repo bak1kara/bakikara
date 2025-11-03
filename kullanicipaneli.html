@@ -138,6 +138,14 @@
         </nav>
         
         <div class="mt-12 pt-6 border-t border-gray-700">
+            
+            <!-- KULLANICI ADI VE ROL BİLGİSİ -->
+            <div class="mb-4">
+                <p id="welcomeUser" class="text-lg font-semibold text-white">Hoş Geldin, <span id="displayNamePlaceholder">Yükleniyor...</span></p>
+                <p id="userRoleDisplay" class="text-sm font-medium rounded-full inline-block px-3 py-0.5 mt-1">Yükleniyor...</p>
+            </div>
+            <!-- KULLANICI ADI VE ROL BİLGİSİ SONU -->
+
             <div class="text-sm text-gray-500">Kullanıcı ID:</div>
             <div id="userIdDisplay" class="text-xs text-gray-400 truncate">Yükleniyor...</div>
             <a href="girisyap.html" class="nav-item mt-4 text-sm bg-gray-700 hover:bg-red-600">
@@ -211,7 +219,7 @@
 
             <div id="linkListContainer" class="space-y-3">
                 <!-- Linkler buraya JavaScript ile yüklenecek -->
-                <div class="stat-card p-6 rounded-xl shadow-lg text-center text-gray-400">
+                <div class="stat-card p-6 rounded-xl shadow-lg text-center text-gray-400" id="linkLoadingMessage">
                     <i class="fas fa-spinner fa-spin mr-2"></i> Linkler Yükleniyor...
                 </div>
             </div>
@@ -373,6 +381,11 @@
         const userIdDisplayEl = document.getElementById('userIdDisplay');
         const linkListContainerEl = document.getElementById('linkListContainer');
         const chartMockEl = document.querySelector('.chart-mock');
+        const linkLoadingMessageEl = document.getElementById('linkLoadingMessage'); 
+        
+        // YENİ KULLANICI BİLGİ ELEMENTLERİ
+        const displayNamePlaceholderEl = document.getElementById('displayNamePlaceholder');
+        const userRoleDisplayEl = document.getElementById('userRoleDisplay');
         
         // Ayarlar Elementleri
         const profileForm = document.getElementById('profileForm');
@@ -456,7 +469,9 @@
                 }
 
                 onAuthStateChanged(auth, (user) => {
-                    if (user) {
+                    // ANONİM VE OTURUMSUZ KULLANICI KONTROLÜ
+                    // Anonim kullanıcılar da UID alır, ancak biz sadece gerçek oturumları kabul ediyoruz.
+                    if (user && !user.isAnonymous) { 
                         userId = user.uid;
                         isAuthReady = true;
                         userIdDisplayEl.textContent = userId;
@@ -465,23 +480,26 @@
                         setupLinksListener(userId);
                         setupProfileListener(userId);
                         
+                        // Varsayılan verileri kontrol et ve oluştur (varsa günceller, yoksa oluşturur)
                         checkAndCreateDefaultStats(userId);
                         checkAndCreateDefaultProfile(userId);
                         renderThemeOptions();
+                        
                     } else {
-                        userId = auth.currentUser ? auth.currentUser.uid : crypto.randomUUID();
-                        userIdDisplayEl.textContent = userId + " (Anonim)";
-                        isAuthReady = true;
-                        renderThemeOptions();
+                        // Kullanıcı oturumu açık değilse veya anonimse, Ana Sayfaya yönlendir.
+                        console.log("Kullanıcı oturumu kapalı veya anonim. Yönlendiriliyor...");
+                        window.location.href = 'index.html'; 
                     }
                 });
 
             } catch (error) {
                 console.error("Firebase başlatılırken hata oluştu:", error);
+                // Bir hata olursa yine de yönlendir
+                window.location.href = 'index.html'; 
             }
         }
 
-        // --- Dashboard & Links İşlevleri (Kısaltıldı) ---
+        // --- Dashboard & Links İşlevleri ---
         
         async function checkAndCreateDefaultStats(uid) {
             const docRef = getDashboardDocRef(uid);
@@ -512,17 +530,34 @@
         function setupLinksListener(uid) {
             if (unsubscribeLinks) { unsubscribeLinks(); }
             const linksQuery = query(getLinksCollectionRef(uid));
+
+            // Linkler yüklenmeye başladığında mesajı göster
+            linkLoadingMessageEl.classList.remove('hidden');
+
             unsubscribeLinks = onSnapshot(linksQuery, (snapshot) => {
                 let links = [];
                 snapshot.forEach((doc) => { links.push({ id: doc.id, ...doc.data() }); });
+                
+                // Linkler yüklendiğinde mesajı gizle
+                linkLoadingMessageEl.classList.add('hidden'); 
+                
                 links.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                 renderLinkList(links);
-            }, (error) => { console.error("Link verisi dinlenirken hata:", error); });
+            }, (error) => { 
+                console.error("Link verisi dinlenirken hata:", error); 
+                linkLoadingMessageEl.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i> Linkler yüklenirken bir hata oluştu.`;
+            });
         }
         
         function renderLinkList(links) {
              linkListContainerEl.innerHTML = '';
+             
+             // Yükleniyor mesajının hala DOM'da olduğundan emin ol
+             linkListContainerEl.appendChild(linkLoadingMessageEl);
+
              if (links.length === 0) {
+                 // Eğer link yoksa, yükleniyor mesajını gizle ve bilgilendirici mesajı göster.
+                 linkLoadingMessageEl.classList.add('hidden');
                  linkListContainerEl.innerHTML = `<div class="stat-card p-6 rounded-xl shadow-lg text-center text-gray-400"><i class="fas fa-info-circle mr-2"></i> Henüz oluşturulmuş bir biyolinkiniz yok. Hemen bir tane oluşturun!</div>`;
                 return;
              }
@@ -640,6 +675,7 @@
                         name: "Yeni Kullanıcı", 
                         slug: "kullanici-" + uid.substring(0, 6),
                         theme: THEMES[0].key, // Varsayılan tema
+                        isPremium: false, // YENİ: Varsayılan kullanıcı rolü (Standart)
                         createdAt: new Date() 
                     });
                 }
@@ -655,7 +691,22 @@
             unsubscribeProfile = onSnapshot(docRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    profileNameField.value = data.name || '';
+                    
+                    // KULLANICI ADI GÜNCELLEME
+                    const userName = data.name || 'Misafir';
+                    profileNameField.value = userName;
+                    displayNamePlaceholderEl.textContent = userName;
+                    
+                    // ROL/PLAN GÜNCELLEME
+                    const isPremium = data.isPremium === true;
+                    const roleText = isPremium ? 'Premium Kullanıcı' : 'Standart Kullanıcı';
+                    // Premium için sarı arka plan, Standart için gri arka plan
+                    const roleClass = isPremium ? 'bg-yellow-500 text-gray-900' : 'bg-gray-500 text-white';
+
+                    userRoleDisplayEl.textContent = roleText;
+                    userRoleDisplayEl.className = `text-sm font-medium rounded-full inline-block px-3 py-0.5 mt-1 ${roleClass}`;
+
+
                     profileLinkSlugField.value = data.slug || ''; // Okunabilir ama değiştirilemez
                     selectedTheme = data.theme || THEMES[0].key;
                     applyTheme(selectedTheme);
