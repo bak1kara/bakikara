@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* CSS variables based on the user's theme */
         :root { --purple: #6c5ce7; }
         body { font-family: 'Poppins', sans-serif; background-color: #1a0e21; color: #ffffff; }
         .header-bg { background-color: rgba(26, 14, 33, 0.9); backdrop-filter: blur(5px); }
@@ -36,7 +35,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             opacity: 0;
             transition: opacity 0.3s, visibility 0.3s;
-            display: flex; /* İçeriğin ortalanması için */
+            display: flex; 
             align-items: center;
             justify-content: center;
         }
@@ -79,9 +78,9 @@
                     <input type="password" id="login_password" required class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple focus:ring focus:ring-purple focus:ring-opacity-50 text-white" placeholder="Şifreniz">
                 </div>
                 
-                <!-- Şifremi Unuttum Bağlantısı (sifremiunuttum.html dosyası oluşturulmadığı için şimdilik boş) -->
+                <!-- Şifremi Unuttum Bağlantısı GÜNCELLENDİ -->
                 <div class="text-right">
-                    <a href="#" class="text-sm text-purple hover:underline font-medium">Şifremi Unuttum?</a>
+                    <a href="sifremiunuttum.html" class="text-sm text-purple hover:underline font-medium">Şifremi Unuttum?</a>
                 </div>
 
                 <button type="submit" id="loginButton" class="w-full btn-login py-3 rounded-lg font-bold text-white text-lg mt-4">
@@ -110,7 +109,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
         
-        // Yeni Firebase yapılandırması (kaydol.html ile aynı, projeden alınan güncel bilgiler)
+        // Yeni Firebase yapılandırması 
         const firebaseConfig = {
             apiKey: "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao",
             authDomain: "baki-s2-yonetim.firebaseapp.com",
@@ -121,7 +120,6 @@
             measurementId: "G-Q52XG8GLB2"
         };
 
-        // Canvas'tan gelen özel yetkilendirme tokenı
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // --- DOM Elementlerini Başlat ---
@@ -133,7 +131,7 @@
                 messageBox = document.getElementById('messageBox');
                 if (!messageBox) return; 
             }
-            messageBox.innerHTML = message; // innerHTML kullanıldı (hata mesajlarında kod vs. gösterilmek istenirse)
+            messageBox.innerHTML = message;
             messageBox.className = type === 'success' ? 'message-success' : 'message-error';
             messageBox.classList.add('message-show');
             setTimeout(() => {
@@ -147,7 +145,7 @@
         // Oturum kalıcılığını yerel depolama olarak ayarla
         setPersistence(auth, browserLocalPersistence); 
 
-        // Oturum Açma Kontrolü (Anonim Giriş veya Custom Token)
+        // Oturum Açma Kontrolü (Canvas Gereksinimi)
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log("Kullanıcı durumu kontrol edildi. UID:", user.uid);
@@ -161,7 +159,7 @@
         if (initialAuthToken) {
             signInWithCustomToken(auth, initialAuthToken).catch(e => {
                 console.error("Custom token ile giriş hatası:", e);
-                // Burada kullanıcıya mesaj göstermeye gerek yok, bu arka plan işlemidir.
+                // Mesaj kutusu burada kullanılmaz.
             });
         }
 
