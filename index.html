@@ -78,7 +78,12 @@
 
         // Global Canvas değişkenlerini kullanma
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // DÜZELTME: Config boş gelirse "projectId" hatası vermemek için placeholder eklendi.
+        const firebaseConfig = JSON.parse(
+            typeof __firebase_config !== 'undefined' && __firebase_config.length > 2 
+            ? __firebase_config 
+            : '{"projectId": "placeholder-baki-s2"}'
+        );
 
         let db;
         let auth;
