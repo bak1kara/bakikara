@@ -173,7 +173,8 @@
 
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const authButtons = document.getElementById('authButtons');
+    // Düzeltme: HTML'de kullanılan doğru ID'ler: loggedOutNav ve loggedInNav
+    const loggedOutNav = document.getElementById('loggedOutNav');
     const loggedInNav = document.getElementById('loggedInNav');
 
     function getInitials(name) {
@@ -190,19 +191,18 @@
      * @param {Object|null} user - Firebase User objesi veya null
      */
     async function updateHeaderUI(user) {
-        if (authButtons && loggedInNav) {
+        if (loggedOutNav && loggedInNav) {
             if (user && !user.isAnonymous) {
                 // 1. KULLANICI GİRİŞ YAPMIŞ DURUMDA
-                authButtons.classList.add('hidden');
+                loggedOutNav.classList.add('hidden');
                 loggedInNav.classList.remove('hidden');
 
-                const navDisplayName = document.getElementById('navDisplayName');
-                const navAccountType = document.getElementById('navAccountType');
-                const navProfilePicture = document.getElementById('navProfilePicture');
+                const navDisplayName = document.getElementById('nav_display_name');
+                const navUserRole = document.getElementById('nav_user_role');
+                const navProfileInitials = document.getElementById('nav_profile_initials'); // Baş harfler için doğru ID
                 
                 let displayName = user.displayName || user.email.split('@')[0];
                 let accountType = "STANDART"; // Varsayılan değer
-                let photoURL = user.photoURL || '';
                 
                 // Firestore'dan Hesap Türünü çek
                 try {
@@ -215,24 +215,16 @@
                 }
 
                 // Bilgileri yerleştir
-                navDisplayName.textContent = displayName;
-                navAccountType.textContent = accountType;
-
-                // Profil Fotoğrafı/Baş Harfler
-                if (navProfilePicture) {
-                    if (photoURL) {
-                        navProfilePicture.innerHTML = `<img src="${photoURL}" alt="Profil Fotoğrafı" class="h-full w-full object-cover">`;
-                    } else {
-                        navProfilePicture.innerHTML = `<span class="text-white text-base font-bold">${getInitials(displayName)}</span>`;
-                    }
+                if (navDisplayName) navDisplayName.textContent = displayName;
+                if (navUserRole) {
+                    navUserRole.textContent = accountType;
+                    // Not: Bu kısımda role göre renk/sınıf ataması yapılabilir (örneğin: navUserRole.classList.add('bg-blue-500');)
                 }
-                
-                // Çıkış butonuna olayı bağla
-                document.getElementById('logoutButton')?.addEventListener('click', handleLogout);
+                if (navProfileInitials) navProfileInitials.textContent = getInitials(displayName);
 
             } else {
                 // 2. KULLANICI GİRİŞ YAPMAMIŞ DURUMDA
-                authButtons.classList.remove('hidden');
+                loggedOutNav.classList.remove('hidden');
                 loggedInNav.classList.add('hidden');
             }
         }
@@ -243,16 +235,41 @@
         try {
             await signOut(auth);
             // Çıkış yapıldıktan sonra giriş sayfasına yönlendir
-            window.location.href = 'girisyap.html';
+            window.location.href = 'girisyap.html'; 
         } catch (error) {
             console.error("Çıkış hatası:", error);
-            alert("Çıkış yaparken bir hata oluştu: " + error.message);
+            // Hata mesajı gösterme fonksiyonu (varsa) burada çağrılabilir
         }
     }
 
     // --- Oturum Durumu Değişikliği Dinleyicisi ---
     onAuthStateChanged(auth, (user) => {
         updateHeaderUI(user);
+    });
+
+    // Logout butonuna olayı bağlama (Dropdown içinde)
+    document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout);
+
+    // --- YARDIM SAYFASINA ÖZEL: Akordiyon (Sıkça Sorulan Sorular) Logic ---
+    document.querySelectorAll('.accordion-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const targetId = item.getAttribute('data-target');
+            const content = document.getElementById(targetId);
+            const icon = item.querySelector('.fa-chevron-down');
+
+            // İçeriği aç/kapat (Önce tümünü kapatıp sonra tıklananı açan standart akordiyon mantığı)
+            const isCurrentlyHidden = content.classList.contains('hidden');
+            
+            // Tüm açık olanları kapat ve iconları sıfırla
+            document.querySelectorAll('.accordion-item p').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.accordion-item i').forEach(i => i.classList.remove('rotate-180'));
+
+            if (isCurrentlyHidden) {
+                // Sadece tıklananı aç
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            }
+        });
     });
     
     // YENİ: Dropdown açma/kapama JS'i
@@ -269,35 +286,14 @@
         }
     });
 
-    // Sayfa yüklendiğinde body opacity'sini 1'e ayarla (fade-in) - (Eğer ilgili CSS varsa)
+    // Sayfa yüklendiğinde body opacity'sini 1'e ayarla (fade-in)
     document.addEventListener('DOMContentLoaded', () => {
-        if(document.body.style.opacity === '0') {
-             document.body.style.opacity = '1';
-        }
+         document.body.style.opacity = '1';
     });
-        
-        // YENİ: Dropdown açma/kapama JS'i
-        document.getElementById('profileMenuButton')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const dropdown = document.getElementById('profileDropdown');
-            dropdown.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (event) => {
-            const menu = document.getElementById('loggedInNav');
-            const isClickInside = menu?.contains(event.target);
-            if (!isClickInside) {
-                document.getElementById('profileDropdown')?.classList.add('hidden');
-            }
-        });
-        
-        // Sayfa yüklendiğinde Firebase başlatma ve dinleme işlemini başlat
-        window.onload = window.startClient;
-        
-        // Sayfa yüklendiğinde body opacity'sini 1'e ayarla (fade-in)
-        document.addEventListener('DOMContentLoaded', () => {
-             document.body.style.opacity = '1';
-        });
 
-    </script>
+    // Sayfa yüklendiğinde Firebase başlatma ve dinleme işlemini başlat (varsa)
+    window.onload = window.startClient;
+
+</script>
 </body>
 </html>
