@@ -76,9 +76,10 @@
                 <a href="discord.html" class="text-gray-300 hover:text-purple transition duration-200">Discord</a>
                 <a href="fiyatlandirma.html" class="text-gray-300 hover:text-purple transition duration-200">Fiyatlandırma</a>
             </nav>
-            <div class="flex space-x-3">
-                <a href="girisyap.html" class="hidden sm:inline-block px-4 py-2 text-white transition duration-200 rounded-lg font-bold border border-purple hover:bg-purple/10">Giriş Yap</a>
-                <a href="kaydol.html" class="bg-purple px-5 py-2 rounded-lg font-semibold text-white">Kaydol</a>
+            <!-- Kimlik doğrulama butonları buraya JS ile yüklenecek -->
+            <div id="authButtonsContainer" class="flex space-x-3">
+                <!-- Yer tutucu: Yükleniyor... -->
+                <div class="px-5 py-2 rounded-lg font-semibold text-gray-500">Yükleniyor...</div>
             </div>
         </div>
     </header>
@@ -120,32 +121,53 @@
     </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, signInWithCustomToken, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
-        // --- ⚠️ LÜTFEN KONTROL EDİN: Kendi Firebase Anahtarlarınız ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao",
-            authDomain: "baki-s2-yonetim.firebaseapp.com",
-            projectId: "baki-s2-yonetim",
-            storageBucket: "baki-s2-yonetim.firebasestorage.app",
-            messagingSenderId: "692508919425",
-            appId: "1:692508919425:web:fac963c81c11b7be70af80",
-            measurementId: "G-Q52XG8GLB2"
-        };
-        
+        // --- Zorunlu Global Değişkenlerin Alınması ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
         let auth;
-        let isConfigAvailable = (firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao");
+        let isConfigAvailable = !!firebaseConfig;
 
         // --- Firebase Başlatma ---
-        try {
-            const app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            isConfigAvailable = true;
-        } catch (e) {
-            console.error("Firebase başlatma hatası:", e);
-            auth = null;
-            isConfigAvailable = false;
+        if (isConfigAvailable) {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                
+                // --- Oturum Yönetimi ---
+                onAuthStateChanged(auth, (user) => {
+                    if (user && user.isAnonymous === false) {
+                        // Kullanıcı oturum açmış
+                        updateHeaderUI(user);
+                    } else {
+                        // Kullanıcı oturum açmamış veya anonim
+                        updateHeaderUI(null);
+                        // Eğer token varsa ve henüz anonim değilse, özel token ile giriş yapmayı dene
+                        if (initialAuthToken) {
+                            signInWithCustomToken(auth, initialAuthToken).catch(e => {
+                                console.error("Özel token ile giriş başarısız, anonim olarak deneniyor:", e);
+                                // Özel token başarısız olursa anonim giriş yap
+                                signInAnonymously(auth).catch(e => console.error("Anonim giriş başarısız:", e));
+                            });
+                        } else if (!user) {
+                             // Eğer token yoksa, anonim giriş yap
+                            signInAnonymously(auth).catch(e => console.error("Anonim giriş başarısız:", e));
+                        }
+                    }
+                });
+
+            } catch (e) {
+                console.error("Firebase başlatma veya özel token ile oturum açma hatası:", e);
+                isConfigAvailable = false;
+                updateHeaderUI(null); // Hata durumunda çıkış yapmış gibi göster
+            }
+        } else {
+            console.error("Firebase yapılandırması mevcut değil.");
+            updateHeaderUI(null);
         }
 
         // --- DOM Elementleri ---
@@ -155,8 +177,48 @@
         const confirmPasswordInput = document.getElementById('confirm_password');
         const registerButton = document.getElementById('registerButton');
         const messageBox = document.getElementById('messageBox');
+        const authButtonsContainer = document.getElementById('authButtonsContainer');
         
         const originalButtonContent = '<i class="fas fa-user-plus mr-2"></i> Hesap Oluştur';
+
+        // --- Header UI Güncelleme Fonksiyonu ---
+        function updateHeaderUI(user) {
+            authButtonsContainer.innerHTML = ''; // Mevcut içeriği temizle
+
+            if (user && user.isAnonymous === false) {
+                // Oturum Açık: Panel ve Çıkış Yap butonlarını göster
+                const panelText = user.email ? user.email.split('@')[0] : 'Panel';
+                
+                authButtonsContainer.innerHTML = `
+                    <a href="panel.html" class="hidden sm:inline-block px-4 py-2 text-white transition duration-200 rounded-lg font-bold border border-purple hover:bg-purple/10">${panelText}</a>
+                    <button id="logoutButton" class="bg-red-600 px-5 py-2 rounded-lg font-semibold text-white hover:bg-red-700 transition duration-200">Çıkış Yap</button>
+                `;
+
+                // Çıkış yapma işlevini butona bağla
+                document.getElementById('logoutButton').addEventListener('click', handleLogout);
+
+            } else {
+                // Oturum Kapalı: Giriş Yap ve Kaydol butonlarını göster
+                authButtonsContainer.innerHTML = `
+                    <a href="girisyap.html" class="hidden sm:inline-block px-4 py-2 text-white transition duration-200 rounded-lg font-bold border border-purple hover:bg-purple/10">Giriş Yap</a>
+                    <a href="kaydol.html" class="bg-purple px-5 py-2 rounded-lg font-semibold text-white">Kaydol</a>
+                `;
+            }
+        }
+
+        // --- Çıkış Yapma İşlemi ---
+        async function handleLogout() {
+            if (!auth) return;
+            try {
+                await signOut(auth);
+                showMessage("Başarıyla çıkış yaptınız.", "success");
+                // Çıkış sonrası otomatik olarak giriş sayfasına yönlendirilebilir.
+                setTimeout(() => window.location.href = 'girisyap.html', 1500); 
+            } catch (error) {
+                console.error("Çıkış yapma hatası:", error);
+                showMessage("Çıkış yapma işlemi sırasında bir hata oluştu.", "error");
+            }
+        }
 
         // --- Mesaj Gösterme Fonksiyonu (Animasyonlu) ---
         function showMessage(message, type = 'success') {
@@ -186,8 +248,8 @@
             const password = passwordInput.value;
             const confirmPassword = confirmPasswordInput.value;
 
-            if (!isConfigAvailable) {
-                 showMessage("Hata: Firebase yapılandırması eksik veya hatalı.", "error");
+            if (!isConfigAvailable || !auth) {
+                 showMessage("Hata: Firebase bağlantısı kurulamadı.", "error");
                  resetRegisterButton(); 
                  return;
             }
@@ -230,7 +292,7 @@
                         errorMessage = "Şifre en az 6 karakter olmalıdır.";
                         break;
                     default:
-                        errorMessage = "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin. (Kod: " + error.code + ")";
+                        errorMessage = "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.";
                         break;
                 }
                 
