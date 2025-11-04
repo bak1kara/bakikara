@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetici Paneli | BAKİ S2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --purple: #6c5ce7; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #110915; /* Daha koyu arka plan */
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex; 
+        }
+        .sidebar {
+            background-color: #1a0e21; /* Navbar arka planı */
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+            width: 250px;
+        }
+        .main-content {
+            background-color: #110915;
+            flex-grow: 1;
+        }
+        .admin-card {
+            background-color: #1a0e21;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 0.75rem; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); 
+        }
+        .nav-item.active {
+            background-color: var(--purple);
+            color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(108, 92, 231, 0.5);
+        }
+        .nav-item:hover:not(.active) {
+            background-color: rgba(108, 92, 231, 0.1);
+        }
+        /* Gizli durum mesajı */
+        #loadingOverlay {
+            background-color: #110915; 
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="flex">
+
+    <div id="loadingOverlay" class="fixed inset-0 flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500 mb-4"></div>
+        <p id="loadingMessage" class="text-lg text-white">Yetkilendirme kontrol ediliyor...</p>
+    </div>
+
+    <div id="adminPanelWrapper" class="hidden w-full flex">
+        
+        <div class="sidebar h-screen p-4 flex flex-col">
+            <div class="text-3xl font-extrabold text-white mb-8 text-center">
+                <i class="fas fa-screwdriver-wrench text-purple-500 mr-1"></i> ADMIN
+            </div>
+
+            <nav class="flex-grow space-y-2">
+                <a href="#" class="nav-item active flex items-center p-3 text-white font-semibold transition duration-200" data-content="dashboard">
+                    <i class="fas fa-chart-line w-6 mr-3"></i> Yönetim Panosu
+                </a>
+                <a href="#" class="nav-item flex items-center p-3 text-gray-300 hover:text-white transition duration-200" data-content="users">
+                    <i class="fas fa-users w-6 mr-3"></i> Kullanıcılar (Firebase)
+                </a>
+                <a href="#" class="nav-item flex items-center p-3 text-gray-300 hover:text-white transition duration-200" data-content="links">
+                    <i class="fas fa-link w-6 mr-3"></i> Link Yönetimi
+                </a>
+                <a href="#" class="nav-item flex items-center p-3 text-gray-300 hover:text-white transition duration-200" data-content="settings">
+                    <i class="fas fa-cogs w-6 mr-3"></i> Sistem Ayarları
+                </a>
+            </nav>
+
+            <div class="mt-auto pt-4 border-t border-gray-700">
+                <button id="adminLogoutButton" class="w-full flex items-center justify-center p-3 text-red-400 bg-gray-700 rounded-lg font-semibold hover:bg-red-800 hover:text-white transition duration-200">
+                    <i class="fas fa-sign-out-alt mr-3"></i> Çıkış Yap
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content p-8 overflow-y-auto">
+            <header class="mb-8 pb-4 border-b border-gray-700">
+                <h1 id="pageTitle" class="text-4xl font-extrabold text-white">Yönetim Panosu</h1>
+                <p class="text-gray-400">Sistem verilerine hızlı genel bakış.</p>
+            </header>
+
+            <div id="dashboardContent" class="content-tab">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="admin-card p-6">
+                        <i class="fas fa-users text-purple-400 text-3xl mb-3"></i>
+                        <h4 class="text-2xl font-bold text-white" id="totalUsers">Yükleniyor...</h4>
+                        <p class="text-gray-400">Toplam Kullanıcı Sayısı</p>
+                    </div>
+                    <div class="admin-card p-6">
+                        <i class="fas fa-link text-yellow-400 text-3xl mb-3"></i>
+                        <h4 class="text-2xl font-bold text-white" id="totalLinks">Yükleniyor...</h4>
+                        <p class="text-gray-400">Oluşturulan Toplam Link</p>
+                    </div>
+                    <div class="admin-card p-6">
+                        <i class="fas fa-check-circle text-green-400 text-3xl mb-3"></i>
+                        <h4 class="text-2xl font-bold text-white" id="premiumUsers">Yükleniyor...</h4>
+                        <p class="text-gray-400">Aktif Premium Abonelik</p>
+                    </div>
+                </div>
+
+                <div class="admin-card p-6 mt-8">
+                    <h3 class="text-xl font-bold text-white mb-4">Sistem Durumu (Anlık)</h3>
+                    <p class="text-gray-400">Link yönlendirme performansı son 24 saat içinde stabil.</p>
+                </div>
+            </div>
+            
+            <div id="usersContent" class="content-tab hidden">
+                <p class="text-gray-300">Bu bölümde Firebase/Firestore kullanarak kullanıcı listesini çekebilir, rol ve abonelik durumlarını güncelleyebilirsiniz.</p>
+                <div class="mt-4 p-4 admin-card">
+                    <p class="text-yellow-400"><i class="fas fa-exclamation-triangle mr-2"></i> **ÖNEMLİ:** Kullanıcı verilerini direkt Firebase'den çekmek güvenlik riski taşıyabilir. Yönetim işlemlerini bir Cloud Function üzerinden yapmanız önerilir.</p>
+                </div>
+            </div>
+
+            <div id="linksContent" class="content-tab hidden">
+                <p class="text-gray-300">Bu bölümde tüm kısaltılmış linkleri görebilir, yasa dışı veya kurallara aykırı linkleri pasif hale getirebilirsiniz.</p>
+            </div>
+
+            <div id="settingsContent" class="content-tab hidden">
+                <p class="text-gray-300">Bu bölümde sitenin ana ayarları (örneğin kayıtları kapatma, duyuru metinlerini değiştirme vb.) yönetilebilir.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+    <script type="module" src="./firebase-auth-service.js"></script>
+    
+    <script type="module">
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { app } from "./firebase-auth-service.js"; 
+
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const adminPanelWrapper = document.getElementById('adminPanelWrapper');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const adminLogoutButton = document.getElementById('adminLogoutButton');
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentTabs = document.querySelectorAll('.content-tab');
+        const pageTitle = document.getElementById('pageTitle');
+        
+        // --- Yetkilendirme Kontrolü ---
+        async function checkAdminStatus(user) {
+            if (!user) {
+                loadingMessage.textContent = 'Giriş yapılmamış. Yönlendiriliyor...';
+                setTimeout(() => window.location.href = 'girisyap.html', 1500);
+                return;
+            }
+
+            try {
+                const docRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists() && docSnap.data().isAdmin === true) {
+                    // Yönetici Yetkisi Var
+                    loadingOverlay.classList.add('hidden');
+                    adminPanelWrapper.classList.remove('hidden');
+                    loadDashboardData(); // Yönetim verilerini yükle
+                } else {
+                    // Yönetici Yetkisi Yok
+                    loadingMessage.textContent = 'Yetkiniz bulunmamaktadır. Kullanıcı paneline yönlendiriliyor...';
+                    setTimeout(() => window.location.href = 'kullanicipaneli.html', 2000);
+                }
+            } catch (e) {
+                console.error("Yetkilendirme kontrol hatası:", e);
+                loadingMessage.textContent = 'Hata: Yetkilendirme sırasında sunucu hatası.';
+                setTimeout(() => window.location.href = 'panel.html', 3000);
+            }
+        }
+
+        // --- Veri Çekme Fonksiyonu (Yönetim Panosu) ---
+        async function loadDashboardData() {
+            try {
+                // Toplam Kullanıcı Sayısı (Basitçe users koleksiyonunu sayar)
+                const usersSnapshot = await getDocs(collection(db, "users"));
+                document.getElementById('totalUsers').textContent = usersSnapshot.size;
+
+                // Toplam Link Sayısı (Varsayımsal 'links' koleksiyonu)
+                const linksSnapshot = await getDocs(collection(db, "links"));
+                document.getElementById('totalLinks').textContent = linksSnapshot.size;
+
+                // Aktif Premium Kullanıcı Sayısı
+                const premiumQuery = query(collection(db, "users"), where("accountType", "==", "PREMIUM"));
+                const premiumSnapshot = await getDocs(premiumQuery);
+                document.getElementById('premiumUsers').textContent = premiumSnapshot.size;
+
+            } catch (e) {
+                console.error("Yönetim verileri yüklenirken hata:", e);
+                document.getElementById('totalUsers').textContent = 'Hata';
+                document.getElementById('totalLinks').textContent = 'Hata';
+                document.getElementById('premiumUsers').textContent = 'Hata';
+            }
+        }
+
+        // --- Sayfa Geçişleri ---
+        const switchTab = (targetContentId) => {
+            contentTabs.forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(`${targetContentId}Content`).classList.remove('hidden');
+            
+            navItems.forEach(item => {
+                if (item.getAttribute('data-content') === targetContentId) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Başlık Güncelleme
+            const titleMap = {
+                'dashboard': 'Yönetim Panosu',
+                'users': 'Kullanıcı Yönetimi',
+                'links': 'Link Yönetimi',
+                'settings': 'Sistem Ayarları'
+            };
+            pageTitle.textContent = titleMap[targetContentId] || 'Yönetim Paneli';
+        };
+
+        // --- Olay Dinleyicileri ---
+        adminLogoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'girisyap.html'; 
+            } catch (error) {
+                console.error("Çıkış hatası:", error);
+                alert("Çıkış yapılırken bir hata oluştu.");
+            }
+        });
+
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchTab(item.getAttribute('data-content'));
+            });
+        });
+
+        // --- Başlatma ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                checkAdminStatus(user);
+            } else {
+                 loadingMessage.textContent = 'Oturum açılmadı. Giriş sayfasına yönlendiriliyor...';
+                 setTimeout(() => window.location.href = 'girisyap.html', 1500);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // İlk sekme olarak Yönetim Panosu'nu ayarla
+            switchTab('dashboard'); 
+        });
+
+    </script>
+</body>
+</html>
