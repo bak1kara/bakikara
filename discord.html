@@ -13,7 +13,7 @@
             font-family: 'Poppins', sans-serif; 
             background-color: #1a0e21; 
             color: #ffffff; 
-            /* KRİTİK: Sayfa başlangıçta görünmez (0) */
+            /* Sayfa geçişi için opacity ve transition */
             opacity: 0; 
             transition: opacity 0.5s ease-in-out;
             min-height: 100vh;
@@ -33,7 +33,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .btn-discord {
-            background-color: #5865F2; 
+            background-color: #5865F2; /* Discord'un Mavi Rengi */
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
         .btn-discord:hover {
@@ -174,11 +174,18 @@
     <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
     <script type="module" src="./firebase-auth-service.js"></script>
+    
+    <script>
+        // Bu script, yukarıdaki module script (Firebase hatalarından dolayı) çalışmasa bile body'i görünür yapar.
+        document.addEventListener('DOMContentLoaded', () => {
+             document.body.style.opacity = '1';
+        });
+    </script>
 
     <script type="module">
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // Not: firebase-auth-service.js'den app nesnesi import edilir.
+        // window.startClient() yerine module export kullanılıyorsa:
         import { app } from "./firebase-auth-service.js"; 
 
         const auth = getAuth(app);
@@ -188,6 +195,7 @@
         const memberCountElement = document.getElementById('member-count');
         const onlineCountElement = document.getElementById('online-count');
         
+        // DİKKAT: Eğer veriler çekilmiyorsa, bu davet kodunu (YuHbprEFDE) kontrol edin.
         const inviteCode = 'YuHbprEFDE'; 
         const apiUrl = `https://discord.com/api/v10/invites/${inviteCode}?with_counts=true`;
 
@@ -203,6 +211,7 @@
         async function updateHeaderUI(user) {
             if (loggedOutNav && loggedInNav) {
                 if (user && !user.isAnonymous) {
+                    // KULLANICI GİRİŞ YAPMIŞ
                     loggedOutNav.classList.add('hidden');
                     loggedInNav.classList.remove('hidden');
 
@@ -229,6 +238,7 @@
                     document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout); 
 
                 } else {
+                    // KULLANICI GİRİŞ YAPMAMIŞ
                     loggedOutNav.classList.remove('hidden');
                     loggedInNav.classList.add('hidden');
                 }
@@ -249,10 +259,12 @@
             if (!memberCountElement || !onlineCountElement) return;
 
             try {
+                // Discord API çağrısı
                 const response = await fetch(apiUrl);
                 
                 if (!response.ok) {
-                    throw new Error(`API Hatası: ${response.status}`);
+                    // Veri çekme başarısızsa buraya düşer. (Örn: Davet kodu hatalı veya süresi dolmuş)
+                    throw new Error(`API Hatası: ${response.status} (${response.statusText})`);
                 }
                 
                 const data = await response.json();
@@ -265,8 +277,9 @@
 
             } catch (error) {
                 console.error("Discord istatistikleri çekilirken hata oluştu:", error);
-                memberCountElement.innerHTML = 'Hata!';
-                onlineCountElement.innerHTML = 'Kapalı';
+                // Kullanıcıya hata mesajı göstermek yerine sadece yükleme ikonlarını kaldır
+                memberCountElement.textContent = 'Bilinmiyor';
+                onlineCountElement.textContent = 'Kapalı';
             }
         }
 
@@ -283,7 +296,8 @@
         });
         
         document.addEventListener('DOMContentLoaded', () => {
-            fetchDiscordStats();
+            
+            fetchDiscordStats(); // Discord verilerini çek
 
             // Dropdown açma/kapama
             document.getElementById('profileMenuButton')?.addEventListener('click', (e) => {
@@ -300,15 +314,8 @@
             });
         });
         
-        // Sayfa yüklendiğinde Firebase başlatma ve dinleme işlemini başlat
-        // window.onload = window.startClient; // Eğer firebase-auth-service içinde bir init fonksiyonu varsa bu kalsın
-
-    </script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-             document.body.style.opacity = '1';
-        });
+        // Firebase Auth Service'deki başlatma fonksiyonunu çağırın.
+        window.onload = window.startClient;
     </script>
 </body>
 </html>
