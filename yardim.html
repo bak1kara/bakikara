@@ -4,13 +4,6 @@
         © 2025 BAKİ S2 Yönetim Hizmetleri.
     </footer>
 
-    <script>
-        // Bu script, herhangi bir modül hatası olsa bile body'yi görünür yapar.
-        document.addEventListener('DOMContentLoaded', () => {
-            document.body.style.opacity = '1';
-        });
-    </script>
-
     <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
@@ -81,11 +74,13 @@
             updateHeaderUI(user);
         });
 
-        // Logout butonuna olayı bağlama (Dropdown içinde)
-        document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout);
-
-        // --- YARDIM SAYFASINA ÖZEL: Akordiyon (Sıkça Sorulan Sorular) Logic ---
+        // Tüm olay dinleyicilerini DOMContentLoaded içine al
         document.addEventListener('DOMContentLoaded', () => {
+            
+            // Logout butonuna olayı bağlama
+            document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout);
+
+            // Akordiyon (Sıkça Sorulan Sorular) Logic
             document.querySelectorAll('.accordion-item').forEach(item => {
                 item.addEventListener('click', () => {
                     const targetId = item.getAttribute('data-target');
@@ -99,14 +94,13 @@
                     document.querySelectorAll('.accordion-item i').forEach(i => i.classList.remove('rotate-180'));
 
                     if (isCurrentlyHidden) {
-                        // Sadece tıklananı aç
                         content.classList.remove('hidden');
                         icon.classList.add('rotate-180');
                     }
                 });
             });
             
-            // YENİ: Dropdown açma/kapama JS'i
+            // Dropdown açma/kapama JS'i
             document.getElementById('profileMenuButton')?.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const dropdown = document.getElementById('profileDropdown');
