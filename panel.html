@@ -176,7 +176,7 @@
         async function handleLogout() {
             try {
                 await signOut(auth);
-                // Çıkış başarılı olursa, Oturum kontrolü otomatik olarak girişe yönlendirir
+                // Çıkış başarılı olursa, kullanıcıyı giriş sayfasına yönlendirir
                 window.location.href = 'girisyap.html';
             } catch (error) {
                 console.error("Çıkış hatası:", error);
@@ -195,7 +195,6 @@
 
             if (user && user.email) {
                 // 1. Kullanıcı Giriş Yapmış Durumda (Hesap adı, türü, fotoğraf)
-                // Hesap türü ve kullanıcı adı için mock veriler kullanılmıştır (gerçek Firestore verisine bağlanmadı)
                 const displayName = user.displayName || user.email.split('@')[0].substring(0, 10);
                 const profilePhotoUrl = user.photoURL || `https://ui-avatars.com/api/?name=${displayName.substring(0, 1)}&background=6c5ce7&color=fff`;
 
@@ -236,10 +235,12 @@
         onAuthStateChanged(auth, (user) => {
             updateNavbar(user); // Navbar'ı her durumda güncelle
 
-            // Güvenlik Kontrolü: Panel sayfası olduğu için, giriş yapılmadıysa girişe yönlendir
-            if (!user) {
+            // Güvenlik Kontrolü DEVRE DIŞI BIRAKILDI:
+            // Artık giriş yapılmadıysa bile sayfa yüklenir ve sadece Navbar değişir.
+            /* if (!user) {
                  window.location.href = 'girisyap.html'; 
             }
+            */
         });
 
     </script>
