@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanım Şartları | BAKİ S2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --purple: #6c5ce7; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #1a0e21; 
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex; 
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        .header-bg { background-color: rgba(26, 14, 33, 0.9); backdrop-filter: blur(5px); }
+        .content-card { 
+            background-color: #2a1b3a; 
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 1.5rem; 
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); 
+        }
+        .text-purple { color: var(--purple); }
+        /* Diğer sayfalardaki Navbar ve Footer stilleri buraya dahil edilmelidir */
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-16 flex justify-center">
+        <div class="content-card max-w-4xl w-full p-8 md:p-12">
+            <div class="text-center mb-8">
+                <i class="fas fa-file-contract text-6xl text-purple-500 mb-4"></i>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-2">Kullanım Şartları</h1>
+                <p class="text-gray-400 text-lg">Hizmetlerimizi kullanmadan önce bu koşulları okuyunuz.</p>
+            </div>
+
+            <section class="mb-10">
+                <h2 class="text-3xl font-bold text-purple-400 mb-4 border-b border-gray-700 pb-2">1. Şartların Kabulü</h2>
+                <p class="text-gray-300">
+                    BAKİ S2'yi kullanarak, bu Kullanım Şartları'na ve tüm geçerli yasalara uymayı kabul etmiş olursunuz. Bu şartları kabul etmiyorsanız, hizmeti kullanmamanız gerekmektedir.
+                </p>
+            </section>
+            
+            <section class="mb-10">
+                <h2 class="text-3xl font-bold text-purple-400 mb-4 border-b border-gray-700 pb-2">2. Yasaklı Kullanımlar</h2>
+                <p class="text-gray-300 mb-4">
+                    Kullanıcılar, aşağıdaki faaliyetler için kısaltılmış bağlantı oluşturamaz, yayınlayamaz veya yönlendiremez:
+                </p>
+                <ul class="list-disc list-inside space-y-3 pl-4 text-gray-300">
+                    <li class="font-semibold text-white">2.1. Yasa dışı faaliyetler, telif hakkı ihlali veya nefret söylemi içeren içerikler.</li>
+                    <li class="font-semibold text-white">2.2. Kötü amaçlı yazılım, virüs veya dolandırıcılık amaçlı siteler.</li>
+                    <li class="font-semibold text-white">2.3. Saldırı amaçlı veya aşırı cinsel içerik.</li>
+                    <li class="font-semibold text-white">2.4. Hizmetlerimizin veya sunucularımızın performansını düşürmeyi amaçlayan her türlü trafik.</li>
+                </ul>
+                <p class="text-red-400 mt-4">
+                    Bu şartların ihlali, hesabınızın önceden bildirim yapılmaksızın derhal askıya alınmasına yol açacaktır.
+                </p>
+            </section>
+
+            <section class="mb-10">
+                <h2 class="text-3xl font-bold text-purple-400 mb-4 border-b border-gray-700 pb-2">3. Hesap Sorumluluğu</h2>
+                <p class="text-gray-300">
+                    Hesabınızın güvenliğini sağlamak sizin sorumluluğunuzdadır. Şifrenizi gizli tutmalı ve hesabınız altında gerçekleşen tüm faaliyetlerden sorumlu olmalısınız.
+                </p>
+            </section>
+            
+            <section class="text-center pt-6 border-t border-gray-700">
+                <p class="text-gray-400 text-sm">Bu şartlar en son 04 Kasım 2025 tarihinde güncellenmiştir.</p>
+            </section>
+        </div>
+    </main>
+
+    </body>
+</html>
