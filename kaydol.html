@@ -4,27 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kaydol | BAKİ S2</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --purple: #6c5ce7; }
-        body { font-family: 'Poppins', sans-serif; background-color: #1a0e21; color: #ffffff; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #1a0e21; 
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex; 
+            flex-direction: column;
+        }
         .header-bg { background-color: rgba(26, 14, 33, 0.9); backdrop-filter: blur(5px); }
-        .form-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px); border-radius: 1rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+        .form-card { 
+            background-color: #2a1b3a; /* Kart arka planı, tutarlılık için düzeltildi */
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 1rem; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); 
+        }
+        /* Input Alanı Stili */
+        .input-field {
+            background-color: #3b2f4f;
+            border: 1px solid transparent;
+            color: white;
+            transition: border-color 0.3s;
+        }
+        .input-field:focus {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 1px var(--purple);
+            outline: none;
+        }
         .btn-register {
             background-color: var(--purple);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
         .btn-register:hover {
             background-color: #5c4cd9;
             transform: translateY(-1px);
         }
-        /* Özel Mesaj Kutusu Stili */
+        /* ANİMASYONLU Mesaj Kutusu Stili */
         #messageBox {
-            visibility: hidden;
             position: fixed;
             bottom: 20px;
             left: 50%;
@@ -34,74 +56,76 @@
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            pointer-events: none; /* Tıklama olaylarını engelle */
+            color: white;
+            font-weight: 600;
         }
-        .message-success { background-color: #10b981; }
-        .message-error { background-color: #ef4444; }
-        .message-show { visibility: visible; opacity: 1; }
+        .message-success { background-color: #10b981; } /* Tailwind green-500 */
+        .message-error { background-color: #ef4444; } /* Tailwind red-500 */
+        .message-show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
-    <!-- Navbar -->
     <header class="header-bg p-4 flex justify-center sticky top-0 z-20">
         <div class="w-full max-w-6xl flex justify-between items-center">
-            <a href="panel.html" class="text-3xl font-extrabold text-white flex items-center">
+            <a href="index.html" class="text-3xl font-extrabold text-white flex items-center">
                 <i class="fas fa-terminal mr-2 text-purple"></i> BAKİ S2
             </a>
             <nav class="hidden md:flex space-x-6 text-lg">
                 <a href="yardim.html" class="text-gray-300 hover:text-purple transition duration-200">Yardım Merkezi</a>
                 <a href="discord.html" class="text-gray-300 hover:text-purple transition duration-200">Discord</a>
-                <a href="fiyatlandirma.html" class="text-gray-300 hover:text-purple transition duration-200">Fiyatlandirma</a>
+                <a href="fiyatlandirma.html" class="text-gray-300 hover:text-purple transition duration-200">Fiyatlandırma</a>
             </nav>
             <div class="flex space-x-3">
-                <a href="girisyap.html" class="hidden sm:inline-block px-4 py-2 text-purple transition duration-200 rounded-lg">Giriş Yap</a>
+                <a href="girisyap.html" class="hidden sm:inline-block px-4 py-2 text-white transition duration-200 rounded-lg font-bold border border-purple hover:bg-purple/10">Giriş Yap</a>
                 <a href="kaydol.html" class="bg-purple px-5 py-2 rounded-lg font-semibold text-white">Kaydol</a>
             </div>
         </div>
     </header>
 
-    <!-- İçerik Alanı -->
     <main class="flex-grow flex flex-col items-center justify-center py-12 px-4">
         <div class="form-card p-8 md:p-10 w-full max-w-md">
-            <h1 class="text-3xl font-extrabold mb-6 text-white text-center">Hemen Kaydolun</h1>
+            <h1 class="text-3xl font-extrabold mb-6 text-white text-center">✍️ Yeni Hesap Oluşturun</h1>
             
-            <form id="registerForm" class="space-y-4">
+            <form id="registerForm" class="space-y-6">
                 <div>
-                    <label for="register_email" class="block text-sm font-medium text-gray-400 text-left mb-1">E-posta</label>
-                    <input type="email" id="register_email" required class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple focus:ring focus:ring-purple focus:ring-opacity-50 text-white" placeholder="ornek@mail.com">
+                    <label for="register_email" class="block text-sm font-medium text-gray-300 text-left mb-1">E-posta Adresi</label>
+                    <input type="email" id="register_email" name="email" required class="input-field w-full p-3 rounded-lg" placeholder="ornek@mail.com">
                 </div>
                 <div>
-                    <label for="register_password" class="block text-sm font-medium text-gray-400 text-left mb-1">Şifre (Min 6 Karakter)</label>
-                    <input type="password" id="register_password" required minlength="6" class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple focus:ring focus:ring-purple focus:ring-opacity-50 text-white" placeholder="Şifreniz">
+                    <label for="register_password" class="block text-sm font-medium text-gray-300 text-left mb-1">Şifre (Min 6 Karakter)</label>
+                    <input type="password" id="register_password" name="password" required minlength="6" class="input-field w-full p-3 rounded-lg" placeholder="Şifreniz">
+                </div>
+                <div>
+                    <label for="confirm_password" class="block text-sm font-medium text-gray-300 text-left mb-1">Şifre Tekrarı</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="6" class="input-field w-full p-3 rounded-lg" placeholder="Şifrenizi Onaylayın">
                 </div>
 
                 <button type="submit" id="registerButton" class="w-full btn-register py-3 rounded-lg font-bold text-white text-lg mt-4">
-                    Hesap Oluştur
+                    <i class="fas fa-user-plus mr-2"></i> Hesap Oluştur
                 </button>
             </form>
             
-            <p class="text-center text-sm text-gray-400 mt-4">
+            <p class="text-center text-sm text-gray-400 mt-6">
                 Zaten hesabınız var mı? 
-                <a href="girisyap.html" class="text-purple hover:underline font-semibold">Giriş Yapın</a>
+                <a href="girisyap.html" class="text-purple hover:underline font-semibold transition duration-200">Hemen Giriş Yapın</a>
             </p>
         </div>
     </main>
     
-    <!-- Mesaj Kutusu -->
     <div id="messageBox"></div>
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-500 text-center p-4">
+    <footer class="bg-gray-900 text-gray-500 text-center p-4 mt-auto">
         © 2025 BAKİ S2 Yönetim Hizmetleri.
     </footer>
 
-    <!-- Firebase Kodu -->
     <script type="module">
-        // Firebase SDK v12.5.0 kullanılıyor
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
         
-        // GÜNCEL Firebase yapılandırması (Sizin yeni projenizden alınan)
+        // --- ⚠️ LÜTFEN KONTROL EDİN: Kendi Firebase Anahtarlarınız ---
+        // Bu anahtarlar, önceki girdinizden alınmıştır. Güvenliğiniz için KENDİ proje anahtarlarınızı kullanın.
         const firebaseConfig = {
             apiKey: "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao",
             authDomain: "baki-s2-yonetim.firebaseapp.com",
@@ -111,63 +135,74 @@
             appId: "1:692508919425:web:fac963c81c11b7be70af80",
             measurementId: "G-Q52XG8GLB2"
         };
-
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // --- DOM Elementlerini Başlat ---
-        let messageBox = document.getElementById('messageBox');
         
-        // --- Mesaj Gösterme Fonksiyonu ---
+        let auth;
+        let isConfigAvailable = (firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao");
+
+        // --- Firebase Başlatma ---
+        try {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            isConfigAvailable = true;
+        } catch (e) {
+            console.error("Firebase başlatma hatası:", e);
+            auth = null;
+            isConfigAvailable = false;
+        }
+
+        // --- DOM Elementleri ---
+        const registerForm = document.getElementById('registerForm');
+        const emailInput = document.getElementById('register_email');
+        const passwordInput = document.getElementById('register_password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const registerButton = document.getElementById('registerButton');
+        const messageBox = document.getElementById('messageBox');
+        
+        // --- Mesaj Gösterme Fonksiyonu (Animasyonlu) ---
         function showMessage(message, type = 'success') {
-            if (!messageBox) {
-                messageBox = document.getElementById('messageBox');
-                if (!messageBox) return; 
-            }
+            if (!messageBox) return; 
+            
             messageBox.textContent = message;
             messageBox.className = type === 'success' ? 'message-success' : 'message-error';
             messageBox.classList.add('message-show');
+
+            // 3 saniye sonra kaybolma animasyonunu başlat
             setTimeout(() => {
                 messageBox.classList.remove('message-show');
             }, 3000);
         }
 
-        // Firebase Uygulamasını Başlat
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        setPersistence(auth, browserLocalPersistence); 
-
-        // Oturum Açma Kontrolü (Anonim Giriş veya Custom Token)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("Kullanıcı durumu kontrol edildi. UID:", user.uid);
-            } else if (!initialAuthToken) {
-                // Anonim girişi etkinleştirin (Hata alırsanız Firebase konsolunda 'Anonymous' seçeneğini açın)
-                signInAnonymously(auth).catch(e => console.error("Anonim giriş hatası:", e));
-            }
-        });
-
-        if (initialAuthToken) {
-            signInWithCustomToken(auth, initialAuthToken).catch(e => {
-                console.error("Custom token ile giriş hatası:", e);
-            });
-        }
-
         // --- Kayıt İşlemi ---
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('register_email').value;
-            const password = document.getElementById('register_password').value;
+            
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
 
-            const button = document.getElementById('registerButton');
-            button.disabled = true;
-            button.textContent = 'Oluşturuluyor...';
+            if (!isConfigAvailable) {
+                 showMessage("Hata: Firebase yapılandırması eksik veya hatalı.", "error");
+                 return;
+            }
 
+            // Şifre Eşleşme Kontrolü
+            if (password !== confirmPassword) {
+                showMessage("Hata: Şifreleriniz birbiriyle eşleşmiyor!", "error");
+                return;
+            }
+
+            // Butonu devre dışı bırak ve yükleniyor durumunu göster
+            registerButton.disabled = true;
+            registerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Hesap Oluşturuluyor...';
+            
             try {
                 // Firebase Auth ile yeni kullanıcı oluştur
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 
-                // Başarılı olursa kullanıcıyı ana sayfaya yönlendir
-                showMessage("Kayıt başarılı! Giriş yapılıyor...", "success");
+                // İsteğe bağlı: Kullanıcıya e-posta doğrulama linki gönderme
+                // await sendEmailVerification(userCredential.user);
+                
+                showMessage("Kayıt başarılı! Hesabınıza giriş yapılıyor...", "success");
                 
                 // Başarılı giriş sonrası 2 saniye bekleyip yönlendir
                 setTimeout(() => {
@@ -190,14 +225,15 @@
                         errorMessage = "Şifre en az 6 karakter olmalıdır.";
                         break;
                     default:
-                        errorMessage = "Bilinmeyen bir hata oluştu. Kod: " + error.code;
+                        errorMessage = "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.";
+                        break;
                 }
                 
-                showMessage("Kayıt hatası: " + errorMessage, "error");
+                showMessage("Hata: " + errorMessage, "error");
 
             } finally {
-                button.disabled = false;
-                button.textContent = 'Hesap Oluştur';
+                registerButton.disabled = false;
+                registerButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Hesap Oluştur';
             }
         });
     </script>
