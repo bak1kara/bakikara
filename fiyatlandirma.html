@@ -204,7 +204,7 @@
         const globalFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Kullanıcının hardcoded ayarları (yedek olarak)
+        // Kullanıcının hardcoded ayarları (yedek olarak - Bu kısımlar Canvas ortamında otomatik sağlanır)
         const hardcodedConfig = {
             apiKey: "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao",
             authDomain: "baki-s2-yonetim.firebaseapp.com",
@@ -215,6 +215,7 @@
             measurementId: "G-Q52XG8GLB2"
         };
         
+        // Yapılandırmayı belirle
         const firebaseConfig = globalFirebaseConfig || hardcodedConfig;
         let auth;
         let isConfigAvailable = !!firebaseConfig.apiKey;
@@ -252,7 +253,8 @@
 
             if (user && user.isAnonymous === false) {
                 // Oturum Açık: Panel ve Çıkış Yap butonlarını göster
-                const panelText = user.email ? user.email.split('@')[0] : 'Panel';
+                // Kullanıcının e-postasının ilk kısmını veya UID'sini göster
+                const panelText = user.email ? user.email.split('@')[0] : (user.uid.substring(0, 4) + '...');
                 
                 authButtonsContainer.innerHTML = `
                     <a href="panel.html" class="hidden sm:inline-block px-4 py-2 text-white transition duration-200 rounded-lg font-bold border border-purple hover:bg-purple/10">${panelText}</a>
@@ -263,7 +265,7 @@
                 document.getElementById('logoutButton').addEventListener('click', handleLogout);
 
             } else {
-                // Oturum Kapalı: Giriş Yap ve Kaydol butonlarını göster
+                // Oturum Kapalı (veya Anonim): Giriş Yap ve Kaydol butonlarını göster
                 authButtonsContainer.innerHTML = `
                     <a href="girisyap.html" class="hidden sm:inline-block px-4 py-2 text-white transition duration-200 rounded-lg font-bold border border-purple hover:bg-purple/10">Giriş Yap</a>
                     <a href="kaydol.html" class="bg-purple px-5 py-2 rounded-lg font-semibold text-white">Kaydol</a>
@@ -293,16 +295,20 @@
                 
                 onAuthStateChanged(auth, (user) => {
                     if (user && user.isAnonymous === false) {
+                        // Gerçek kullanıcı giriş yapmış
                         updateHeaderUI(user);
                     } else {
+                        // Kullanıcı anonim veya çıkış yapmış
                         updateHeaderUI(null);
-                        // Anonim giriş veya custom token ile otomatik giriş
+
+                        // Custom token varsa otomatik giriş yapmayı dene
                         if (initialAuthToken) {
                             signInWithCustomToken(auth, initialAuthToken).catch(e => {
                                 console.error("Özel token ile giriş başarısız, anonim olarak deneniyor:", e);
                                 signInAnonymously(auth).catch(e => console.error("Anonim giriş başarısız:", e));
                             });
-                        } else if (!user) {
+                        } else if (!user || user.isAnonymous) {
+                            // Custom token yoksa veya zaten anonimse, anonim olarak oturum aç
                             signInAnonymously(auth).catch(e => console.error("Anonim giriş başarısız:", e));
                         }
                     }
@@ -312,6 +318,7 @@
                 console.error("Firebase başlatma hatası:", e);
                 isConfigAvailable = false;
                 updateHeaderUI(null);
+                showMessage("Hata: Firebase yapılandırması başarısız.", "error");
             }
         } else {
             console.error("Firebase yapılandırması mevcut değil.");
@@ -332,6 +339,7 @@
                 modalRegisterBtn.style.display = 'none'; // Kayıt butonunu gizle
             } else {
                 // Diğer planlar için varsayılan linkler
+                // Satın alma sırasında hangi planı seçtiğini belirtmek için sorgu parametresi ekle
                 modalLoginBtn.href = `girisyap.html?plan=${planName.toLowerCase()}`;
                 modalLoginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Giriş Yap & Satın Al';
                 modalRegisterBtn.href = `kaydol.html?plan=${planName.toLowerCase()}`;
