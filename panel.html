@@ -8,14 +8,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --purple: #6c5ce7; }
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background-color: #1a0e21; 
+        :root {
+            --purple: #6c5ce7; /* Mor vurgu rengi */
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a0e21; /* Daha mor-siyah arası bir arka plan */
             color: #ffffff;
             min-height: 100vh;
             display: flex; 
             flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
         }
         .header-bg {
             background-color: rgba(26, 14, 33, 0.9);
@@ -31,10 +35,15 @@
             background-color: #5c4cd9;
             transform: translateY(-1px);
         }
-        .card {
-            background-color: #2a1b3a; 
-            border: 1px solid rgba(108, 92, 231, 0.3);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        .secondary-cta-button {
+            border: 2px solid var(--purple);
+            color: var(--purple);
+            background-color: transparent;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .secondary-cta-button:hover {
+            background-color: var(--purple);
+            color: white;
         }
         .profile-pic {
             width: 40px;
@@ -43,6 +52,32 @@
             border: 2px solid var(--purple);
             object-fit: cover;
         }
+
+        /* Ana Sayfa Arka Plan Efekti */
+        body::before {
+             content: '';
+             position: absolute;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             background-image: radial-gradient(circle at 50% 10%, rgba(108, 92, 231, 0.15) 0%, transparent 40%);
+             opacity: 0.5;
+             z-index: -1;
+         }
+         /* Görseldeki cihaz kartları için stil */
+         .device-mockup {
+             background: #2a1b3a;
+             border-radius: 3rem;
+             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 8px rgba(108, 92, 231, 0.1);
+             position: absolute;
+             overflow: hidden;
+             width: 250px;
+             height: 450px;
+             transform: rotate(-10deg);
+             transition: transform 0.5s ease;
+             transform-origin: center;
+         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -54,7 +89,7 @@
                 <i class="fas fa-terminal mr-2 text-purple"></i> BAKİ S2
             </a>
             
-            <nav class="hidden md:flex space-x-6 text-lg items-center">
+            <nav class="flex space-x-6 text-lg items-center">
                 <a href="yardim.html" class="text-gray-300 hover:text-purple transition duration-200">Yardım Merkezi</a>
                 <a href="discord.html" class="text-gray-300 hover:text-purple transition duration-200">Discord</a>
                 <a href="fiyatlandirma.html" class="text-gray-300 hover:text-purple transition duration-200">Fiyatlandırma</a>
@@ -66,25 +101,40 @@
         </div>
     </header>
 
-    <main class="flex-grow flex flex-col items-center justify-center py-12 px-4">
-        <div class="card p-8 md:p-10 w-full max-w-3xl rounded-xl text-center">
-            <h1 class="text-4xl font-extrabold mb-4 text-purple">Hoş Geldiniz, <span id="displayName">Kullanıcı!</span></h1>
-            <p class="text-gray-400 mb-8">Bu, giriş yaptıktan sonra eriştiğiniz Yönetim Panelinizdir. Oturumunuz başarılı.</p>
+    <main class="flex-grow flex flex-col items-center pt-20 pb-40 relative z-10 text-center">
+        
+        <div class="w-full max-w-4xl px-4">
+            <h1 class="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
+                İstediğin Her Şey, <span class="text-purple">Tam Burada.</span>
+            </h1>
+            <p class="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+                BAKİ S2, modern, zengin özellikli ve hızlı biyolinkleriniz ve güvenli dosya barındırma hizmetiniz için vazgeçilmezinizdir. İhtiyacınız olan her şey — işte burada.
+            </p>
             
-            <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-6">
-                <div class="text-left p-4 card rounded-lg w-full md:w-auto">
-                    <p class="text-sm text-gray-400">E-posta:</p>
-                    <p id="userEmail" class="font-bold"></p>
-                </div>
-                <div class="text-left p-4 card rounded-lg w-full md:w-auto">
-                    <p class="text-sm text-gray-400">Hesap Türü:</p>
-                    <p id="userAccountType" class="font-bold text-green-400">Ücretsiz (Varsayılan)</p>
-                </div>
+            <div class="flex justify-center space-x-4">
+                <a href="kaydol.html" class="main-cta-button px-8 py-3 rounded-xl font-bold text-lg text-white">
+                    Hemen Kaydol
+                </a>
+                <a href="fiyatlandirma.html" class="secondary-cta-button px-8 py-3 rounded-xl font-bold text-lg">
+                    Fiyatları Gör
+                </a>
+            </div>
+        </div>
+
+        <div class="relative mt-20 h-[500px] w-full max-w-6xl flex justify-center items-end">
+            
+            <div class="device-mockup left-1/2 -ml-[300px] bg-cover bg-center" style="transform: rotate(-15deg) scale(0.9); z-index: 1;">
+                 <img src="https://via.placeholder.com/250x450/451a54/ffffff?text=BIOLINK+PANELI" alt="Biyolink Paneli" class="w-full h-full object-cover rounded-[2.8rem] p-1.5" style="border: 4px solid #6c5ce7;">
             </div>
 
-            <button id="logoutButtonMain" class="main-cta-button mt-8 px-6 py-3 rounded-lg font-bold text-white text-lg">
-                <i class="fas fa-sign-out-alt mr-2"></i> Güvenli Çıkış Yap
-            </button>
+            <div class="device-mockup relative mx-4 bg-cover bg-center" style="transform: rotate(0deg) scale(1.1); z-index: 3; box-shadow: 0 15px 50px rgba(108, 92, 231, 0.7);">
+                 <img src="https://via.placeholder.com/250x450/563e75/ffffff?text=HESAP+ISTATISTIKLERI" alt="Hesap İstatistikleri" class="w-full h-full object-cover rounded-[2.8rem] p-1.5" style="border: 4px solid #8f82f2;">
+            </div>
+
+            <div class="device-mockup right-1/2 mr-[300px] bg-cover bg-center" style="transform: rotate(15deg) scale(0.9); z-index: 2;">
+                 <img src="https://via.placeholder.com/250x450/331a47/ffffff?text=DISCORD+PROFIL" alt="Discord Profil Görüntüsü" class="w-full h-full object-cover rounded-[2.8rem] p-1.5" style="border: 4px solid #6c5ce7;">
+            </div>
+
         </div>
     </main>
 
@@ -110,7 +160,18 @@
 
         // --- DOM Elementleri ---
         const authButtons = document.getElementById('authButtons');
-        const logoutButtonMain = document.getElementById('logoutButtonMain');
+        
+        // --- Çıkış Yapma Fonksiyonu ---
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                // Çıkış başarılı olursa, Oturum kontrolü otomatik olarak girişe yönlendirir
+                window.location.href = 'girisyap.html';
+            } catch (error) {
+                console.error("Çıkış hatası:", error);
+                alert("Çıkış yapılırken bir hata oluştu: " + error.message);
+            }
+        }
 
         // --- Navigasyon Çubuğunu Güncelleme Fonksiyonu ---
         function updateNavbar(user) {
@@ -120,12 +181,12 @@
                 // 1. Kullanıcı Giriş Yapmış Durumda
                 const profileHtml = `
                     <div class="flex items-center space-x-4">
-                        <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=${user.email.substring(0, 1)}&background=6c5ce7&color=fff'}" 
+                        <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=${user.email.split('@')[0].substring(0, 1)}&background=6c5ce7&color=fff'}" 
                              alt="Profil" class="profile-pic">
                         
                         <div class="hidden sm:block text-left">
                             <span class="block text-sm font-semibold">${user.displayName || user.email.split('@')[0].substring(0, 10)}</span>
-                            <span class="block text-xs text-gray-400">Standart Hesap</span>
+                            <span class="block text-xs text-gray-400">Hesap Türü</span>
                         </div>
 
                         <button id="logoutButtonNav" class="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition duration-200">
@@ -135,56 +196,30 @@
                 `;
                 authButtons.innerHTML = profileHtml;
                 
-                // Sayfa içindeki ve Navbar'daki çıkış butonlarına olayı bağla
+                // Çıkış butonuna olayı bağla
                 document.getElementById('logoutButtonNav').addEventListener('click', handleLogout);
 
-                // Paneldeki Bilgileri Güncelle
-                document.getElementById('displayName').textContent = user.displayName || user.email.split('@')[0];
-                document.getElementById('userEmail').textContent = user.email;
-
             } else {
-                // 2. Kullanıcı Giriş Yapmamış/Anonim Durumda
+                // 2. Kullanıcı Giriş Yapmamış Durumda
                 const guestHtml = `
                     <a href="girisyap.html" class="px-5 py-2 rounded-lg font-semibold text-white border border-purple hover:bg-purple transition duration-200">Giriş Yap</a>
                     <a href="kaydol.html" class="main-cta-button px-5 py-2 rounded-lg font-semibold text-white">Kaydol</a>
                 `;
                 authButtons.innerHTML = guestHtml;
-                
-                // Panel içeriğini gizle (Giriş zorunluluğu varsa)
-                // Giriş yapılmadıysa kullanıcıyı giriş sayfasına yönlendir (Güvenlik Kontrolü)
-                // window.location.href = 'girisyap.html'; 
-                
-                // Eğer panel herkese açıksa, paneldeki Çıkış butonunu gizle
-                logoutButtonMain.style.display = 'none'; 
             }
         }
         
-        // --- Çıkış Yapma Fonksiyonu ---
-        async function handleLogout() {
-            try {
-                await signOut(auth);
-                // Çıkış başarılı olursa, Oturum kontrolü otomatik olarak çalışacak
-                // ve kullanıcıyı girisyap.html sayfasına yönlendireceğiz
-                window.location.href = 'girisyap.html';
-            } catch (error) {
-                console.error("Çıkış hatası:", error);
-                alert("Çıkış yapılırken bir hata oluştu: " + error.message);
-            }
-        }
-
-
         // --- Oturum Durumu Değişikliği Dinleyicisi ---
         onAuthStateChanged(auth, (user) => {
             updateNavbar(user); // Navbar'ı her durumda güncelle
 
-            // Giriş yapılmadıysa (veya e-posta yoksa - anonim hariç) girişe yönlendir
+            // Burası Panel sayfası olduğu için, giriş yapılmadıysa girişe yönlendir
             if (!user) {
+                 // Sadece bir uyarı verip yönlendiriyoruz, kullanıcı bu sayfayı görmemeli
+                 console.log("Oturum bulunamadı, girişe yönlendiriliyor...");
                  window.location.href = 'girisyap.html'; 
             }
         });
-
-        // Paneldeki ana çıkış butonuna olayı bağla
-        logoutButtonMain.addEventListener('click', handleLogout);
 
     </script>
 </body>
