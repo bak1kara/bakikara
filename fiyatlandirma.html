@@ -1,372 +1,391 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fiyatlandırma | BAKİ S2</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root { --purple: #6c5ce7; }
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background-color: #1a0e21; 
-            color: #ffffff; 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .header-bg { 
-            background-color: rgba(26, 14, 33, 0.9); 
-            backdrop-filter: blur(5px); 
-            -webkit-backdrop-filter: blur(5px);
-        }
-        /* GÜNCELLENMİŞ KART STİLLERİ */
-        .price-card { 
-            background-color: #2a1b3a; 
-            border-radius: 1.5rem; /* Daha yuvarlak */
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); 
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease; 
-        }
-        .price-card:hover { 
-            transform: translateY(-8px); 
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); 
-        }
-        .price-card-premium { 
-            border: 3px solid var(--purple); /* Kalın border */
-            background: linear-gradient(145deg, rgba(108, 92, 231, 0.2) 0%, #2a1b3a 100%);
-        }
-        /* BUTON VE VURGU RENGİ */
-        .btn-purple {
-            background-color: var(--purple);
-            color: white;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-        .btn-purple:hover {
-            background-color: #5c4cd9;
-            transform: translateY(-1px);
-        }
-        /* Navbar Stilleri */
-        .profile-avatar-nav {
-            width: 40px; height: 40px; line-height: 40px; font-size: 16px; font-weight: 600;
-            background-color: var(--purple); color: white; border-radius: 50%; text-align: center;
-            flex-shrink: 0; cursor: pointer; border: 2px solid var(--purple);
-        }
-        .card-dropdown { 
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px); border-radius: 0.5rem; 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); border: 1px solid rgba(108, 92, 231, 0.2); z-index: 30;
-        }
-        /* Fiyat Toggle Stili */
-        .toggle-container {
-            background-color: #1f112c;
-            border-radius: 9999px;
-            padding: 4px;
-        }
-        .toggle-btn {
-            padding: 8px 24px;
-            border-radius: 9999px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .toggle-btn.active {
-            background-color: var(--purple);
-            color: white;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiyatlandırma | BAKİ S2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --purple: #6c5ce7; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #1a0e21; 
+            color: #ffffff; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header-bg { 
+            background-color: rgba(26, 14, 33, 0.9); 
+            backdrop-filter: blur(5px); 
+            -webkit-backdrop-filter: blur(5px);
+        }
+        /* GÜNCELLENMİŞ KART STİLLERİ */
+        .price-card { 
+            background-color: #2a1b3a; 
+            border-radius: 1.5rem; /* Daha yuvarlak */
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); 
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease; 
+        }
+        .price-card:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); 
+        }
+        .price-card-premium { 
+            border: 3px solid var(--purple); /* Kalın border */
+            background: linear-gradient(145deg, rgba(108, 92, 231, 0.2) 0%, #2a1b3a 100%);
+        }
+        /* BUTON VE VURGU RENGİ */
+        .btn-purple {
+            background-color: var(--purple);
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .btn-purple:hover {
+            background-color: #5c4cd9;
+            transform: translateY(-1px);
+        }
+        /* Navbar Stilleri */
+        .profile-avatar-nav {
+            width: 40px; height: 40px; line-height: 40px; font-size: 16px; font-weight: 600;
+            background-color: var(--purple); color: white; border-radius: 50%; text-align: center;
+            flex-shrink: 0; cursor: pointer; border: 2px solid var(--purple);
+        }
+        .card-dropdown { 
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px); border-radius: 0.5rem; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); border: 1px solid rgba(108, 92, 231, 0.2); z-index: 30;
+        }
+        /* Fiyat Toggle Stili */
+        .toggle-container {
+            background-color: #1f112c;
+            border-radius: 9999px;
+            padding: 4px;
+        }
+        .toggle-btn {
+            padding: 8px 24px;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .toggle-btn.active {
+            background-color: var(--purple);
+            color: white;
+        }
 
-        /* Mesaj Kutusu */
-        #messageBox {
-            visibility: hidden; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-            z-index: 1000; padding: 15px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            opacity: 0; transition: opacity 0.3s, visibility 0.3s; color: white; font-weight: 600;
-            background-color: #2a1b3a; 
-        }
-        .message-success { background-color: #10b981; }
-        .message-error { background-color: #ef4444; }
-        .message-show { visibility: visible; opacity: 1; }
-    </style>
+        /* Mesaj Kutusu */
+        #messageBox {
+            visibility: hidden; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            z-index: 1000; padding: 15px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            opacity: 0; transition: opacity 0.3s, visibility 0.3s; color: white; font-weight: 600;
+            background-color: #2a1b3a; 
+        }
+        .message-success { background-color: #10b981; }
+        .message-error { background-color: #ef4444; }
+        .message-show { visibility: visible; opacity: 1; }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col">
-    <header class="header-bg sticky top-0 z-20">
-        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <a href="panel.html" class="text-2xl font-extrabold text-white flex items-center">
-                <i class="fas fa-meteor text-purple-500 mr-2"></i> BAKİ S2
-            </a>
+    <header class="header-bg sticky top-0 z-20">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="panel.html" class="text-2xl font-extrabold text-white flex items-center">
+                <i class="fas fa-meteor text-purple-500 mr-2"></i> BAKİ S2
+            </a>
 
-            <div class="hidden md:flex space-x-6">
-                <a href="panel.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Panel</a>
-                <a href="yardim.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Yardım</a>
-                <a href="discord.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Discord</a>
-                <a href="fiyatlandirma.html" class="text-purple-500 transition duration-200 font-medium">Fiyatlandırma</a>
-                <a href="kullanicipaneli.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Kullanıcı Paneli</a>
-            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="panel.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Panel</a>
+                <a href="yardim.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Yardım</a>
+                <a href="discord.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Discord</a>
+                <a href="fiyatlandirma.html" class="text-purple-500 transition duration-200 font-medium">Fiyatlandırma</a>
+                <a href="kullanicipaneli.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Kullanıcı Paneli</a>
+            </div>
 
-            <div class="flex space-x-3 items-center">
-                <div id="loggedOutNav" class="flex space-x-3 items-center">
-                    <a href="girisyap.html" class="px-5 py-2 rounded-lg font-semibold text-white border border-purple hover:bg-purple transition duration-200">Giriş Yap</a>
-                    <a href="kaydol.html" class="btn-purple px-5 py-2 rounded-lg font-semibold text-white">Kaydol</a> 
-                </div>
+            <div class="flex space-x-3 items-center">
+                <div id="loggedOutNav" class="flex space-x-3 items-center">
+                    <a href="girisyap.html" class="px-5 py-2 rounded-lg font-semibold text-white border border-purple hover:bg-purple transition duration-200">Giriş Yap</a>
+                    <a href="kaydol.html" class="btn-purple px-5 py-2 rounded-lg font-semibold text-white">Kaydol</a> 
+                </div>
 
-                <div id="loggedInNav" class="relative hidden"> 
-                    <button id="profileMenuButton" class="flex items-center space-x-3 p-2 rounded-full hover:bg-gray-700 transition duration-200 focus:outline-none">
-                        <span id="nav_profile_initials" class="profile-avatar-nav flex-shrink-0">...</span> 
-                        <div class="hidden sm:flex flex-col items-end">
-                            <span id="nav_display_name" class="text-sm font-semibold text-white">Yükleniyor...</span>
-                            <span id="nav_user_role" class="text-xs font-medium rounded-full px-2 py-0.5 mt-0.5">Yükleniyor...</span>
-                        </div>
-                        <i class="fas fa-chevron-down text-gray-400 text-xs hidden sm:block"></i>
-                    </button>
-                    
-                    <div id="profileDropdown" class="card-dropdown absolute right-0 mt-3 w-48 p-2 hidden">
-                        <a href="kullanicipaneli%20(1).html" class="flex items-center p-2 text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition duration-200">
-                            <i class="fas fa-chart-line w-5 mr-2"></i> Kontrol Paneli
-                        </a>
-                        <button id="logoutButtonNav" class="w-full text-left flex items-center p-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg transition duration-200 mt-2">
-                            <i class="fas fa-sign-out-alt w-5 mr-2"></i> Çıkış Yap
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
+                <div id="loggedInNav" class="relative hidden"> 
+                    <button id="profileMenuButton" class="flex items-center space-x-3 p-2 rounded-full hover:bg-gray-700 transition duration-200 focus:outline-none">
+                        <span id="nav_profile_initials" class="profile-avatar-nav flex-shrink-0">...</span> 
+                        <div class="hidden sm:flex flex-col items-end">
+                            <span id="nav_display_name" class="text-sm font-semibold text-white">Yükleniyor...</span>
+                            <span id="nav_user_role" class="text-xs font-medium rounded-full px-2 py-0.5 mt-0.5">Yükleniyor...</span>
+                        </div>
+                        <i class="fas fa-chevron-down text-gray-400 text-xs hidden sm:block"></i>
+                    </button>
+                    
+                    <div id="profileDropdown" class="card-dropdown absolute right-0 mt-3 w-48 p-2 hidden">
+                        <a href="kullanicipaneli%20(1).html" class="flex items-center p-2 text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition duration-200">
+                            <i class="fas fa-chart-line w-5 mr-2"></i> Kontrol Paneli
+                        </a>
+                        <button id="logoutButtonNav" class="w-full text-left flex items-center p-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg transition duration-200 mt-2">
+                            <i class="fas fa-sign-out-alt w-5 mr-2"></i> Çıkış Yap
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
 
-    <main class="flex-grow flex flex-col items-center py-16 px-4">
-        <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-white text-center">Planınızı Seçin ve Hemen Başlayın!</h1>
-        <p class="text-xl text-gray-400 mb-10 text-center max-w-2xl">İhtiyaçlarınıza en uygun planı seçerek sosyal medya biyolink potansiyelinizi zirveye taşıyın.</p>
+    <main class="flex-grow flex flex-col items-center py-16 px-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-white text-center">Planınızı Seçin ve Hemen Başlayın!</h1>
+        <p class="text-xl text-gray-400 mb-10 text-center max-w-2xl">İhtiyaçlarınıza en uygun planı seçerek sosyal medya biyolink potansiyelinizi zirveye taşıyın.</p>
+        
+        <div class="toggle-container flex justify-center mb-12">
+            <button id="monthlyToggle" class="toggle-btn active text-sm md:text-base" data-period="monthly">
+                Aylık Ödeme
+            </button>
+            <button id="annualToggle" class="toggle-btn relative text-sm md:text-base" data-period="annual">
+                Yıllık Ödeme 
+                <span class="absolute top-[-10px] right-[-10px] bg-green-500 text-xs text-white px-2 py-0.5 rounded-full font-bold transform rotate-3">
+                    %17 İndirim!
+                </span>
+            </button>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 w-full max-w-7xl">
+            
+            <div class="price-card p-8 flex flex-col items-center text-center">
+                <h2 class="text-3xl font-bold mb-4 text-purple-400">Temel</h2>
+                <p class="text-gray-400 mb-6">Başlangıç seviyesi için vazgeçilmez.</p>
+                <div class="h-20 flex flex-col justify-center mb-8">
+                    <p class="text-5xl font-extrabold text-white">
+                        <span id="priceBasic" class="text-purple">₺84.99</span>
+                    </p>
+                    <span id="periodBasic" class="text-xl text-gray-400 font-normal">/ay</span>
+                </div>
+                
+                <ul class="text-left space-y-3 mb-10 text-gray-300 w-full text-lg">
+                    <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> **1** Biyolink Sayfası</li>
+                    <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> Sınırsız Standart Link</li>
+                    <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> Temel Analizler</li>
+                    <li class="flex items-center"><i class="fas fa-times mr-3 text-red-400"></i> Özel Arka Planlar</li>
+                </ul>
+                <a id="buyBasicBtn" href="https://www.shopier.com/bakikaraxyz" target="_blank" class="btn-purple w-full py-3 rounded-xl font-semibold transition text-lg">Hemen Satın Al <i class="fas fa-external-link-alt ml-2 text-sm"></i></a>
+            </div>
+
+            <div class="price-card price-card-premium p-8 flex flex-col items-center text-center relative transform scale-105 hover:scale-105">
+                <span class="absolute top-0 right-0 bg-purple text-sm font-bold px-4 py-1.5 rounded-bl-xl rounded-tr-xl">EN İYİ SEÇENEK</span>
+                <h2 class="text-3xl font-bold mb-4 text-white">Premium</h2>
+                <p class="text-gray-300 mb-6">Tüm gelişmiş özelliklere erişim.</p>
+                <div class="h-20 flex flex-col justify-center mb-8">
+                    <p class="text-5xl font-extrabold text-white">
+                        <span id="pricePremium">₺119.99</span>
+                    </p>
+                    <span id="periodPremium" class="text-xl text-gray-400 font-normal">/ay</span>
+                </div>
+                
+                <ul class="text-left space-y-3 mb-10 text-gray-300 w-full text-lg">
+                    <li class="flex items-center"><i class="fas fa-star mr-3 text-yellow-400"></i> **Sınırsız** Biyolink Sayfası</li>
+                    <li class="flex items-center"><i class="fas fa-chart-line mr-3 text-green-400"></i> Gelişmiş İstatistikler</li>
+                    <li class="flex items-center"><i class="fas fa-paint-brush mr-3 text-green-400"></i> Özel Temalar & Fontlar</li>
+                    <li class="flex items-center"><i class="fas fa-globe mr-3 text-green-400"></i> Özel Alan Adı Desteği</li>
+                </ul>
+                <a id="buyPremiumBtn" href="https://www.shopier.com/bakikaraxyz" target="_blank" class="btn-purple w-full py-3 rounded-xl font-bold hover:bg-white hover:text-purple transition text-lg">Şimdi Yükselt <i class="fas fa-external-link-alt ml-2 text-sm"></i></a>
+            </div>
+
+            <div class="price-card p-8 flex flex-col items-center text-center">
+                <h2 class="text-3xl font-bold mb-4 text-purple-400">Kurumsal</h2>
+                <p class="text-gray-400 mb-6">Büyük ekipler ve markalar için özel çözümler.</p>
+                <div class="h-20 flex flex-col justify-center mb-8">
+                    <p class="text-5xl font-extrabold mb-0 text-white">Özel Teklif</p>
+                    <span class="text-xl text-gray-400 font-normal mt-1">size özel fiyat</span>
+                </div>
+                
+                <ul class="text-left space-y-3 mb-10 text-gray-300 w-full text-lg">
+                    <li class="flex items-center"><i class="fas fa-headset mr-3 text-green-400"></i> Öncelikli Destek</li>
+                    <li class="flex items-center"><i class="fas fa-cogs mr-3 text-green-400"></i> Özel Entegrasyonlar</li>
+                    <li class="flex items-center"><i class="fas fa-users mr-3 text-green-400"></i> Çoklu Kullanıcı Yönetimi</li>
+                    <li class="flex items-center"><i class="fas fa-lock mr-3 text-green-400"></i> Özel Güvenlik Çözümleri</li>
+                </ul>
+                <a href="mailto:destek@bakis2.com?subject=Kurumsal%20Fiyat%20Teklifi%20Talebi" class="bg-gray-700 w-full py-3 rounded-xl font-semibold hover:bg-gray-600 transition text-lg text-white">İletişime Geçin <i class="fas fa-envelope ml-2 text-sm"></i></a>
+            </div>
+
+        </div>
+        
+        <a href="panel.html" class="mt-12 inline-block text-purple-400 hover:text-white transition duration-200 font-semibold text-lg">
+            <i class="fas fa-arrow-left mr-2"></i> Ana Sayfaya Dön
+        </a>
+    </main>
+    
+    <div id="messageBox"></div>
+
+    <footer class="bg-gray-900 text-gray-500 text-center p-4 mt-auto">
+        © 2025 BAKİ S2 Yönetim Hizmetleri.
+    </footer>
+
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+    <script type="module" src="./firebase-auth-service.js"></script>
+
+    <script type="module">
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { app } from "./firebase-auth-service.js"; 
+
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const loggedOutNav = document.getElementById('loggedOutNav');
+        const loggedInNav = document.getElementById('loggedInNav');
+
+        // --- YENİ EKLENEN/GÜNCELLENEN KISIMLAR BAŞLANGIÇ ---
         
-        <div class="toggle-container flex justify-center mb-12">
-            <button id="monthlyToggle" class="toggle-btn active text-sm md:text-base" data-period="monthly">
-                Aylık Ödeme
-            </button>
-            <button id="annualToggle" class="toggle-btn relative text-sm md:text-base" data-period="annual">
-                Yıllık Ödeme 
-                <span class="absolute top-[-10px] right-[-10px] bg-green-500 text-xs text-white px-2 py-0.5 rounded-full font-bold transform rotate-3">
-                    %17 İndirim!
-                </span>
-            </button>
-        </div>
+        // Satın alma butonları için referanslar
+        const buyBasicBtn = document.getElementById('buyBasicBtn');
+        const buyPremiumBtn = document.getElementById('buyPremiumBtn');
+        const BASE_SHOPIER_URL = 'https://www.shopier.com/bakikaraxyz'; // Sabit Shopier URL'si
 
-        <div class="grid md:grid-cols-3 gap-8 w-full max-w-7xl">
+        // Fiyatlandırma Verileri
+        const PRICES = {
+            monthly: {
+                basic: '₺84.99',
+                premium: '₺119.99',
+                period: '/ay',
+                // Satın alma linki (Aylık varsayılan)
+                basicLink: BASE_SHOPIER_URL,
+                premiumLink: BASE_SHOPIER_URL,
+            },
+            annual: {
+                // Yaklaşık %17 indirimli fiyatlar
+                basic: '₺69.99',
+                premium: '₺99.99',
+                period: '/ay (Yıllık Fatura)',
+                // Satın alma linki (Yıllık planı işaret eden parametre ile)
+                basicLink: `${BASE_SHOPIER_URL}?period=annual&plan=basic`,
+                premiumLink: `${BASE_SHOPIER_URL}?period=annual&plan=premium`,
+            }
+        };
+
+        const priceBasicEl = document.getElementById('priceBasic');
+        const periodBasicEl = document.getElementById('periodBasic');
+        const pricePremiumEl = document.getElementById('pricePremium');
+        const periodPremiumEl = document.getElementById('periodPremium');
+        const monthlyToggle = document.getElementById('monthlyToggle');
+        const annualToggle = document.getElementById('annualToggle');
+
+        /**
+         * Fiyatları seçilen döneme göre günceller
+         * @param {string} period 'monthly' veya 'annual'
+         */
+        function updatePrices(period) {
+            const data = PRICES[period];
+            
+            // UI güncellemesi (Fiyat ve Periyot)
+            priceBasicEl.textContent = data.basic;
+            periodBasicEl.textContent = data.period;
+            pricePremiumEl.textContent = data.premium;
+            periodPremiumEl.textContent = data.period;
             
-            <div class="price-card p-8 flex flex-col items-center text-center">
-                <h2 class="text-3xl font-bold mb-4 text-purple-400">Temel</h2>
-                <p class="text-gray-400 mb-6">Başlangıç seviyesi için vazgeçilmez.</p>
-                <div class="h-20 flex flex-col justify-center mb-8">
-                    <p class="text-5xl font-extrabold text-white">
-                        <span id="priceBasic" class="text-purple">₺84.99</span>
-                    </p>
-                    <span id="periodBasic" class="text-xl text-gray-400 font-normal">/ay</span>
-                </div>
-                
-                <ul class="text-left space-y-3 mb-10 text-gray-300 w-full text-lg">
-                    <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> **1** Biyolink Sayfası</li>
-                    <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> Sınırsız Standart Link</li>
-                    <li class="flex items-center"><i class="fas fa-check mr-3 text-green-400"></i> Temel Analizler</li>
-                    <li class="flex items-center"><i class="fas fa-times mr-3 text-red-400"></i> Özel Arka Planlar</li>
-                </ul>
-                <a href="https://www.shopier.com/bakikaraxyz" target="_blank" class="btn-purple w-full py-3 rounded-xl font-semibold transition text-lg">Hemen Satın Al <i class="fas fa-external-link-alt ml-2 text-sm"></i></a>
-            </div>
+            // Satın Alma Butonlarını Güncelleme (Sorunun çözümü)
+            buyBasicBtn.href = data.basicLink;
+            buyPremiumBtn.href = data.premiumLink;
 
-            <div class="price-card price-card-premium p-8 flex flex-col items-center text-center relative transform scale-105 hover:scale-105">
-                <span class="absolute top-0 right-0 bg-purple text-sm font-bold px-4 py-1.5 rounded-bl-xl rounded-tr-xl">EN İYİ SEÇENEK</span>
-                <h2 class="text-3xl font-bold mb-4 text-white">Premium</h2>
-                <p class="text-gray-300 mb-6">Tüm gelişmiş özelliklere erişim.</p>
-                <div class="h-20 flex flex-col justify-center mb-8">
-                    <p class="text-5xl font-extrabold text-white">
-                        <span id="pricePremium">₺119.99</span>
-                    </p>
-                    <span id="periodPremium" class="text-xl text-gray-400 font-normal">/ay</span>
-                </div>
-                
-                <ul class="text-left space-y-3 mb-10 text-gray-300 w-full text-lg">
-                    <li class="flex items-center"><i class="fas fa-star mr-3 text-yellow-400"></i> **Sınırsız** Biyolink Sayfası</li>
-                    <li class="flex items-center"><i class="fas fa-chart-line mr-3 text-green-400"></i> Gelişmiş İstatistikler</li>
-                    <li class="flex items-center"><i class="fas fa-paint-brush mr-3 text-green-400"></i> Özel Temalar & Fontlar</li>
-                    <li class="flex items-center"><i class="fas fa-globe mr-3 text-green-400"></i> Özel Alan Adı Desteği</li>
-                </ul>
-                <a href="https://www.shopier.com/bakikaraxyz" target="_blank" class="btn-purple w-full py-3 rounded-xl font-bold hover:bg-white hover:text-purple transition text-lg">Şimdi Yükselt <i class="fas fa-external-link-alt ml-2 text-sm"></i></a>
-            </div>
+            // Toggle butonlarının aktif/pasif durumu
+            monthlyToggle.classList.toggle('active', period === 'monthly');
+            annualToggle.classList.toggle('active', period === 'annual');
 
-            <div class="price-card p-8 flex flex-col items-center text-center">
-                <h2 class="text-3xl font-bold mb-4 text-purple-400">Kurumsal</h2>
-                <p class="text-gray-400 mb-6">Büyük ekipler ve markalar için özel çözümler.</p>
-                <div class="h-20 flex flex-col justify-center mb-8">
-                    <p class="text-5xl font-extrabold mb-0 text-white">Özel Teklif</p>
-                    <span class="text-xl text-gray-400 font-normal mt-1">size özel fiyat</span>
-                </div>
-                
-                <ul class="text-left space-y-3 mb-10 text-gray-300 w-full text-lg">
-                    <li class="flex items-center"><i class="fas fa-headset mr-3 text-green-400"></i> Öncelikli Destek</li>
-                    <li class="flex items-center"><i class="fas fa-cogs mr-3 text-green-400"></i> Özel Entegrasyonlar</li>
-                    <li class="flex items-center"><i class="fas fa-users mr-3 text-green-400"></i> Çoklu Kullanıcı Yönetimi</li>
-                    <li class="flex items-center"><i class="fas fa-lock mr-3 text-green-400"></i> Özel Güvenlik Çözümleri</li>
-                </ul>
-                <a href="mailto:destek@bakis2.com?subject=Kurumsal%20Fiyat%20Teklifi%20Talebi" class="bg-gray-700 w-full py-3 rounded-xl font-semibold hover:bg-gray-600 transition text-lg text-white">İletişime Geçin <i class="fas fa-envelope ml-2 text-sm"></i></a>
-            </div>
+            // Temel plan için vurgu rengi
+            if (period === 'monthly') {
+                priceBasicEl.classList.add('text-purple');
+            } else {
+                // Yıllıkta her iki fiyatın da dikkat çekmesi için sadece ana metni kullanabiliriz
+                priceBasicEl.classList.remove('text-purple');
+            }
+        }
 
-        </div>
-        
-        <a href="panel.html" class="mt-12 inline-block text-purple-400 hover:text-white transition duration-200 font-semibold text-lg">
-            <i class="fas fa-arrow-left mr-2"></i> Ana Sayfaya Dön
-        </a>
-    </main>
-    
-    <div id="messageBox"></div>
+        // --- YENİ EKLENEN/GÜNCELLENEN KISIMLAR BİTİŞ ---
 
-    <footer class="bg-gray-900 text-gray-500 text-center p-4 mt-auto">
-        © 2025 BAKİ S2 Yönetim Hizmetleri.
-    </footer>
+        function getInitials(name) {
+            if (!name) return '??';
+            const parts = name.split(' ');
+            if (parts.length > 1) {
+                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+            return name[0].toUpperCase();
+        }
 
-    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
-    <script type="module" src="./firebase-auth-service.js"></script>
+        async function updateHeaderUI(user) {
+            if (loggedOutNav && loggedInNav) {
+                if (user && !user.isAnonymous) {
+                    loggedOutNav.classList.add('hidden');
+                    loggedInNav.classList.remove('hidden');
 
-    <script type="module">
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { app } from "./firebase-auth-service.js"; 
+                    const navDisplayName = document.getElementById('nav_display_name');
+                    const navUserRole = document.getElementById('nav_user_role');
+                    const navProfileInitials = document.getElementById('nav_profile_initials');
+                    
+                    let displayName = user.displayName || user.email.split('@')[0];
+                    let accountType = "STANDART";
+                    
+                    try {
+                        const docSnap = await getDoc(doc(db, "users", user.uid));
+                        if (docSnap.exists()) {
+                            accountType = docSnap.data().accountType || "STANDART";
+                        }
+                    } catch (e) {
+                        console.error("Firestore veri çekme hatası:", e);
+                    }
 
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const loggedOutNav = document.getElementById('loggedOutNav');
-        const loggedInNav = document.getElementById('loggedInNav');
+                    if (navDisplayName) navDisplayName.textContent = displayName;
+                    if (navUserRole) navUserRole.textContent = accountType;
+                    if (navProfileInitials) navProfileInitials.textContent = getInitials(displayName);
 
-        // Fiyatlandırma Verileri
-        const PRICES = {
-            monthly: {
-                basic: '₺84.99',
-                premium: '₺119.99',
-                period: '/ay'
-            },
-            annual: {
-                // Yaklaşık %17 indirimli fiyatlar
-                basic: '₺69.99',
-                premium: '₺99.99',
-                period: '/ay (Yıllık Fatura)'
-            }
-        };
+                } else {
+                    loggedOutNav.classList.remove('hidden');
+                    loggedInNav.classList.add('hidden');
+                }
+            }
+        }
 
-        const priceBasicEl = document.getElementById('priceBasic');
-        const periodBasicEl = document.getElementById('periodBasic');
-        const pricePremiumEl = document.getElementById('pricePremium');
-        const periodPremiumEl = document.getElementById('periodPremium');
-        const monthlyToggle = document.getElementById('monthlyToggle');
-        const annualToggle = document.getElementById('annualToggle');
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                window.location.href = 'girisyap.html'; 
+            } catch (error) {
+                console.error("Çıkış hatası:", error);
+            }
+        }
 
-        /**
-         * Fiyatları seçilen döneme göre günceller
-         * @param {string} period 'monthly' veya 'annual'
-         */
-        function updatePrices(period) {
-            const data = PRICES[period];
-            
-            // UI güncellemesi
-            priceBasicEl.textContent = data.basic;
-            periodBasicEl.textContent = data.period;
-            pricePremiumEl.textContent = data.premium;
-            periodPremiumEl.textContent = data.period;
+        onAuthStateChanged(auth, (user) => {
+            updateHeaderUI(user);
+        });
 
-            // Toggle butonlarının aktif/pasif durumu
-            monthlyToggle.classList.toggle('active', period === 'monthly');
-            annualToggle.classList.toggle('active', period === 'annual');
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Fiyat Toggle Olay Dinleyicileri
+            monthlyToggle.addEventListener('click', () => updatePrices('monthly'));
+            annualToggle.addEventListener('click', () => updatePrices('annual'));
 
-            // Temel plan için vurgu rengi
-            if (period === 'monthly') {
-                priceBasicEl.classList.add('text-purple');
-            } else {
-                // Yıllıkta her iki fiyatın da dikkat çekmesi için sadece ana metni kullanabiliriz
-                priceBasicEl.classList.remove('text-purple');
-            }
-        }
+            // Başlangıçta aylık fiyatları yükle
+            updatePrices('monthly');
 
-        function getInitials(name) {
-            if (!name) return '??';
-            const parts = name.split(' ');
-            if (parts.length > 1) {
-                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-            }
-            return name[0].toUpperCase();
-        }
+            // Logout butonuna olayı bağlama
+            document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout);
 
-        async function updateHeaderUI(user) {
-            if (loggedOutNav && loggedInNav) {
-                if (user && !user.isAnonymous) {
-                    loggedOutNav.classList.add('hidden');
-                    loggedInNav.classList.remove('hidden');
+            // Dropdown açma/kapama JS'i
+            document.getElementById('profileMenuButton')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdown = document.getElementById('profileDropdown');
+                dropdown.classList.toggle('hidden');
+            });
 
-                    const navDisplayName = document.getElementById('nav_display_name');
-                    const navUserRole = document.getElementById('nav_user_role');
-                    const navProfileInitials = document.getElementById('nav_profile_initials');
-                    
-                    let displayName = user.displayName || user.email.split('@')[0];
-                    let accountType = "STANDART";
-                    
-                    try {
-                        const docSnap = await getDoc(doc(db, "users", user.uid));
-                        if (docSnap.exists()) {
-                            accountType = docSnap.data().accountType || "STANDART";
-                        }
-                    } catch (e) {
-                        console.error("Firestore veri çekme hatası:", e);
-                    }
+            document.addEventListener('click', (event) => {
+                const menu = document.getElementById('loggedInNav');
+                const isClickInside = menu?.contains(event.target);
+                if (!isClickInside) {
+                    document.getElementById('profileDropdown')?.classList.add('hidden');
+                }
+            });
+        });
 
-                    if (navDisplayName) navDisplayName.textContent = displayName;
-                    if (navUserRole) navUserRole.textContent = accountType;
-                    if (navProfileInitials) navProfileInitials.textContent = getInitials(displayName);
+        // Sayfa yüklendiğinde Firebase başlatma ve dinleme işlemini başlat
+        window.onload = window.startClient;
 
-                } else {
-                    loggedOutNav.classList.remove('hidden');
-                    loggedInNav.classList.add('hidden');
-                }
-            }
-        }
-
-        async function handleLogout() {
-            try {
-                await signOut(auth);
-                window.location.href = 'girisyap.html'; 
-            } catch (error) {
-                console.error("Çıkış hatası:", error);
-            }
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            updateHeaderUI(user);
-        });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            // Fiyat Toggle Olay Dinleyicileri
-            monthlyToggle.addEventListener('click', () => updatePrices('monthly'));
-            annualToggle.addEventListener('click', () => updatePrices('annual'));
-
-            // Başlangıçta aylık fiyatları yükle
-            updatePrices('monthly');
-
-            // Logout butonuna olayı bağlama
-            document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout);
-
-            // Dropdown açma/kapama JS'i
-            document.getElementById('profileMenuButton')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const dropdown = document.getElementById('profileDropdown');
-                dropdown.classList.toggle('hidden');
-            });
-
-            document.addEventListener('click', (event) => {
-                const menu = document.getElementById('loggedInNav');
-                const isClickInside = menu?.contains(event.target);
-                if (!isClickInside) {
-                    document.getElementById('profileDropdown')?.classList.add('hidden');
-                }
-            });
-        });
-
-        // Sayfa yüklendiğinde Firebase başlatma ve dinleme işlemini başlat
-        window.onload = window.startClient;
-
-    </script>
+    </script>
 </body>
 </html>
