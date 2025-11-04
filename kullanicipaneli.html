@@ -1,418 +1,68 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kullanıcı Paneli | BAKİ S2</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            /* Varsayılan Temalar */
-            --purple: #6c5ce7;
-            --dark-bg: #1a0e21;
-            --card-bg: #1f112c;
-            --sidebar-bg: #140b1b;
-            --accent-purple: #9c84ff;
-
-            /* Aktif Tema Renkleri (JS ile güncellenecek) */
-            --active-theme-color: var(--purple);
-            --active-bg-color: var(--dark-bg);
-            --active-card-color: var(--card-bg);
-        }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--active-bg-color); /* Tema Renkleri Kullanımı */
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex; /* Dikey düzen için flex kullanılır */
-            flex-direction: column;
-        }
-        /* Sidebar/Nav Stilleri */
-        .sidebar {
-            background-color: var(--sidebar-bg);
-        }
-        .nav-item {
-            padding: 1rem 1.5rem;
-            color: #ffffff;
-            border-left: 3px solid transparent;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .nav-item:hover, .nav-item.active {
-            background-color: rgba(108, 92, 231, 0.2);
-            border-left-color: var(--active-theme-color);
-            color: var(--accent-purple);
-        }
-        /* Content Card Stilleri */
-        .content-card {
-            background-color: var(--active-card-color);
-            border: 1px solid rgba(108, 92, 231, 0.3);
-            border-radius: 1rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        .header-bg {
-            background-color: rgba(26, 14, 33, 0.9);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-        }
-        .main-cta-button {
-            background-color: var(--purple);
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
-        }
-        .main-cta-button:hover {
-            background-color: #5d4cd9;
-        }
-
-        /* YENİ: Navbar Stilleri */
-        .profile-avatar-nav {
-            width: 40px;
-            height: 40px;
-            line-height: 40px;
-            font-size: 16px;
-            font-weight: 600;
-            background-color: var(--purple);
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            flex-shrink: 0;
-            cursor: pointer;
-            border: 2px solid var(--purple);
-        }
-        .card-dropdown { 
-            background: rgba(255, 255, 255, 0.05); 
-            backdrop-filter: blur(5px); 
-            border-radius: 0.5rem; 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); 
-            border: 1px solid rgba(108, 92, 231, 0.2);
-            z-index: 30;
-        }
-    </style>
-</head>
-<body>
-
-    <header class="header-bg sticky top-0 z-20">
-        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <a href="panel.html" class="text-2xl font-extrabold text-white flex items-center">
-                <i class="fas fa-meteor text-purple-500 mr-2"></i> BAKİ S2
-            </a>
-
-            <div class="hidden md:flex space-x-6">
-                <a href="panel.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Panel</a>
-                <a href="yardim.html" class="text-white hover:text-purple-400 transition duration-200 font-medium">Yardım</a>
-            </div>
-
-            <div class="flex space-x-3 items-center">
-                <div id="loggedOutNav" class="flex space-x-3 items-center">
-                    <a href="girisyap.html" class="px-5 py-2 rounded-lg font-semibold text-white border border-purple hover:bg-purple transition duration-200">Giriş Yap</a>
-                    <a href="kaydol.html" class="main-cta-button px-5 py-2 rounded-lg font-semibold text-white">Kaydol</a>
-                </div>
-
-                <div id="loggedInNav" class="relative hidden"> 
-                    <button id="profileMenuButton" class="flex items-center space-x-3 p-2 rounded-full hover:bg-gray-700 transition duration-200 focus:outline-none">
-                        <span id="nav_profile_initials" class="profile-avatar-nav flex-shrink-0">...</span> 
-                        
-                        <div class="hidden sm:flex flex-col items-end">
-                            <span id="nav_display_name" class="text-sm font-semibold text-white">Yükleniyor...</span>
-                            <span id="nav_user_role" class="text-xs font-medium rounded-full px-2 py-0.5 mt-0.5">Yükleniyor...</span>
-                        </div>
-                        
-                        <i class="fas fa-chevron-down text-gray-400 text-xs hidden sm:block"></i>
-                    </button>
-                    
-                    <div id="profileDropdown" class="card-dropdown absolute right-0 mt-3 w-48 p-2 hidden">
-                        <a href="kullanicipaneli%20(1).html" class="flex items-center p-2 text-sm text-gray-300 hover:bg-gray-700 rounded-lg transition duration-200">
-                            <i class="fas fa-chart-line w-5 mr-2"></i> Kontrol Paneli
-                        </a>
-                        
-                        <button id="logoutButtonNav" class="w-full text-left flex items-center p-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg transition duration-200 mt-2">
-                            <i class="fas fa-sign-out-alt w-5 mr-2"></i> Çıkış Yap
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            </nav>
-    </header>
-
-    <div class="flex flex-grow">
-        
-        <aside class="sidebar w-64 min-h-screen hidden lg:block border-r border-gray-800 pt-8">
-            <nav class="space-y-2">
-                <div data-content="dashboard" class="nav-item active">
-                    <i class="fas fa-tachometer-alt w-5 mr-3"></i> Kontrol Paneli
-                </div>
-                <div data-content="links" class="nav-item">
-                    <i class="fas fa-link w-5 mr-3"></i> Bağlantılarım
-                </div>
-                <div data-content="analytics" class="nav-item">
-                    <i class="fas fa-chart-bar w-5 mr-3"></i> Analiz
-                </div>
-                <div data-content="profile" class="nav-item">
-                    <i class="fas fa-user-circle w-5 mr-3"></i> Profil Ayarları
-                </div>
-                <div data-content="settings" class="nav-item">
-                    <i class="fas fa-cog w-5 mr-3"></i> Genel Ayarlar
-                </div>
-            </nav>
-        </aside>
-
-        <main class="flex-grow p-4 md:p-8">
-            <h1 id="pageTitle" class="text-3xl font-extrabold mb-8">Kontrol Paneli</h1>
-
-            <div id="dashboardContent">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="content-card p-6">
-                        <p class="text-gray-400 text-sm">Toplam Tıklama</p>
-                        <p id="totalClicks" class="text-3xl font-bold mt-1 text-purple-400">0</p>
-                    </div>
-                    <div class="content-card p-6">
-                        <p class="text-gray-400 text-sm">Aktif Bağlantı</p>
-                        <p id="activeLinks" class="text-3xl font-bold mt-1 text-purple-400">0</p>
-                    </div>
-                    <div class="content-card p-6">
-                        <p class="text-gray-400 text-sm">Hesap Durumu</p>
-                        <p id="accountStatus" class="text-3xl font-bold mt-1 text-purple-400">Standart</p>
-                    </div>
-                </div>
-
-                <div class="content-card p-6 mb-8 flex justify-between items-center">
-                    <div>
-                        <h2 class="text-xl font-semibold mb-2">Yeni Bağlantı Oluştur</h2>
-                        <p class="text-gray-400">Hemen kısaltmaya başlayın ve istatistiklerini takip edin.</p>
-                    </div>
-                    <button id="quickCreateLinkBtn" class="main-cta-button px-5 py-2 rounded-lg font-semibold text-white transition duration-200">
-                        <i class="fas fa-plus mr-2"></i> Oluştur
-                    </button>
-                </div>
-                
-                <h2 class="text-2xl font-bold mb-4">Son Aktivite</h2>
-                <div class="content-card p-6 min-h-[200px] text-gray-500 flex items-center justify-center">
-                    Şu anda görüntülenecek bir aktivite bulunmamaktadır.
-                </div>
-            </div>
-
-            <div id="linksContent" class="hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Bağlantılarım</h2>
-                    <button id="openNewLinkModalBtn" class="main-cta-button px-4 py-2 rounded-lg font-semibold text-white">
-                        <i class="fas fa-plus mr-2"></i> Yeni Ekle
-                    </button>
-                </div>
-                <div id="linkList" class="space-y-4">
-                    <div class="content-card p-4 text-gray-500">Bağlantı listeniz boş. Yukarıdaki butonu kullanarak ilk bağlantınızı oluşturun.</div>
-                    </div>
-            </div>
-
-            <div id="analyticsContent" class="hidden">
-                <h2 class="text-2xl font-bold mb-4">Analiz</h2>
-                <div class="content-card p-6 min-h-[300px] text-gray-500 flex items-center justify-center">
-                    Bu bölümde detaylı tıklama ve coğrafi istatistikler yer alacaktır. (Geliştirme Aşamasında)
-                </div>
-            </div>
-
-            <div id="profileContent" class="hidden">
-                <h2 class="text-2xl font-bold mb-4">Profil Ayarları</h2>
-                <div class="content-card p-6 max-w-lg">
-                    <form id="profileForm">
-                        <div class="mb-4">
-                            <label for="profile_displayName" class="block text-sm font-medium text-gray-300 mb-2">Ad Soyad</label>
-                            <input type="text" id="profile_displayName" required class="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 focus:ring-purple-500 focus:border-purple-500 text-white">
-                        </div>
-                        <div class="mb-6">
-                            <label for="profile_email" class="block text-sm font-medium text-gray-300 mb-2">E-posta</label>
-                            <input type="email" id="profile_email" disabled class="w-full p-3 rounded-lg bg-gray-600 border border-gray-500 text-gray-400 cursor-not-allowed">
-                        </div>
-                        <button type="submit" id="saveProfileBtn" class="main-cta-button px-5 py-2 rounded-lg font-semibold text-white transition duration-200">
-                            Ayarları Kaydet
-                        </button>
-                        <p id="profileStatus" class="text-sm mt-3 text-purple-400"></p>
-                    </form>
-                </div>
-            </div>
-
-            <div id="settingsContent" class="hidden">
-                <h2 class="text-2xl font-bold mb-4">Genel Ayarlar</h2>
-                <div class="content-card p-6 min-h-[200px] text-gray-500 flex items-center justify-center">
-                    Tema seçimi, bildirim tercihleri gibi genel ayarlar burada yer alacaktır.
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <footer class="bg-[#140b1b] border-t border-gray-800 mt-auto">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-400 text-sm">
-            &copy; 2024 BAKİ S2. Tüm hakları saklıdır. | <a href="yardim.html" class="hover:text-purple-400">Yardım Merkezi</a>
-        </div>
-    </footer>
-
+<body class="min-h-screen">
+    
     <script type="module" src="https://www.gstatic.com/firebase/9.6.1/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebase/9.6.1/firebase-auth.js"></script>
     <script type="module" src="https://www.gstatic.com/firebase/9.6.1/firebase-firestore.js"></script>
 
     <script type="module" src="./firebase-auth-service.js"></script>
-
+    
     <script type="module">
-        // Eski initializeFirebase ve Navbar mantığı bu dosyanın dışındaki servis ile yönetiliyor.
-        import { getAuth, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebase/9.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebase/9.6.1/firebase-firestore.js";
-
-        const auth = getAuth();
-        const db = getFirestore();
-
-        // Elementler
-        const navItems = document.querySelectorAll('.nav-item');
-        const contentTabs = document.querySelectorAll('[id$="Content"]');
-        const pageTitleEl = document.getElementById('pageTitle');
-        const profileForm = document.getElementById('profileForm');
-        const profileDisplayNameEl = document.getElementById('profile_displayName');
-        const profileEmailEl = document.getElementById('profile_email');
-        const profileStatusEl = document.getElementById('profileStatus');
-        const quickCreateLinkBtn = document.getElementById('quickCreateLinkBtn');
-        const openNewLinkModalBtn = document.getElementById('openNewLinkModalBtn');
-        const accountStatusEl = document.getElementById('accountStatus'); // Dashboard kartı
-
-        const PAGE_TITLES = {
-            'dashboard': 'Kontrol Paneli',
-            'links': 'Bağlantılarım',
-            'analytics': 'Analiz',
-            'profile': 'Profil Ayarları',
-            'settings': 'Genel Ayarlar'
+        import { initializeApp } from "https://www.gstatic.com/firebase/9.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebase/9.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebase/9.6.1/firebase-firestore.js";
+        
+        // ... (Firebase config ve initializeApp kısmı) ... 
+        const firebaseConfig = {
+            // Buraya gerçek Firebase yapılandırmanızı yapıştırın
+            apiKey: "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao",
+            authDomain: "baki-s2-yonetim.firebaseapp.com",
+            projectId: "baki-s2-yonetim",
+            storageBucket: "baki-s2-yonetim.firebasestorage.app",
+            messagingSenderId: "692508919425",
+            appId: "1:692508919425:web:fac963c81c11b7be70af80",
         };
-
-        /**
-         * Veritabanından kullanıcı verilerini çeker ve paneli günceller.
-         */
-        async function fetchUserData(user) {
-            try {
-                const docRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    
-                    // 1. Profil Ayarları Formunu doldur
-                    profileDisplayNameEl.value = data.displayName || user.email.split('@')[0];
-                    profileEmailEl.value = user.email;
-
-                    // 2. Dashboard Durumunu güncelle
-                    const statusText = data.isPremium ? 'Premium' : 'Standart';
-                    accountStatusEl.textContent = statusText;
-                    accountStatusEl.classList.remove('text-purple-400', 'text-yellow-400');
-                    accountStatusEl.classList.add(data.isPremium ? 'text-yellow-400' : 'text-purple-400');
-
-                    // Not: Total Clicks ve Active Links gibi veriler de buradan güncellenebilir.
-
-                } else {
-                    console.log("Firestore'da kullanıcı kaydı bulunamadı.");
-                }
-            } catch (error) {
-                console.error("Kullanıcı verileri çekilirken hata:", error);
-            }
-        }
-
-        // --- Navigasyon ve Olay Dinleyicileri ---
-        
-        const switchTab = (targetContentId) => {
-            contentTabs.forEach(tab => tab.classList.add('hidden'));
-            document.getElementById(`${targetContentId}Content`).classList.remove('hidden');
-            pageTitleEl.textContent = PAGE_TITLES[targetContentId] || 'Panel';
-            
-            navItems.forEach(item => {
-                if (item.getAttribute('data-content') === targetContentId) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-        };
-        
-        navItems.forEach(item => {
-            item.addEventListener('click', () => switchTab(item.getAttribute('data-content')));
-        });
-
-        quickCreateLinkBtn.addEventListener('click', () => {
-             // Link oluşturma modalını açma mantığı buraya gelir
-             // openLinkModal(null); 
-             switchTab('links'); // Örnek olarak Bağlantılar sayfasına geçiş yapar
-        });
-        
-        openNewLinkModalBtn.addEventListener('click', () => {
-            // openLinkModal(null); // Yeni Link modalını açma mantığı
-        });
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
 
-        // --- Profil Formu Gönderme İşlemi ---
-        profileForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const newDisplayName = profileDisplayNameEl.value.trim();
-            const user = auth.currentUser;
-
-            if (!user || newDisplayName.length < 2) {
-                profileStatusEl.textContent = 'Hata: Giriş yapılmadı veya ad soyad geçersiz.';
-                return;
-            }
-
-            profileStatusEl.textContent = 'Kaydediliyor...';
-
-            try {
-                // 1. Firebase Auth Profilini Güncelle
-                await updateProfile(user, {
-                    displayName: newDisplayName
-                });
-                
-                // 2. Firestore Belgesini Güncelle
-                await setDoc(doc(db, "users", user.uid), {
-                    displayName: newDisplayName
-                }, { merge: true }); // Diğer verileri koruyarak sadece displayName'i günceller.
-                
-                profileStatusEl.textContent = 'Başarıyla kaydedildi! Navbar güncelleniyor...';
-                
-                // Navbar'ın da güncellenmesi için bir sonraki auth state değişikliğini bekle
-                setTimeout(() => profileStatusEl.textContent = '', 3000);
-
-            } catch (error) {
-                console.error("Profil kaydedilirken hata:", error);
-                profileStatusEl.textContent = `Hata: ${error.message}`;
-            }
-        });
-
-
-        // --- Oturum Kontrolü ve Yönlendirme ---
+        // --- Güvenlik ve Oturum Kontrolü (ANA DEĞİŞİKLİK) ---
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Kullanıcı giriş yapmış. Verilerini çek ve göster.
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const mainContentWrapper = document.getElementById('mainContentWrapper');
+
+            if (user && user.isAnonymous === false) {
+                // Kullanıcı Giriş Yapmışsa:
+                loadingOverlay.classList.add('hidden');
+                mainContentWrapper.classList.remove('hidden');
+                
+                // Firestore verilerini çekme fonksiyonunu çağır
                 fetchUserData(user); 
+                
             } else {
-                // Kullanıcı giriş yapmamış. Güvenlik için giriş sayfasına yönlendir.
+                // Kullanıcı Giriş Yapmamış veya Anonimse:
+                // Güvenlik: Giriş sayfasına yönlendir.
+                console.log("Yetkisiz erişim denemesi. Giriş sayfasına yönlendiriliyor.");
                 window.location.href = 'girisyap.html'; 
             }
         });
-
-        // YENİ: Dropdown açma/kapama JS'i
-        document.getElementById('profileMenuButton')?.addEventListener('click', () => {
-            const dropdown = document.getElementById('profileDropdown');
-            dropdown.classList.toggle('hidden');
-        });
-        // Dışarı tıklamada kapatma
-        document.addEventListener('click', (event) => {
-            const menu = document.getElementById('loggedInNav');
-            const isClickInside = menu?.contains(event.target);
-            if (!isClickInside) {
-                document.getElementById('profileDropdown')?.classList.add('hidden');
-            }
-        });
-
-
-        // Sayfa yüklendiğinde Firebase'i başlat (Yeni servis dosyasını çağırır)
-        window.onload = window.startClient;
         
-        // Başlangıçta Kontrol Paneli'ni aktif et
-        document.addEventListener('DOMContentLoaded', () => {
-            switchTab('dashboard');
+        // --- Çıkış Yap Butonu Olayı ---
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                // Çıkış başarılı
+                window.location.href = 'girisyap.html';
+            }).catch((error) => {
+                console.error("Çıkış hatası:", error);
+                alert("Çıkış işlemi sırasında bir hata oluştu.");
+            });
         });
+        
+        // ... (fetchUserData, saveProfile, switchTab, linkModal fonksiyonları buraya eklenecek/korunacak) ...
+
+        // Sayfa yüklendiğinde Firebase'i başlat
+        // NOT: initializeFirebase kaldırıldı, onAuthStateChanged direkt çağırılıyor.
+        // window.onload = initializeFirebase; 
     </script>
 </body>
 </html>
