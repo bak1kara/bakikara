@@ -124,7 +124,6 @@
         import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
         
         // --- ⚠️ LÜTFEN KONTROL EDİN: Kendi Firebase Anahtarlarınız ---
-        // Güvenlik nedeniyle bu anahtarları kendi projenizin güncel anahtarlarıyla değiştirin.
         const firebaseConfig = {
             apiKey: "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao",
             authDomain: "baki-s2-yonetim.firebaseapp.com",
@@ -157,6 +156,8 @@
         const registerButton = document.getElementById('registerButton');
         const messageBox = document.getElementById('messageBox');
         
+        const originalButtonContent = '<i class="fas fa-user-plus mr-2"></i> Hesap Oluştur';
+
         // --- Mesaj Gösterme Fonksiyonu (Animasyonlu) ---
         function showMessage(message, type = 'success') {
             if (!messageBox) return; 
@@ -169,6 +170,13 @@
                 messageBox.classList.remove('message-show');
             }, 3000);
         }
+        
+        // --- Butonu Sıfırlama Fonksiyonu ---
+        function resetRegisterButton() {
+            registerButton.disabled = false;
+            registerButton.innerHTML = originalButtonContent;
+        }
+
 
         // --- Kayıt İşlemi ---
         registerForm.addEventListener('submit', async (e) => {
@@ -180,6 +188,7 @@
 
             if (!isConfigAvailable) {
                  showMessage("Hata: Firebase yapılandırması eksik veya hatalı.", "error");
+                 resetRegisterButton(); 
                  return;
             }
 
@@ -197,8 +206,8 @@
                 // Firebase Auth ile yeni kullanıcı oluştur
                 await createUserWithEmailAndPassword(auth, email, password);
                 
-                // *** BURASI DEĞİŞTİ: BAŞARI MESAJI VE GİRİŞ SAYFASINA YÖNLENDİRME ***
-                showMessage("✅ Kayıt başarılı! Şimdi giriş yapabilirsiniz. Yönlendiriliyorsunuz...", "success");
+                // BAŞARI MESAJI VE GİRİŞ SAYFASINA YÖNLENDİRME
+                showMessage("✅ Kayıt başarılı! Giriş yapabilirsiniz. Yönlendiriliyorsunuz...", "success");
                 
                 // 2 saniye bekleyip giriş sayfasına yönlendir
                 setTimeout(() => {
@@ -221,18 +230,15 @@
                         errorMessage = "Şifre en az 6 karakter olmalıdır.";
                         break;
                     default:
-                        errorMessage = "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.";
+                        errorMessage = "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin. (Kod: " + error.code + ")";
                         break;
                 }
                 
                 showMessage("Hata: " + errorMessage, "error");
+                
+                // Hata durumunda butonu hemen sıfırla
+                resetRegisterButton(); 
 
-            } finally {
-                // Hata oluşursa butonu tekrar etkinleştir
-                // Başarılı olursa yönlendirme devreye gireceği için bu kısım çalışmaz (beklenen davranış)
-                if (!registerButton.disabled) {
-                    registerButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i> Hesap Oluştur';
-                }
             }
         });
     </script>
