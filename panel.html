@@ -178,7 +178,7 @@
             authButtons.innerHTML = ''; // Önceki içeriği temizle
 
             if (user && user.email) {
-                // 1. Kullanıcı Giriş Yapmış Durumda
+                // 1. Kullanıcı Giriş Yapmış Durumda (Hesap adı, türü, fotoğraf)
                 const profileHtml = `
                     <div class="flex items-center space-x-4">
                         <img src="${user.photoURL || 'https://ui-avatars.com/api/?name=${user.email.split('@')[0].substring(0, 1)}&background=6c5ce7&color=fff'}" 
@@ -186,7 +186,7 @@
                         
                         <div class="hidden sm:block text-left">
                             <span class="block text-sm font-semibold">${user.displayName || user.email.split('@')[0].substring(0, 10)}</span>
-                            <span class="block text-xs text-gray-400">Hesap Türü</span>
+                            <span class="block text-xs text-gray-400">Standart (Varsayılan Tür)</span>
                         </div>
 
                         <button id="logoutButtonNav" class="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium transition duration-200">
@@ -200,7 +200,7 @@
                 document.getElementById('logoutButtonNav').addEventListener('click', handleLogout);
 
             } else {
-                // 2. Kullanıcı Giriş Yapmamış Durumda
+                // 2. Kullanıcı Giriş Yapmamış Durumda (Giriş/Kaydol butonları)
                 const guestHtml = `
                     <a href="girisyap.html" class="px-5 py-2 rounded-lg font-semibold text-white border border-purple hover:bg-purple transition duration-200">Giriş Yap</a>
                     <a href="kaydol.html" class="main-cta-button px-5 py-2 rounded-lg font-semibold text-white">Kaydol</a>
@@ -213,10 +213,8 @@
         onAuthStateChanged(auth, (user) => {
             updateNavbar(user); // Navbar'ı her durumda güncelle
 
-            // Burası Panel sayfası olduğu için, giriş yapılmadıysa girişe yönlendir
+            // Güvenlik Kontrolü: Panel sayfası olduğu için, giriş yapılmadıysa girişe yönlendir
             if (!user) {
-                 // Sadece bir uyarı verip yönlendiriyoruz, kullanıcı bu sayfayı görmemeli
-                 console.log("Oturum bulunamadı, girişe yönlendiriliyor...");
                  window.location.href = 'girisyap.html'; 
             }
         });
