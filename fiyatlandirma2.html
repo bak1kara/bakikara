@@ -236,158 +236,154 @@
     <script type="module" src="./firebase-auth-service.js"></script>
 
     <script type="module">
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { app } from "./firebase-auth-service.js"; 
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { app } from "./firebase-auth-service.js"; 
 
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const loggedOutNav = document.getElementById('loggedOutNav');
-        const loggedInNav = document.getElementById('loggedInNav');
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const loggedOutNav = document.getElementById('loggedOutNav');
+    const loggedInNav = document.getElementById('loggedInNav');
 
-        // --- Fiyatlandırma Verisi ve Toggle Mantığı ---
-        const buyBasicBtn = document.getElementById('buyBasicBtn');
-        const buyPremiumBtn = document.getElementById('buyPremiumBtn');
-        const BASE_SHOPIER_URL = 'https://www.shopier.com/bakikaraxyz'; 
+    // --- Fiyatlandırma Verisi ve Toggle Mantığı ---
+    const buyBasicBtn = document.getElementById('buyBasicBtn');
+    const buyPremiumBtn = document.getElementById('buyPremiumBtn');
+    const BASE_SHOPIER_URL = 'https://www.shopier.com/bakikaraxyz'; 
 
-        const PRICES = {
-            monthly: {
-                basic: '₺84.99',
-                premium: '₺119.99',
-                period: '/ay',
-                basicLink: BASE_SHOPIER_URL,
-                premiumLink: BASE_SHOPIER_URL,
-            },
-            annual: {
-                // Yaklaşık %17 indirimli fiyatlar
-                basic: '₺69.99',
-                premium: '₺99.99',
-                period: '/ay (Yıllık Fatura)',
-                basicLink: `${BASE_SHOPIER_URL}?period=annual&plan=basic`,
-                premiumLink: `${BASE_SHOPIER_URL}?period=annual&plan=premium`,
-            }
-        };
-
-        const priceBasicEl = document.getElementById('priceBasic');
-        const periodBasicEl = document.getElementById('periodBasic');
-        const pricePremiumEl = document.getElementById('pricePremium');
-        const periodPremiumEl = document.getElementById('periodPremium');
-        const monthlyToggle = document.getElementById('monthlyToggle');
-        const annualToggle = document.getElementById('annualToggle');
-
-        // SADECE YILLIK FİYATLARI AYARLAYAN FONKSİYON
-        function setAnnualPrices() {
-            const data = PRICES['annual'];
-            
-            priceBasicEl.textContent = data.basic;
-            periodBasicEl.textContent = data.period;
-            pricePremiumEl.textContent = data.premium;
-            periodPremiumEl.textContent = data.period;
-            
-            buyBasicBtn.href = data.basicLink;
-            buyPremiumBtn.href = data.premiumLink;
-
-            // Yıllık aktif, Aylık pasif
-            monthlyToggle.classList.remove('active');
-            annualToggle.classList.add('active');
-            
-            // Temel plan için vurgu rengi kaldırıldı (Yıllık sayfada Premium vurgulanır)
-            priceBasicEl.classList.remove('text-purple');
-            pricePremiumEl.classList.remove('text-purple');
-            pricePremiumEl.classList.add('text-white'); 
+    const PRICES = {
+        monthly: {
+            basic: '₺84.99',
+            premium: '₺119.99',
+            period: '/ay',
+            basicLink: BASE_SHOPIER_URL,
+            premiumLink: BASE_SHOPIER_URL,
+        },
+        annual: {
+            // Yaklaşık %17 indirimli fiyatlar
+            basic: '₺69.99',
+            premium: '₺99.99',
+            period: '/ay (Yıllık Fatura)',
+            basicLink: `${BASE_SHOPIER_URL}?period=annual&plan=basic`,
+            premiumLink: `${BASE_SHOPIER_URL}?period=annual&plan=premium`,
         }
+    };
 
-        // --- Auth ve Navbar Mantığı ---
-        function getInitials(name) {
-            if (!name) return '??';
-            const parts = name.split(' ');
-            if (parts.length > 1) {
-                return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-            }
-            return name[0].toUpperCase();
+    const priceBasicEl = document.getElementById('priceBasic');
+    const periodBasicEl = document.getElementById('periodBasic');
+    const pricePremiumEl = document.getElementById('pricePremium');
+    const periodPremiumEl = document.getElementById('periodPremium');
+    const monthlyToggle = document.getElementById('monthlyToggle');
+    const annualToggle = document.getElementById('annualToggle');
+
+    // SADECE YILLIK FİYATLARI AYARLAYAN FONKSİYON (Başlangıç Ayarı)
+    function setAnnualPrices() {
+        const data = PRICES['annual'];
+        
+        priceBasicEl.textContent = data.basic;
+        periodBasicEl.textContent = data.period;
+        pricePremiumEl.textContent = data.premium;
+        periodPremiumEl.textContent = data.period;
+        
+        buyBasicBtn.href = data.basicLink;
+        buyPremiumBtn.href = data.premiumLink;
+
+        // Bu sayfada Yıllık zaten aktif
+        monthlyToggle.classList.remove('active');
+        annualToggle.classList.add('active');
+        
+        // Temel plan için vurgu rengi kaldırıldı (Yıllık sayfada Premium vurgulanır)
+        priceBasicEl.classList.remove('text-purple');
+        pricePremiumEl.classList.remove('text-purple');
+        pricePremiumEl.classList.add('text-white'); 
+    }
+
+    // --- Auth ve Navbar Mantığı ---
+    function getInitials(name) {
+        if (!name) return '??';
+        const parts = name.split(' ');
+        if (parts.length > 1) {
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         }
+        return name[0].toUpperCase();
+    }
 
-        async function updateHeaderUI(user) {
-            // ... (Aynı Firebase/Navbar UI Güncelleme Kodu)
-            if (loggedOutNav && loggedInNav) {
-                if (user && !user.isAnonymous) {
-                    loggedOutNav.classList.add('hidden');
-                    loggedInNav.classList.remove('hidden');
+    async function updateHeaderUI(user) {
+        if (loggedOutNav && loggedInNav) {
+            if (user && !user.isAnonymous) {
+                loggedOutNav.classList.add('hidden');
+                loggedInNav.classList.remove('hidden');
 
-                    const navDisplayName = document.getElementById('nav_display_name');
-                    const navUserRole = document.getElementById('nav_user_role');
-                    const navProfileInitials = document.getElementById('nav_profile_initials');
-                    
-                    let displayName = user.displayName || user.email.split('@')[0];
-                    let accountType = "STANDART";
-                    
-                    try {
-                        const docSnap = await getDoc(doc(db, "users", user.uid));
-                        if (docSnap.exists()) {
-                            accountType = docSnap.data().accountType || "STANDART";
-                        }
-                    } catch (e) {
-                        console.error("Firestore veri çekme hatası:", e);
+                const navDisplayName = document.getElementById('nav_display_name');
+                const navUserRole = document.getElementById('nav_user_role');
+                const navProfileInitials = document.getElementById('nav_profile_initials');
+                
+                let displayName = user.displayName || user.email.split('@')[0];
+                let accountType = "STANDART";
+                
+                try {
+                    const docSnap = await getDoc(doc(db, "users", user.uid));
+                    if (docSnap.exists()) {
+                        accountType = docSnap.data().accountType || "STANDART";
                     }
-
-                    if (navDisplayName) navDisplayName.textContent = displayName;
-                    if (navUserRole) navUserRole.textContent = accountType;
-                    if (navProfileInitials) navProfileInitials.textContent = getInitials(displayName);
-
-                } else {
-                    loggedOutNav.classList.remove('hidden');
-                    loggedInNav.classList.add('hidden');
+                } catch (e) {
+                    console.error("Firestore veri çekme hatası:", e);
                 }
+
+                if (navDisplayName) navDisplayName.textContent = displayName;
+                if (navUserRole) navUserRole.textContent = accountType;
+                if (navProfileInitials) navProfileInitials.textContent = getInitials(displayName);
+
+            } else {
+                loggedOutNav.classList.remove('hidden');
+                loggedInNav.classList.add('hidden');
             }
         }
+    }
 
-        async function handleLogout() {
-            try {
-                await signOut(auth);
-                window.location.href = 'girisyap.html'; 
-            } catch (error) {
-                console.error("Çıkış hatası:", error);
-            }
+    async function handleLogout() {
+        try {
+            await signOut(auth);
+            window.location.href = 'girisyap.html'; 
+        } catch (error) {
+            console.error("Çıkış hatası:", error);
         }
+    }
 
-        onAuthStateChanged(auth, (user) => {
-            updateHeaderUI(user);
+    onAuthStateChanged(auth, (user) => {
+        updateHeaderUI(user);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // AYLIK BUTONU ESKİ SAYFAYA YÖNLENDİRİR (Kesin Çalışması için basitçe tanımlandı)
+        monthlyToggle.addEventListener('click', () => {
+            window.location.href = 'fiyatlandirma.html'; 
+        }); 
+
+        // Başlangıçta YILLIK fiyatları yükle
+        setAnnualPrices();
+
+        // Logout butonuna olayı bağlama
+        document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout);
+
+        // Dropdown açma/kapama JS'i
+        document.getElementById('profileMenuButton')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('hidden');
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            // Fiyat Toggle Olay Dinleyicileri
-            // AYLIK BUTONU ESKİ SAYFAYA YÖNLENDİRİR
-            monthlyToggle.addEventListener('click', () => {
-                window.location.href = 'fiyatlandirma.html'; 
-            }); 
-            
-            annualToggle.addEventListener('click', () => setAnnualPrices());
-
-            // Başlangıçta YILLIK fiyatları yükle
-            setAnnualPrices();
-
-            // Logout butonuna olayı bağlama
-            document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout);
-
-            // Dropdown açma/kapama JS'i
-            document.getElementById('profileMenuButton')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const dropdown = document.getElementById('profileDropdown');
-                dropdown.classList.toggle('hidden');
-            });
-
-            document.addEventListener('click', (event) => {
-                const menu = document.getElementById('loggedInNav');
-                const isClickInside = menu?.contains(event.target);
-                if (!isClickInside) {
-                    document.getElementById('profileDropdown')?.classList.add('hidden');
-                }
-            });
+        document.addEventListener('click', (event) => {
+            const menu = document.getElementById('loggedInNav');
+            const isClickInside = menu?.contains(event.target);
+            if (!isClickInside) {
+                document.getElementById('profileDropdown')?.classList.add('hidden');
+            }
         });
+    });
 
-        window.onload = window.startClient;
+    window.onload = window.startClient;
 
-    </script>
+</script>
 </body>
 </html>
