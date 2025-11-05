@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetici Paneli | bakikara.xyz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* TEMA RENKLERİ */
+        :root {
+            --primary-color: #5d3f6a;       /* Kapalı Mor Vurgu */
+            --bg-dark: #1e1e2d;             
+            --bg-card: #27293d;             
+            --text-light: #e0e0e0;          
+            --text-secondary: #a9a9b6;      
+            --border-dark: #3b3b51;         
+            --danger-color: #e74c3c;        
+            --success-color: #28a745;       
+            --info-color: #007bff;          
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* GENEL STİL */
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-light);
+            margin: 0; 
+            padding: 0; 
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-dark);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        /* MÜŞTERİ TABLOSU */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: var(--bg-card);
+            box-shadow: var(--shadow);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .admin-table th, .admin-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-dark);
+        }
+        .admin-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        .admin-table tr:hover td {
+            background-color: #2e3046;
+        }
+        
+        .admin-table td {
+            color: var(--text-light);
+            font-size: 0.9em;
+        }
+
+        /* DURUM VURGULARI */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 50px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pending { background-color: var(--warning-color); color: #333; }
+        .status-active { background-color: var(--success-color); color: white; }
+        .status-file { background-color: var(--info-color); color: white; }
+
+        /* BUTONLAR */
+        .action-btn {
+            background-color: var(--info-color);
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: opacity 0.3s;
+        }
+        .action-btn:hover {
+            opacity: 0.8;
+        }
+        .logout-btn {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        /* HATA VEYA YÜKLEME DURUMU */
+        #loading, #error-message {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <button class="logout-btn" onclick="handleLogout()">Çıkış Yap</button>
+    <h1><i class="fas fa-user-shield"></i> Yönetici Paneli - Müşteriler</h1>
+
+    <div id="loading">Müşteri verileri yükleniyor...</div>
+    <div id="error-message" style="display:none;"></div>
+    
+    <table class="admin-table" id="customerTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>E-posta / Kullanıcı Adı</th>
+                <th>Kayıt Tarihi</th>
+                <th>Site Adresi (Öneri)</th>
+                <th>Durum</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody id="customerTableBody">
+            </tbody>
+    </table>
+</div>
+
+
+<script type="module">
+    // Firestore'dan tüm belgeleri çekmek için gereken import'lar
+    import { 
+        auth, 
+        signOut, 
+        onAuthStateChanged, 
+        db, 
+        collection, 
+        getDocs, 
+        doc, 
+        updateDoc 
+    } from './firebase-config.js'; 
+
+    // 🔴 1. ADIM: YÖNETİCİ E-POSTASINI BURAYA YAZIN!
+    const ADMIN_EMAIL = "SİZİN_YÖNETİCİ_EPOSTANIZ@example.com"; 
+    
+    const loading = document.getElementById('loading');
+    const table = document.getElementById('customerTable');
+    const tableBody = document.getElementById('customerTableBody');
+    const errorMessage = document.getElementById('error-message');
+
+    // Durum Etiketlerini Oluşturma Yardımcı Fonksiyonu
+    function getStatusBadge(status) {
+        let className = 'status-file';
+        let text = 'Dosya Bekleniyor';
+        if (status === 'ACTIVE') {
+            className = 'status-active';
+            text = 'YAYINDA';
+        } else if (status === 'PENDING_APPROVAL') {
+            className = 'status-pending';
+            text = 'Onay Bekliyor';
+        }
+        return `<span class="status-badge ${className}">${text}</span>`;
+    }
+
+    // 2. Müşteri Verilerini Çekme ve Ekrana Basma
+    async function fetchCustomers() {
+        loading.style.display = 'block';
+        table.style.display = 'none';
+        errorMessage.style.display = 'none';
+        tableBody.innerHTML = '';
+
+        try {
+            const usersRef = collection(db, "users");
+            const snapshot = await getDocs(usersRef);
+            
+            if (snapshot.empty) {
+                loading.innerText = 'Henüz kayıtlı müşteri bulunmamaktadır.';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const user = doc.data();
+                const userId = doc.id;
+                const userEmail = user.email || 'Bilinmiyor';
+                const username = userEmail.split('@')[0];
+                const siteUrl = `bakikara.xyz/${username}`;
+                const regDate = user.createdAt ? user.createdAt.toDate().toLocaleDateString('tr-TR') : 'Bilinmiyor';
+                const status = user.serviceStatus || 'FILE_WAITING'; // Varsayılan durum
+
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>
+                        <strong>${userEmail}</strong><br>
+                        <span style="color:var(--text-secondary);">${user.site_adi || '-'}</span>
+                    </td>
+                    <td>${regDate}</td>
+                    <td><a href="#" style="color:var(--info-color);">${siteUrl}</a></td>
+                    <td>${getStatusBadge(status)}</td>
+                    <td>
+                        <button class="action-btn" onclick="updateCustomerStatus('${userId}', 'ACTIVE')">Yayına Al</button>
+                        <button class="action-btn" onclick="updateCustomerStatus('${userId}', 'FILE_WAITING')" style="background-color: var(--warning-color);">Dosya Bekle</button>
+                    </td>
+                `;
+            });
+
+            loading.style.display = 'none';
+            table.style.display = 'table';
+
+        } catch (error) {
+            console.error("Müşteri verileri çekilirken hata oluştu:", error);
+            loading.style.display = 'none';
+            errorMessage.innerText = `Veri çekme hatası: ${error.message}`;
+            errorMessage.style.display = 'block';
+        }
+    }
+
+    // 3. Müşteri Durumunu Güncelleme (Basit Mesajlaşma/Durum Özelliği)
+    window.updateCustomerStatus = async function(userId, newStatus) {
+        if (!confirm(`Kullanıcı ID: ${userId} durumunu ${newStatus} olarak güncellemek istediğinizden emin misiniz?`)) {
+            return;
+        }
+
+        try {
+            const userDocRef = doc(db, "users", userId);
+            await updateDoc(userDocRef, {
+                serviceStatus: newStatus
+            });
+            alert(`Durum başarıyla ${newStatus} olarak güncellendi.`);
+            fetchCustomers(); // Tabloyu yeniden yükle
+        } catch (error) {
+            console.error("Durum güncellenirken hata oluştu:", error);
+            alert("Durum güncellenirken hata oluştu: " + error.message);
+        }
+    }
+
+    // 4. Yetkilendirme Kontrolü
+    onAuthStateChanged(auth, (user) => {
+        if (user && user.email === ADMIN_EMAIL) {
+            // Yöneticinin email adresi eşleşiyorsa
+            fetchCustomers();
+        } else {
+            // Eşleşmiyorsa veya giriş yapılmamışsa giriş sayfasına yönlendir
+            alert("Erişim Reddedildi. Bu sayfa sadece yöneticilere aittir.");
+            window.location.href = 'login.html'; 
+        }
+    });
+
+    // Çıkış Yapma İşlemi
+    window.handleLogout = function() {
+        signOut(auth).then(() => {
+            window.location.href = 'login.html';
+        }).catch((error) => {
+            console.error("Çıkış hatası:", error);
+            alert("Çıkış yaparken bir hata oluştu.");
+        });
+    }
+</script>
+</body>
+</html>
