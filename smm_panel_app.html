@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMM Panel Yönetimi | Firebase Bağlantılı</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
@@ -87,6 +89,7 @@
 </head>
 <body>
 
+    <!-- MODAL (Hata ve Bilgi Mesajları İçin) -->
     <div id="modalContainer" class="hidden fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-75 flex items-center justify-center transition-opacity duration-300">
         <div class="bg-gray-800 rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all duration-300 scale-100 border border-gray-700">
             <div class="flex items-center space-x-3 mb-4">
@@ -100,15 +103,19 @@
         </div>
     </div>
 
+    <!-- ANA UYGULAMA YAPISI (Giriş yaptıktan sonra görünür) -->
     <div id="appContainer" class="hidden flex">
 
+        <!-- 1. Kenar Çubuğu (Sidebar) -->
         <nav id="sidebar" class="hidden md:block fixed h-full w-[var(--sidebar-width)] bg-[var(--bg-sidebar)] shadow-2xl flex flex-col z-20 border-r border-[var(--border-color)]">
             <div class="p-6 border-b border-[var(--border-color)] flex items-center space-x-3">
                 <i class="fas fa-rocket text-3xl text-[var(--primary-color)]"></i>
                 <h1 class="text-2xl font-extrabold text-white">Gemini Panel</h1>
             </div>
 
+            <!-- Navigasyon Menüsü -->
             <div class="p-4 flex-grow overflow-y-auto">
+                <!-- Navigasyon butonlarında artık handleNavigation global olarak tanımlı -->
                 <a id="nav-dashboard" class="nav-item flex items-center space-x-3 p-3 my-2 font-medium rounded-xl transition duration-200 cursor-pointer active" data-page="dashboard">
                     <i class="fas fa-home w-5"></i><span>Panelim</span>
                 </a>
@@ -124,11 +131,14 @@
                 <a id="nav-profile" class="nav-item flex items-center space-x-3 p-3 my-2 font-medium rounded-xl transition duration-200 cursor-pointer" data-page="profile">
                     <i class="fas fa-user-circle w-5"></i><span>Profilim</span>
                 </a>
+                <!-- YENİ ADMIN PANELİ NAVİGASYONU -->
                 <a id="nav-admin" class="nav-item hidden flex items-center space-x-3 p-3 my-2 font-medium rounded-xl transition duration-200 cursor-pointer" data-page="admin">
                     <i class="fas fa-user-shield w-5 text-red-400"></i><span class="text-red-300">Admin Paneli</span>
                 </a>
-                </div>
+                <!-- YENİ ADMIN PANELİ NAVİGASYONU SONU -->
+            </div>
 
+            <!-- Kullanıcı Bilgisi ve Çıkış -->
             <div class="p-4 border-t border-[var(--border-color)]">
                 <div class="flex items-center space-x-3 p-3 bg-[var(--bg-card)] rounded-xl shadow-inner">
                     <div class="w-10 h-10 bg-[var(--primary-color)] rounded-full flex items-center justify-center text-white text-lg font-bold shadow-md">
@@ -138,6 +148,7 @@
                         <div id="userName" class="text-sm font-semibold text-white truncate"></div>
                         <div id="userBalance" class="text-xs text-gray-400 font-medium">Bakiye: 0.00 TL</div>
                     </div>
+                    <!-- Çıkış Butonu ID ile tanımlandı -->
                     <button id="logoutButton" class="p-2 text-gray-400 hover:text-red-500 transition duration-150 hover:bg-gray-700 rounded-lg" title="Çıkış Yap">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
@@ -145,7 +156,9 @@
             </div>
         </nav>
 
+        <!-- 2. Ana İçerik Alanı (Main Content) -->
         <main id="mainContent" class="flex-grow p-4 md:p-8 ml-0 md:ml-[var(--sidebar-width)] transition-all duration-300">
+            <!-- Mobil Navigasyon Düğmesi -->
             <div class="sticky top-0 z-10 bg-[var(--bg-body)] -mx-4 md:mx-0 p-4 md:p-0 flex justify-between items-center md:hidden border-b border-[var(--border-color)] mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-rocket text-2xl text-[var(--primary-color)]"></i>
@@ -156,6 +169,7 @@
                 </button>
             </div>
 
+            <!-- Mobil Menü İçeriği -->
             <div id="mobileMenu" class="hidden fixed inset-0 bg-[var(--bg-sidebar)] z-40 p-6 transform transition-transform duration-300 ease-in-out md:hidden flex flex-col border-r border-[var(--border-color)]">
                 <div class="flex justify-between items-center mb-8">
                     <h2 class="text-2xl font-bold text-white">Menü</h2>
@@ -169,10 +183,12 @@
                     <a class="nav-item flex items-center space-x-3 p-3 font-medium rounded-xl hover:bg-gray-700 cursor-pointer mobile-nav-item" data-page="orders"><i class="fas fa-list-alt w-5"></i><span>Siparişlerim</span></a>
                     <a class="nav-item flex items-center space-x-3 p-3 font-medium rounded-xl hover:bg-gray-700 cursor-pointer mobile-nav-item" data-page="addFunds"><i class="fas fa-wallet w-5"></i><span>Bakiye Yükle</span></a>
                     <a class="nav-item flex items-center space-x-3 p-3 font-medium rounded-xl hover:bg-gray-700 cursor-pointer mobile-nav-item" data-page="profile"><i class="fas fa-user-circle w-5"></i><span>Profilim</span></a>
+                    <!-- YENİ MOBİL ADMIN PANELİ NAVİGASYONU -->
                     <a id="mobile-nav-admin" class="nav-item hidden flex items-center space-x-3 p-3 font-medium rounded-xl hover:bg-red-900/20 cursor-pointer mobile-nav-item" data-page="admin">
                         <i class="fas fa-user-shield w-5 text-red-400"></i><span class="text-red-300">Admin Paneli</span>
                     </a>
-                    </div>
+                    <!-- YENİ MOBİL ADMIN PANELİ NAVİGASYONU SONU -->
+                </div>
                 <div class="mt-auto border-t border-[var(--border-color)] pt-4">
                     <button id="mobileLogoutButton" class="w-full text-left flex items-center space-x-3 p-3 font-medium text-red-500 rounded-xl hover:bg-red-900/20 transition duration-150">
                         <i class="fas fa-sign-out-alt w-5"></i><span>Çıkış Yap</span>
@@ -180,14 +196,18 @@
                 </div>
             </div>
 
+            <!-- Ana İçerik Yükleme Alanı -->
             <div id="pageContent" class="min-h-[calc(100vh-64px)] transition-opacity duration-300">
-                </div>
+                <!-- Sayfalar buraya yüklenecek -->
+            </div>
         </main>
     </div>
 
+    <!-- 3. Kimlik Doğrulama Alanı (Default olarak gösterilir) -->
     <div id="authPageContainer" class="auth-container">
         <div class="w-full max-w-md p-8 m-4 bg-[var(--bg-card)] rounded-xl shadow-2xl border border-[var(--border-color)] transform transition-all duration-300 hover:shadow-blue-500/20">
 
+            <!-- Giriş Formu -->
             <div id="loginFormContainer">
                 <h2 class="text-3xl font-bold text-center text-white mb-6">Giriş Yap</h2>
                 <form id="loginForm" onsubmit="event.preventDefault(); handleAuthSubmit('login');" class="space-y-4">
@@ -204,6 +224,7 @@
                     </button>
                 </form>
                 <div class="mt-6 text-center">
+                    <!-- Bu buton artık id ile JS'e bağlanacak -->
                     <button id="switchToRegister" class="text-sm font-medium text-[var(--primary-color)] hover:text-[var(--primary-light)] transition duration-150">
                         Hesabın yok mu? Kayıt Ol
                     </button>
@@ -211,6 +232,7 @@
                 </div>
             </div>
 
+            <!-- Kayıt Formu (Başlangıçta Gizli) -->
             <div id="registerFormContainer" class="hidden">
                 <h2 class="text-3xl font-bold text-center text-white mb-6">Yeni Hesap Oluştur</h2>
                 <form id="registerForm" onsubmit="event.preventDefault(); handleAuthSubmit('register');" class="space-y-4">
@@ -231,6 +253,7 @@
                     </button>
                 </form>
                 <div class="mt-6 text-center">
+                    <!-- Bu buton artık id ile JS'e bağlanacak -->
                     <button id="switchToLogin" class="text-sm font-medium text-[var(--primary-color)] hover:text-[var(--primary-light)] transition duration-150">
                         Zaten hesabın var mı? Giriş Yap
                     </button>
@@ -290,17 +313,20 @@
         // =======================================================================
         // GLOBAL DURUM YÖNETİMİ VE SABİTLER
         // =======================================================================
-        // YENİ SABİT: ADMIN E-POSTASI
+        
+        // ADMIN E-POSTASI
         const ADMIN_EMAIL = 'mehmeteminacan13@gmail.com';
 
         const appState = {
             currentPage: 'dashboard',
             isAuthenticated: false,
             userId: null,
-            email: null, // YENİ: E-postayı tutmak için
+            email: null, 
             displayName: 'Misafir',
             userBalance: 0.00,
             orders: [],
+            // YENİ DURUM: Tüm kullanıcıların listesi (Admin Paneli için)
+            users: [],
         };
 
         const categories = [
@@ -334,16 +360,10 @@
 
         /**
          * Firestore için kullanıcıya özgü koleksiyon yolu oluşturur.
-         * NOT: Kendi Firebase'inizi kullandığınızda güvenlik kurallarını buna göre ayarlamalısınız.
-         * Mevcut yapıda, kullanıcı profil bilgileri (bakiye, ad) 'user_profiles' ana koleksiyonunda tutulur.
-         * Siparişler ise Canvas güvenlik kuralları yapısına uygun tutulur.
-         * @param {string} collectionName - Koleksiyon adı (örn: 'orders').
-         * @returns {string} Tam koleksiyon yolu.
          */
         function getUserCollectionPath(collectionName) {
             const userId = appState.userId || 'guest';
             // Canvas Güvenlik Kuralları Yapısı: /artifacts/{canvasAppId}/users/{userId}/{collectionName}
-            // Kendi projenizde bu yapıyı kullanmasanız bile, uyumluluk için koruyoruz.
             return `artifacts/${canvasAppId}/users/${userId}/${collectionName}`; 
         }
 
@@ -356,17 +376,17 @@
             document.getElementById('modalIcon').className = iconClass;
             document.getElementById('modalContainer').classList.remove('hidden');
         }
-        window.showModal = showModal; // Global erişim için açığa çıkar
+        window.showModal = showModal; 
 
         /**
          * Modalı gizler.
          */
         function hideModal() {
-            document.getElementById('modalCloseButton')?.removeEventListener('click', hideModal); // Eski dinleyiciyi kaldır
+            document.getElementById('modalCloseButton')?.removeEventListener('click', hideModal); 
             document.getElementById('modalContainer').classList.add('hidden');
-            document.getElementById('modalCloseButton')?.addEventListener('click', hideModal); // Yeniden ekle
+            document.getElementById('modalCloseButton')?.addEventListener('click', hideModal); 
         }
-        window.hideModal = hideModal; // Global erişim için açığa çıkar
+        window.hideModal = hideModal; 
 
         function clearAuthMessages() {
             document.getElementById('loginMessage').textContent = '';
@@ -387,7 +407,7 @@
                  console.error("Hata: Giriş/Kayıt form kapsayıcıları bulunamadı.");
             }
         }
-        window.showLoginForm = showLoginForm; // Global erişim için açığa çıkar
+        window.showLoginForm = showLoginForm; 
 
         /**
          * Kayıt formunu gösterir ve giriş formunu gizler.
@@ -403,7 +423,7 @@
                  console.error("Hata: Giriş/Kayıt form kapsayıcıları bulunamadı.");
             }
         }
-        window.showRegisterForm = showRegisterForm; // Global erişim için açığa çıkar
+        window.showRegisterForm = showRegisterForm; 
 
 
         /**
@@ -412,7 +432,7 @@
         function toggleMobileMenu() {
             document.getElementById('mobileMenu').classList.toggle('hidden');
         }
-        window.toggleMobileMenu = toggleMobileMenu; // Global erişim için açığa çıkar
+        window.toggleMobileMenu = toggleMobileMenu; 
 
 
         function updateUI() {
@@ -468,7 +488,7 @@
                 showModal('Giriş Gerekli', 'Bu sayfayı görmek için lütfen giriş yapın.', 'fas fa-lock text-yellow-500');
             }
         }
-        window.handleNavigation = handleNavigation; // Global erişim için açığa çıkar
+        window.handleNavigation = handleNavigation; 
 
 
         function getAuthErrorMessage(code) {
@@ -555,7 +575,7 @@
                 handleRegister(email, password, displayName);
             }
         }
-        window.handleAuthSubmit = handleAuthSubmit; // Global erişim için açığa çıkar
+        window.handleAuthSubmit = handleAuthSubmit; 
 
 
         async function handleLogout() {
@@ -567,15 +587,82 @@
                 showModal('Hata', 'Çıkış yapılırken bir sorun oluştu.', 'fas fa-exclamation-triangle text-red-500');
             }
         }
-        window.handleLogout = handleLogout; // Global erişim için açığa çıkar
+        window.handleLogout = handleLogout; 
+        
+        // =======================================================================
+        // ADMIN FONKSİYONLARI (SIPARIS & BAKIYE YÖNETİMİ)
+        // =======================================================================
+        
+        /**
+         * Admin: Bir siparişin durumunu günceller.
+         */
+        async function updateOrderStatus(orderId, newStatus, userId) {
+            if (!isAdminUser()) {
+                showModal('Yetki Hatası', 'Bu işlemi yapmaya yetkiniz yok.', 'fas fa-lock text-red-500');
+                return;
+            }
+            try {
+                // Siparişin yolu, kullanıcının altındaki orders koleksiyonudur.
+                // Canvas yapısını korumak için kullanıcının kendi altındaki yolu bulmalıyız.
+                // NOT: Gerçek Firebase'de tüm siparişleri tek bir Admin/Orders koleksiyonunda tutmak daha iyidir.
+                // Burada mevcut Canvas yapısına uyum sağlıyoruz.
+
+                // HACK: Siparişin ait olduğu kullanıcının koleksiyon yolunu kullanıyoruz
+                const ordersCollectionPath = `artifacts/${canvasAppId}/users/${userId}/orders`;
+                const orderDocRef = doc(db, ordersCollectionPath, orderId);
+                
+                await updateDoc(orderDocRef, {
+                    status: newStatus,
+                    updatedAt: serverTimestamp()
+                });
+                
+                showModal('Başarılı', `Sipariş ID: ${orderId.substring(0, 8)}... durumu '${newStatus}' olarak güncellendi.`, 'fas fa-check-circle text-green-500');
+            } catch (e) {
+                console.error("Sipariş durumu güncelleme hatası:", e);
+                showModal('Hata', 'Sipariş durumu güncellenirken bir sorun oluştu.', 'fas fa-bug text-red-500');
+            }
+        }
+        window.updateOrderStatus = updateOrderStatus; // Global erişim
+
+        /**
+         * Admin: Bir kullanıcının bakiyesini ayarlar/günceller.
+         */
+        async function updateBalance(targetUserId, newBalanceAmount) {
+            if (!isAdminUser()) {
+                showModal('Yetki Hatası', 'Bu işlemi yapmaya yetkiniz yok.', 'fas fa-lock text-red-500');
+                return;
+            }
+            const parsedAmount = parseFloat(newBalanceAmount);
+            if (isNaN(parsedAmount) || parsedAmount < 0) {
+                 showModal('Hata', 'Lütfen geçerli (pozitif) bir bakiye miktarı girin.', 'fas fa-exclamation-triangle text-red-500');
+                 return;
+            }
+
+            try {
+                const userDocRef = doc(db, 'user_profiles', targetUserId);
+                
+                await updateDoc(userDocRef, {
+                    balance: parsedAmount,
+                    lastBalanceUpdate: serverTimestamp()
+                });
+
+                showModal('Başarılı', `${targetUserId.substring(0, 8)}... kullanıcısının bakiyesi ${parsedAmount.toFixed(2)} TL olarak ayarlandı.`, 'fas fa-check-circle text-green-500');
+            } catch (e) {
+                console.error("Bakiye güncelleme hatası:", e);
+                showModal('Hata', 'Kullanıcı bakiyesi güncellenirken bir sorun oluştu.', 'fas fa-bug text-red-500');
+            }
+        }
+        window.updateBalance = updateBalance; // Global erişim
+
+        // =======================================================================
+        // FIREBASE DİNLEYİCİLERİ
+        // =======================================================================
 
 
         function setupFirestoreListeners(uid) {
             if (!uid || !db) return;
 
-            // 1. Kullanıcı Profili/Bakiye Dinleyicisi
-            // NOT: Kendi projenizde bu koleksiyonun güvenlik kurallarını (user_profiles/{uid}) 
-            // sadece oturum açan kullanıcının okuma/yazma yapabileceği şekilde ayarlamanız gerekir.
+            // 1. Kendi Kullanıcı Profili/Bakiye Dinleyicisi
             const userDocRef = doc(db, 'user_profiles', uid);
             onSnapshot(userDocRef, (docSnap) => {
                 if (docSnap.exists()) {
@@ -597,8 +684,7 @@
                 console.error("Kullanıcı profili dinleme hatası:", error);
             });
 
-            // 2. Siparişler Dinleyicisi
-            // Siparişler, Canvas Güvenlik Kuralları yapısına uygun yolda tutulur.
+            // 2. Kendi Siparişler Dinleyicisi (Kullanıcı için)
             const ordersCollectionRef = collection(db, getUserCollectionPath('orders'));
             onSnapshot(query(ordersCollectionRef), (snapshot) => {
                 appState.orders = snapshot.docs.map(doc => ({
@@ -609,6 +695,21 @@
             }, (error) => {
                 console.error("Siparişler dinleme hatası:", error);
             });
+            
+            // 3. Admin: Tüm Kullanıcıların Profillerini Dinleme
+            // Admin paneli için gereklidir.
+            if (isAdminUser()) {
+                const allUsersRef = collection(db, 'user_profiles');
+                onSnapshot(query(allUsersRef), (snapshot) => {
+                    appState.users = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    updateUI(); // Admin paneli verisini güncellemek için UI'ı tekrar çağır
+                }, (error) => {
+                    console.error("Tüm kullanıcıları dinleme hatası:", error);
+                });
+            }
         }
 
         // --- AUTH DİNLEYİCİSİ ---
@@ -617,13 +718,13 @@
                 if (user) {
                     appState.isAuthenticated = true;
                     appState.userId = user.uid;
-                    appState.email = user.email; // YENİ: E-posta bilgisini al
-                    // Eğer kullanıcı e-posta/şifre ile giriş yaptıysa displayName'i güncellenir
+                    appState.email = user.email; 
                     appState.displayName = user.displayName || user.email?.split('@')[0] || user.uid.substring(0, 8);
+                    
+                    // Firestore dinleyicilerini burada kuruyoruz
                     setupFirestoreListeners(user.uid);
 
                     if (initialAuthToken && !user.displayName) {
-                        // Canvas ortamında token ile giriş varsa ve displayName boşsa, UID'den atama yap
                         try {
                            await updateProfile(user, { displayName: user.uid.substring(0, 8) });
                            appState.displayName = user.uid.substring(0, 8);
@@ -633,10 +734,11 @@
                 } else {
                     appState.isAuthenticated = false;
                     appState.userId = null;
-                    appState.email = null; // Çıkışta e-posta bilgisini sıfırla
+                    appState.email = null; 
                     appState.displayName = 'Misafir';
                     appState.userBalance = 0.00;
                     appState.orders = [];
+                    appState.users = []; // Çıkışta kullanıcı listesini sıfırla
                 }
                 updateUI();
             });
@@ -645,10 +747,9 @@
             if (initialAuthToken) {
                 signInWithCustomToken(auth, initialAuthToken).catch(e => {
                     console.error("Özel token ile giriş hatası:", e);
-                    signInAnonymously(auth); // Hata olursa anonim giriş
+                    signInAnonymously(auth); 
                 });
             } else {
-                // Anonim giriş, kullanıcı giriş yapana kadar veritabanı okuma/yazma izni vermez.
                 signInAnonymously(auth); 
             }
         }
@@ -701,9 +802,6 @@
 
         function generateNewOrderContent() {
             let categoryOptions = categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
-            
-            // Bu fonksiyonlar artık globalde olmasa da, DOM'a dinamik olarak eklendiği için newOrder sayfasını yükleyen
-            // loadPageContent fonksiyonundan sonra çağrılmalıdır.
             
             const handleNewOrder = async function() {
                 const form = document.getElementById('newOrderForm');
@@ -827,6 +925,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                     <div class="lg:col-span-2 bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
+                        <!-- Form submit'i artık handleNewOrder() fonksiyonunu çağırır -->
                         <form id="newOrderForm" onsubmit="event.preventDefault(); window.handleNewOrder();" class="space-y-4">
                             <div>
                                 <label for="platformSelect" class="block text-sm font-medium text-gray-300 mb-1">Platform Seçin</label>
@@ -1019,10 +1118,9 @@
             `;
         }
         
-        // YENİ FONKSİYON: ADMIN PANEL İÇERİĞİ
+        // GÜNCELLENMİŞ ADMIN PANELİ İÇERİĞİ
         function generateAdminContent() {
             if (!isAdminUser()) {
-                // Bu kontrol handleNavigation'da yapılmasına rağmen, olası bir doğrudan erişime karşı ek güvenlik
                  return `
                     <div class="text-center p-10 bg-[var(--bg-card)] rounded-xl shadow-lg border border-red-500/50">
                         <i class="fas fa-user-times text-6xl text-red-500 mb-4"></i>
@@ -1032,38 +1130,156 @@
                 `;
             }
 
-            // Gerçek Admin Paneli İçeriği
             const totalOrders = appState.orders.length;
             const pendingOrders = appState.orders.filter(o => o.status === 'Beklemede').length;
+            const totalUsers = appState.users.length;
+            const mostRecentOrder = appState.orders.length > 0 ? appState.orders[0] : null;
 
             return `
                 <h2 class="text-3xl font-extrabold text-white mb-6">🔑 Yönetici Paneli</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div class="bg-red-900/40 p-6 rounded-xl shadow-lg border border-red-700 card-animate">
                         <i class="fas fa-exclamation-circle text-3xl text-red-400 mb-3"></i>
                         <p class="text-sm font-medium text-gray-300">Bekleyen Sipariş</p>
                         <p class="text-3xl font-extrabold text-white mt-1">${pendingOrders}</p>
                     </div>
-                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] card-animate">
+                    <div class="bg-yellow-900/40 p-6 rounded-xl shadow-lg border border-yellow-700 card-animate">
                         <i class="fas fa-users text-3xl text-yellow-500 mb-3"></i>
-                        <p class="text-sm font-medium text-gray-400">Toplam Kullanıcı</p>
-                        <p class="text-3xl font-extrabold text-white mt-1">N/A*</p>
+                        <p class="text-sm font-medium text-gray-300">Toplam Kullanıcı</p>
+                        <p class="text-3xl font-extrabold text-white mt-1">${totalUsers}</p>
                     </div>
-                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] card-animate">
-                        <i class="fas fa-shopping-cart text-3xl text-green-500 mb-3"></i>
-                        <p class="text-sm font-medium text-gray-400">Toplam Sipariş</p>
+                    <div class="bg-blue-900/40 p-6 rounded-xl shadow-lg border border-blue-700 card-animate">
+                        <i class="fas fa-shopping-cart text-3xl text-blue-400 mb-3"></i>
+                        <p class="text-sm font-medium text-gray-300">Toplam Sipariş</p>
                         <p class="text-3xl font-extrabold text-white mt-1">${totalOrders}</p>
                     </div>
+                    <div class="bg-green-900/40 p-6 rounded-xl shadow-lg border border-green-700 card-animate">
+                        <i class="fas fa-plus-square text-3xl text-green-400 mb-3"></i>
+                        <p class="text-sm font-medium text-gray-300">Son Sipariş</p>
+                        <p class="text-lg font-extrabold text-white mt-1">${mostRecentOrder ? mostRecentOrder.serviceName : 'Yok'}</p>
+                    </div>
+                </div>
+                
+                <!-- Admin İçerik Sekmeleri -->
+                <div class="flex border-b border-[var(--border-color)] mb-6">
+                    <button id="tabOrders" class="tab-button py-2 px-4 text-sm font-medium border-b-2 border-blue-500 text-blue-400 transition duration-150" data-target="orders">Sipariş Yönetimi</button>
+                    <button id="tabUsers" class="tab-button py-2 px-4 text-sm font-medium border-b-2 border-transparent text-gray-400 hover:text-white transition duration-150" data-target="users">Kullanıcı & Bakiye</button>
                 </div>
 
-                <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
-                    <h3 class="text-xl font-semibold text-white mb-4">Tüm Siparişler</h3>
-                    ${renderOrderTable(appState.orders, 'admin')}
-                    <p class="text-sm text-gray-500 mt-4">* Toplam Kullanıcı sayısı için 'user_profiles' koleksiyonundan veri çekilmesi gerekir. (Şu anki dinleyici sadece mevcut kullanıcının verisini çeker)</p>
+                <div id="adminContentArea">
+                    <!-- Varsayılan olarak sipariş yönetimi yüklenir -->
+                    ${renderAdminOrdersManagement()}
                 </div>
             `;
         }
-        // YENİ FONKSİYON SONU
+
+        /**
+         * Admin Sipariş Yönetim Sekmesi İçeriği
+         */
+        function renderAdminOrdersManagement() {
+            // Dinamik olarak durumu değiştirme formu ve tablosu
+            const tableHtml = appState.orders.map(order => {
+                const date = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleDateString('tr-TR') : 'N/A';
+                const statusOptions = ['Beklemede', 'İşleniyor', 'Tamamlandı', 'İptal Edildi'].map(status => 
+                    `<option value="${status}" ${order.status === status ? 'selected' : ''}>${status}</option>`
+                ).join('');
+
+                return `
+                    <tr class="hover:bg-gray-700 transition duration-150">
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-white">${order.id.substring(0, 8)}...</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-400">${order.userId.substring(0, 8)}...</td>
+                        <td class="px-4 py-3 text-sm text-gray-300">${order.serviceName}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-yellow-400">${order.quantity?.toLocaleString() || 0}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-red-400">${order.cost?.toFixed(2) || '0.00'} TL</td>
+                        <td class="px-4 py-3">
+                            <select id="status-${order.id}" class="bg-gray-700 text-sm rounded-lg p-1 border border-gray-600 focus:ring-blue-500">
+                                ${statusOptions}
+                            </select>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <button onclick="window.updateOrderStatus('${order.id}', document.getElementById('status-${order.id}').value, '${order.userId}')" 
+                                class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold py-1 px-3 rounded-lg transition duration-150">
+                                Kaydet
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div class="bg-[var(--bg-card)] p-4 md:p-6 rounded-xl shadow-lg border border-[var(--border-color)] overflow-x-auto">
+                    <h3 class="text-xl font-semibold text-white mb-4">Tüm Siparişler ve Durum Yönetimi</h3>
+                    ${appState.orders.length === 0 ? '<p class="text-center text-gray-400 p-4">Hiç sipariş bulunmamaktadır.</p>' : ''}
+                    <table class="min-w-full divide-y divide-[var(--border-color)]">
+                        <thead>
+                            <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-800">
+                                <th class="px-4 py-3">Sipariş ID</th>
+                                <th class="px-4 py-3">Kullanıcı ID</th>
+                                <th class="px-4 py-3">Servis</th>
+                                <th class="px-4 py-3">Miktar</th>
+                                <th class="px-4 py-3">Maliyet</th>
+                                <th class="px-4 py-3">Durum</th>
+                                <th class="px-4 py-3">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[var(--border-color)]">
+                            ${tableHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        /**
+         * Admin Kullanıcı ve Bakiye Yönetim Sekmesi İçeriği
+         */
+        function renderAdminUsersManagement() {
+             const userTableHtml = appState.users.map(user => {
+                const handleUpdate = `
+                    const newAmount = document.getElementById('balance-${user.id}').value;
+                    window.updateBalance('${user.id}', newAmount);
+                `;
+
+                return `
+                    <tr class="hover:bg-gray-700 transition duration-150">
+                        <td class="px-4 py-3 text-sm font-medium text-white">${user.displayName}</td>
+                        <td class="px-4 py-3 text-xs text-gray-400">${user.email}</td>
+                        <td class="px-4 py-3 text-xs text-gray-500 break-all">${user.id.substring(0, 10)}...</td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <input type="number" id="balance-${user.id}" value="${(user.balance || 0).toFixed(2)}" 
+                                min="0" step="0.01" class="bg-gray-700 text-white text-sm rounded-lg p-2 w-24 border border-gray-600 focus:ring-blue-500">
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <button onclick="${handleUpdate}" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1 px-3 rounded-lg transition duration-150">
+                                Ayarla
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div class="bg-[var(--bg-card)] p-4 md:p-6 rounded-xl shadow-lg border border-[var(--border-color)] overflow-x-auto">
+                    <h3 class="text-xl font-semibold text-white mb-4">Kullanıcı Bakiye Yönetimi (${appState.users.length} Kayıt)</h3>
+                    ${appState.users.length === 0 ? '<p class="text-center text-gray-400 p-4">Hiç kullanıcı bulunmamaktadır.</p>' : ''}
+                    <table class="min-w-full divide-y divide-[var(--border-color)]">
+                        <thead>
+                            <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-800">
+                                <th class="px-4 py-3">Kullanıcı Adı</th>
+                                <th class="px-4 py-3">E-posta</th>
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Mevcut Bakiye (TL)</th>
+                                <th class="px-4 py-3">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[var(--border-color)]">
+                            ${userTableHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
 
         function renderOrderTable(orders, page) {
             if (!orders || orders.length === 0) {
@@ -1076,7 +1292,8 @@
                     case 'Tamamlandı': return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-900 text-green-300">Tamamlandı</span>';
                     case 'Beklemede': return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-900 text-yellow-300">Beklemede</span>';
                     case 'İptal Edildi': return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-900 text-red-300">İptal Edildi</span>';
-                    default: return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-700 text-gray-400">İşleniyor</span>';
+                    case 'İşleniyor': return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-900 text-blue-300">İşleniyor</span>';
+                    default: return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-700 text-gray-400">Bilinmiyor</span>';
                 }
             };
 
@@ -1084,7 +1301,6 @@
                 const date = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleDateString('tr-TR') : 'N/A';
                 const orderIdDisplay = page === 'dashboard' ? order.id.substring(0, 8) + '...' : order.id;
                 
-                // Admin sayfasında kullanıcı ID'si gösterilebilir
                 const userIdCell = page === 'admin' ? `<td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">${order.userId.substring(0, 8)}...</td>` : '';
 
                 return `
@@ -1100,7 +1316,6 @@
                 `;
             }).join('');
             
-            // Admin paneli için tablo başlığını güncelle
             const adminUserIdHeader = page === 'admin' ? '<th class="px-4 py-3">Kullanıcı ID</th>' : '';
 
             return `
@@ -1122,6 +1337,7 @@
                 </table>
             `;
         }
+        // GÜNCELLENMİŞ ADMIN PANELİ İÇERİĞİ SONU
 
         function loadPageContent(pageName) {
             const pageContentDiv = document.getElementById('pageContent');
@@ -1147,7 +1363,7 @@
                 case 'orders': contentHtml = generateOrdersContent(); break;
                 case 'addFunds': contentHtml = generateAddFundsContent(); break;
                 case 'profile': contentHtml = generateProfileContent(); break;
-                case 'admin': contentHtml = generateAdminContent(); break; // YENİ: Admin Paneli
+                case 'admin': contentHtml = generateAdminContent(); break; 
                 default: contentHtml = generateDashboardContent();
             }
 
@@ -1164,6 +1380,31 @@
                     // NewOrder sayfasında başlangıçta servisleri yükle
                     if (pageName === 'newOrder') {
                         document.getElementById('platformSelect')?.dispatchEvent(new Event('change'));
+                    }
+                    
+                    // Admin paneli için tab butonları dinleyicilerini ekle
+                    if (pageName === 'admin') {
+                        const adminContentArea = document.getElementById('adminContentArea');
+                        
+                        document.querySelectorAll('.tab-button').forEach(button => {
+                            button.addEventListener('click', function() {
+                                document.querySelectorAll('.tab-button').forEach(btn => {
+                                    btn.classList.remove('border-blue-500', 'text-blue-400');
+                                    btn.classList.add('border-transparent', 'text-gray-400', 'hover:text-white');
+                                });
+                                this.classList.add('border-blue-500', 'text-blue-400');
+                                this.classList.remove('border-transparent', 'text-gray-400', 'hover:text-white');
+
+                                const target = this.getAttribute('data-target');
+                                if (target === 'orders') {
+                                    adminContentArea.innerHTML = renderAdminOrdersManagement();
+                                } else if (target === 'users') {
+                                    adminContentArea.innerHTML = renderAdminUsersManagement();
+                                }
+                            });
+                        });
+                        // İlk sekmenin stilini ayarla
+                        document.getElementById('tabOrders')?.click();
                     }
 
                 }, 150);
