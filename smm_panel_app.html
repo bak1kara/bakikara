@@ -597,9 +597,17 @@
                 // onAuthStateChanged tetiklenecek ve UI'ı Dashboard'a yönlendirecek.
             } catch (error) {
                 console.error("Kayıt hatası:", error);
-                const errorMessage = error.message.includes('email-already-in-use') ? 
-                    'Bu e-posta adresi zaten kullanılıyor.' : 
-                    'Kayıt başarısız oldu. Lütfen bilgileri kontrol edin.';
+                let errorMessage = 'Kayıt başarısız oldu. Lütfen bilgileri kontrol edin.';
+
+                // Firebase hata kodlarına göre daha spesifik mesajlar göster
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Bu e-posta adresi zaten kullanılıyor. Lütfen giriş yapın veya farklı bir e-posta kullanın.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Geçersiz e-posta formatı. Lütfen kontrol edin.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'Şifre en az 6 karakter uzunluğunda olmalıdır.';
+                }
+
                 messageEl.textContent = errorMessage;
                 messageEl.classList.remove('hidden');
                 showStatusMessage(errorMessage, 'error');
@@ -625,6 +633,8 @@
                 let errorMessage = 'Giriş başarısız oldu. E-posta veya şifre hatalı.';
                 if (error.code === 'auth/user-not-found') {
                     errorMessage = 'Bu e-posta adresine kayıtlı kullanıcı bulunamadı.';
+                } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                     errorMessage = 'Hatalı şifre. Lütfen tekrar deneyin.';
                 }
                 messageEl.textContent = errorMessage;
                 messageEl.classList.remove('hidden');
