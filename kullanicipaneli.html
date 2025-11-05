@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kullanıcı Paneli | BAKİ S2</title>
+    <title>Kullanıcı Paneli | BAKİ S2 - Profesyonel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <style>
         :root {
             /* Varsayılan Temalar */
             --purple: #6c5ce7;
-            --dark-bg: #1a0e21;
+            --dark-bg: #0d0615; /* Daha koyu arka plan */
             --card-bg: #1f112c;
             --sidebar-bg: #140b1b;
             --accent-purple: #9c84ff;
+            --red-glow: #e74c3c; /* Hesap silme için */
 
             /* Aktif Tema Renkleri (JS ile güncellenecek) */
             --active-theme-color: var(--purple);
@@ -23,32 +25,59 @@
         }
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--active-bg-color); /* Tema Renkleri Kullanımı */
+            background-color: var(--active-bg-color);
             color: #ffffff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s;
         }
         .header-bg { 
-            background-color: rgba(26, 14, 33, 0.9);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            background-color: rgba(13, 6, 21, 0.9); /* Arka plana göre güncellendi */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
         .profile-avatar-nav {
             width: 40px; height: 40px; line-height: 40px; font-size: 16px; font-weight: 600;
             background-color: var(--purple); color: white; border-radius: 50%; text-align: center;
-            flex-shrink: 0; cursor: pointer; border: 2px solid var(--purple);
+            flex-shrink: 0; cursor: pointer; border: 2px solid var(--accent-purple);
         }
         .card-dropdown { 
-            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(5px); border-radius: 0.5rem; 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); border: 1px solid rgba(108, 92, 231, 0.2); z-index: 30;
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border-radius: 0.75rem; 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6); border: 1px solid rgba(156, 132, 255, 0.3); z-index: 30;
         }
         /* Dashboard Stilleri */
         .sidebar { background-color: var(--sidebar-bg); }
-        .sidebar-nav-item { transition: background-color 0.2s, color 0.2s; padding: 10px 15px; border-radius: 8px; cursor: pointer; }
-        .sidebar-nav-item:hover { background-color: rgba(108, 92, 231, 0.1); }
-        .sidebar-nav-item.active { background-color: var(--purple); color: white; font-weight: 600; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); }
-        .dashboard-card { background-color: var(--card-bg); border: 1px solid rgba(108, 92, 231, 0.3); }
+        .sidebar-nav-item { transition: background-color 0.2s, color 0.2s, box-shadow 0.3s; padding: 12px 15px; border-radius: 8px; cursor: pointer; border-left: 3px solid transparent;}
+        .sidebar-nav-item:hover { background-color: rgba(156, 132, 255, 0.1); }
+        .sidebar-nav-item.active { 
+            background-color: rgba(108, 92, 231, 0.2); 
+            color: white; 
+            font-weight: 600; 
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); 
+            border-left: 5px solid var(--accent-purple); /* Profesyonel aktif çizgi */
+        }
+        .dashboard-card { 
+            background-color: var(--card-bg); 
+            border: 1px solid rgba(156, 132, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(156, 132, 255, 0.15);
+        }
+        /* Kartın üst kısmında ince gradient çizgi */
+        .dashboard-card-highlight::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px; 
+            background: linear-gradient(90deg, var(--purple), var(--accent-purple));
+            opacity: 0.7;
+        }
         .form-input { 
             background-color: #3b2f4f; 
             border: 1px solid transparent; 
@@ -62,9 +91,15 @@
         }
         .btn-primary { 
             background-color: var(--purple); 
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
         }
-        .btn-primary:hover { background-color: #5c4cd9; }
+        .btn-primary:hover { background-color: #5c4cd9; transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
+        
+        /* Gelişmiş link kartı tasarımı */
+        .link-card {
+            border-left: 5px solid var(--purple);
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -75,9 +110,7 @@
             </a>
 
             <div class="hidden md:flex space-x-8">
-                <a href="panel" class="nav-link text-white hover:text-purple-400 transition duration-200 font-medium">Ana Panel</a>
                 <a href="fiyatlandirma" class="nav-link text-white hover:text-purple-400 transition duration-200 font-medium">Fiyatlandırma</a>
-                <a href="kullanicipaneli" class="nav-link text-white hover:text-purple-400 transition duration-200 font-medium">Kullanıcı Paneli</a>             
                 <a href="yardim" class="nav-link text-white hover:text-purple-400 transition duration-200 font-medium">Yardım</a>
             </div>
 
@@ -110,54 +143,88 @@
             </div>
         </nav>
     </header>
+
     <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-10 flex">
         
         <aside class="w-64 mr-8 p-4 sidebar rounded-xl hidden md:block flex-shrink-0 h-full sticky top-24 self-start">
-            <h2 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Panel Menüsü</h2>
+            <h2 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2 text-accent-purple">YÖNETİM</h2>
             <nav class="space-y-2">
                 <div data-content="dashboard" class="sidebar-nav-item active flex items-center">
-                    <i class="fas fa-chart-bar w-5 mr-3"></i> Genel Bakış
+                    <i class="fas fa-tachometer-alt w-5 mr-3"></i> Genel Bakış
                 </div>
                 <div data-content="links" class="sidebar-nav-item flex items-center">
                     <i class="fas fa-link w-5 mr-3"></i> Bağlantı Yönetimi
                 </div>
+            </nav>
+            
+            <h2 class="text-xl font-bold my-4 border-b border-gray-700 pb-2 text-accent-purple">HESAP</h2>
+             <nav class="space-y-2">
                 <div data-content="profile" class="sidebar-nav-item flex items-center">
                     <i class="fas fa-user-circle w-5 mr-3"></i> Profil Ayarları
                 </div>
                 <div data-content="settings" class="sidebar-nav-item flex items-center">
                     <i class="fas fa-cogs w-5 mr-3"></i> Hesap Ayarları
                 </div>
-                <button id="quickCreateLinkBtn" class="w-full btn-primary py-2 rounded-lg font-semibold text-white text-sm mt-4 flex items-center justify-center">
-                    <i class="fas fa-plus mr-2"></i> Yeni Bağlantı Oluştur
-                </button>
             </nav>
+
+            <button id="quickCreateLinkBtn" class="w-full btn-primary py-3 rounded-lg font-semibold text-white text-md mt-6 flex items-center justify-center shadow-lg hover:shadow-purple-500/50">
+                <i class="fas fa-plus mr-2"></i> Yeni Bağlantı Oluştur
+            </button>
         </aside>
 
         <section class="flex-grow">
+            
             <div id="dashboardContent" class="content-tab">
-                <h1 class="text-4xl font-extrabold mb-6 text-accent-purple">Merhaba, <span id="welcome_user_name">Kullanıcı</span>!</h1>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="dashboard-card p-6 rounded-xl">
+                <h1 class="text-4xl font-extrabold mb-8 text-accent-purple border-b border-purple-500/30 pb-3">Merhaba, <span id="welcome_user_name">Kullanıcı</span>!</h1>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="dashboard-card dashboard-card-highlight p-6 rounded-xl">
+                        <i class="fas fa-eye text-2xl text-purple-400 mb-2"></i>
                         <p class="text-gray-400 text-sm">Toplam Görüntülenme</p>
-                        <p class="text-3xl font-bold mt-1" id="total_views">0</p>
+                        <p class="text-4xl font-bold mt-1" id="total_views">0</p>
                     </div>
-                    <div class="dashboard-card p-6 rounded-xl">
+                    <div class="dashboard-card dashboard-card-highlight p-6 rounded-xl">
+                         <i class="fas fa-link text-2xl text-purple-400 mb-2"></i>
                         <p class="text-gray-400 text-sm">Aktif Bağlantı Sayısı</p>
-                        <p class="text-3xl font-bold mt-1" id="active_links_count">0</p>
+                        <p class="text-4xl font-bold mt-1" id="active_links_count">0</p>
                     </div>
-                    <div class="dashboard-card p-6 rounded-xl">
+                    <div class="dashboard-card dashboard-card-highlight p-6 rounded-xl">
+                         <i class="fas fa-crown text-2xl text-yellow-400 mb-2"></i>
                         <p class="text-gray-400 text-sm">Hesap Türü</p>
-                        <p class="text-3xl font-bold mt-1 text-green-400" id="account_type">Ücretsiz</p>
+                        <p class="text-4xl font-bold mt-1 text-green-400" id="account_type">Ücretsiz</p>
                     </div>
                 </div>
+
+                <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="dashboard-card p-6 rounded-xl lg:col-span-2">
+                        <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2 text-white">Görüntülenme Trendi (Son 30 Gün)</h2>
+                        <div id="viewsChartContainer" class="h-64 flex items-center justify-center">
+                            <canvas id="viewsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="dashboard-card p-6 rounded-xl">
+                         <h2 class="text-xl font-semibold mb-4 border-b border-gray-700 pb-2 text-white">Hesap Detayları</h2>
+                         <p class="text-sm font-medium text-gray-400">Üyelik Rolü:</p>
+                         <p class="text-lg font-bold text-white mb-3" id="detail_user_role">Temel Üye</p>
+
+                         <button class="w-full bg-yellow-600 hover:bg-yellow-700 py-2 rounded-lg font-semibold text-sm text-white transition duration-200">
+                             <i class="fas fa-arrow-up mr-2"></i> Premium'a Yükselt
+                         </button>
+                         <div class="mt-4 pt-4 border-t border-gray-700">
+                             <p class="text-sm font-medium text-gray-400">E-posta:</p>
+                             <p class="text-white text-sm" id="detail_user_email">yükleniyor@mail.com</p>
+                         </div>
+                    </div>
+                </div>
+                
                 <div class="mt-8 dashboard-card p-6 rounded-xl">
-                    <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Son Hareketler</h2>
-                    <p class="text-gray-500">Henüz bir hareket bulunmamaktadır.</p>
+                    <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Son Hareketler / Bildirimler</h2>
+                    <p class="text-gray-500">Henüz bir hareket bulunmamaktadır. (Buraya son oluşturulan bağlantı, şifre değiştirme gibi hareketler gelecek.)</p>
                 </div>
             </div>
 
             <div id="linksContent" class="content-tab hidden">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex justify-between items-center mb-6 border-b border-purple-500/30 pb-3">
                     <h1 class="text-4xl font-extrabold text-accent-purple">Bağlantı Yönetimi</h1>
                     <button id="openNewLinkModalBtn" class="btn-primary py-2 px-4 rounded-lg font-semibold text-white">
                         <i class="fas fa-plus mr-2"></i> Yeni Bağlantı
@@ -167,12 +234,11 @@
                     <div id="loadingLinks" class="dashboard-card p-6 rounded-xl text-center text-gray-400">
                         <i class="fas fa-spinner fa-spin mr-2"></i> Bağlantılar yükleniyor...
                     </div>
-                    <!-- Bağlantılar buraya JavaScript ile eklenecek -->
                 </div>
             </div>
 
             <div id="profileContent" class="content-tab hidden">
-                <h1 class="text-4xl font-extrabold mb-6 text-accent-purple">Profil Ayarları</h1>
+                <h1 class="text-4xl font-extrabold mb-6 text-accent-purple border-b border-purple-500/30 pb-3">Profil Ayarları</h1>
                 <form id="profileForm" class="dashboard-card p-8 rounded-xl space-y-4 max-w-lg">
                     <div>
                         <label for="display_name" class="block text-sm font-medium text-gray-300 mb-1">Görünen İsim</label>
@@ -194,7 +260,7 @@
             </div>
 
             <div id="settingsContent" class="content-tab hidden">
-                <h1 class="text-4xl font-extrabold mb-6 text-accent-purple">Hesap Ayarları</h1>
+                <h1 class="text-4xl font-extrabold mb-6 text-accent-purple border-b border-purple-500/30 pb-3">Hesap Ayarları</h1>
                 <div class="dashboard-card p-8 rounded-xl space-y-6 max-w-lg">
                     <div class="border-b border-gray-700 pb-4">
                         <h2 class="text-xl font-semibold mb-2">Şifre Değiştirme</h2>
@@ -203,12 +269,21 @@
                         </button>
                         <p class="text-gray-400 text-sm mt-2">Şifre sıfırlama e-postası göndermek için buraya tıklayın.</p>
                     </div>
+                     <div class="border-b border-gray-700 pb-4">
+                        <h2 class="text-xl font-semibold mb-2">Tema ve Kişiselleştirme</h2>
+                        <p class="text-gray-400 text-sm mb-3">Panelinizin görünümünü kişiselleştirin.</p>
+                        <div class="flex space-x-3">
+                            <button id="setThemePurple" class="w-10 h-10 rounded-full bg-purple-600 border-2 border-white/50" title="Varsayılan Mor Tema"></button>
+                             <button id="setThemeBlue" class="w-10 h-10 rounded-full bg-blue-600 border-2 border-transparent hover:border-white/50" title="Mavi Tema"></button>
+                             <button id="setThemeRed" class="w-10 h-10 rounded-full bg-red-600 border-2 border-transparent hover:border-white/50" title="Kırmızı Tema"></button>
+                        </div>
+                    </div>
                     <div class="pt-4">
                         <h2 class="text-xl font-semibold mb-2 text-red-400">Hesabı Sil</h2>
                         <button class="bg-red-600 hover:bg-red-700 py-2 px-4 rounded-lg font-semibold text-sm text-white">
                             <i class="fas fa-trash-alt mr-2"></i> Hesabımı Sil
                         </button>
-                        <p class="text-gray-400 text-sm mt-2">Bu işlem geri alınamaz. Lütfen dikkatli olun.</p>
+                        <p class="text-red-400 text-sm mt-2 font-medium">Bu işlem geri alınamaz. Lütfen dikkatli olun.</p>
                     </div>
                 </div>
             </div>
@@ -218,7 +293,7 @@
     
     <div id="linkModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
         <div class="dashboard-card p-8 rounded-xl w-full max-w-md transform transition-transform duration-300 scale-95">
-            <h2 class="text-2xl font-bold mb-4">Yeni Bağlantı Oluştur</h2>
+            <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Yeni Bağlantı Oluştur</h2>
             <form id="linkForm" class="space-y-4">
                 <div>
                     <label for="link_name" class="block text-sm font-medium text-gray-300 mb-1">Bağlantı Adı (Opsiyonel)</label>
@@ -230,9 +305,12 @@
                 </div>
                 <div>
                     <label for="short_code" class="block text-sm font-medium text-gray-300 mb-1">Özel Kod (Opsiyonel)</label>
-                    <input type="text" id="short_code" name="short_code" class="form-input w-full p-3 rounded-lg" placeholder="Kısa kodunuz (örn: sitem)">
+                    <div class="flex items-center">
+                         <span class="text-gray-400 text-sm mr-2 select-none">baki.s2/</span>
+                         <input type="text" id="short_code" name="short_code" class="form-input flex-1 p-3 rounded-lg" placeholder="kisa-kodunuz">
+                    </div>
                 </div>
-                <p id="linkStatus" class="text-sm text-center pt-2 text-yellow-400"></p>
+                <p id="linkStatus" class="text-sm text-center pt-2 text-yellow-400 font-medium"></p>
                 <div class="flex justify-end space-x-3 mt-4">
                     <button type="button" onclick="closeLinkModal()" class="py-2 px-4 rounded-lg text-gray-400 hover:bg-gray-700">İptal</button>
                     <button type="submit" id="linkSubmitBtn" class="btn-primary py-2 px-4 rounded-lg font-bold text-white">Kaydet</button>
@@ -247,10 +325,11 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase ve Canvas Ortam Değişkenleri (Önce Canvas'ı, sonra kullanıcı yapılandırmasını kullan)
+        // --- Ortam Değişkenleri (Canvas/Güvenlik) ---
+        // Canvas tarafından sağlanan token ve config'i kullanmak en güvenli yöntemdir.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyBfc0F8o5aVmwTw-gyLRZVI2OMUljFi6Ao",
@@ -285,19 +364,40 @@
                 default: return base + 'bg-green-500/20 text-green-300'; // Üye
             }
         }
-
+        
         // Kullanıcının özel link koleksiyonunun yolu
         const getLinksCollectionRef = (userId) => {
-             // Özel koleksiyon yolu: /artifacts/{appId}/users/{userId}/links
             return collection(db, `artifacts/${appId}/users/${userId}/links`);
         };
+        
+        // --- Tema Yönetimi ---
+        const themeColors = {
+            purple: { purple: '#6c5ce7', accent: '#9c84ff' },
+            blue: { purple: '#3498db', accent: '#5dade2' },
+            red: { purple: '#e74c3c', accent: '#e87265' }
+        };
 
-        // --- Navbar Güncelleme ---
+        function applyTheme(colorKey) {
+            const colors = themeColors[colorKey];
+            if (colors) {
+                document.documentElement.style.setProperty('--purple', colors.purple);
+                document.documentElement.style.setProperty('--accent-purple', colors.accent);
+                localStorage.setItem('userTheme', colorKey);
+            }
+        }
+        
+        // Kullanıcının seçtiği temayı yükle
+        const savedTheme = localStorage.getItem('userTheme') || 'purple';
+        applyTheme(savedTheme);
+
+
+        // --- Navbar ve Dashboard Güncelleme ---
         async function updateHeaderUI(user) {
             const loggedInNav = document.getElementById('loggedInNav');
             const loggedOutNav = document.getElementById('loggedOutNav');
             
-            if (user && !user.isAnonymous) {
+            // Yalnızca giriş yapan (anonim olmayan) kullanıcılara paneli göster
+            if (user && user.email) { 
                 loggedInNav.classList.remove('hidden');
                 loggedOutNav.classList.add('hidden');
 
@@ -308,6 +408,8 @@
                 const profileEmailEl = document.getElementById('profile_email');
                 const displayNameInputEl = document.getElementById('display_name');
                 const accountTypeEl = document.getElementById('account_type');
+                const detailUserRoleEl = document.getElementById('detail_user_role');
+                const detailUserEmailEl = document.getElementById('detail_user_email');
                 
                 let displayName = user.email ? user.email.split('@')[0] : 'Kullanıcı';
                 let userRole = 'Üye'; 
@@ -336,6 +438,8 @@
                 if (profileEmailEl) profileEmailEl.value = user.email || 'N/A';
                 if (displayNameInputEl) displayNameInputEl.value = displayName;
                 if (accountTypeEl) accountTypeEl.textContent = userRole;
+                if (detailUserRoleEl) detailUserRoleEl.textContent = userRole;
+                if (detailUserEmailEl) detailUserEmailEl.textContent = user.email || 'N/A';
 
             } else {
                 // Logged Out State
@@ -352,28 +456,30 @@
             });
         }
 
-        // Link Listesi render fonksiyonu
+        // Link Listesi render fonksiyonu (Daha profesyonel kart görünümü)
         function renderLink(link, linkId) {
             const urlDomain = new URL(link.targetUrl).hostname;
             const shortUrl = `${window.location.origin}/${link.shortCode}`;
             
             return `
-                <div class="dashboard-card p-4 rounded-xl flex items-center justify-between shadow-xl transition hover:shadow-purple-500/30">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-lg font-semibold truncate text-accent-purple">${link.name || urlDomain}</p>
+                <div class="dashboard-card link-card p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-xl transition hover:shadow-purple-500/30">
+                    <div class="flex-1 min-w-0 mb-3 sm:mb-0">
+                        <p class="text-xl font-semibold truncate text-accent-purple">${link.name || urlDomain}</p>
                         <a href="${shortUrl}" target="_blank" class="text-sm text-gray-400 hover:text-purple-400 truncate block">${shortUrl}</a>
                         <p class="text-xs text-gray-500 truncate mt-1">Hedef: ${link.targetUrl}</p>
                     </div>
-                    <div class="flex items-center space-x-4 ml-4">
+                    <div class="flex items-center space-x-4 ml-0 sm:ml-4">
                         <div class="text-center">
-                            <i class="fas fa-eye text-purple-400"></i>
-                            <p class="text-lg font-bold">${link.views || 0}</p>
+                            <i class="fas fa-chart-bar text-purple-400"></i>
+                            <p class="text-lg font-bold">${(link.views || 0).toLocaleString('tr-TR')}</p>
                             <p class="text-xs text-gray-500">Görüntüleme</p>
                         </div>
                         <button onclick="copyToClipboard('${shortUrl}')" class="text-gray-400 hover:text-green-400 p-2 rounded-full transition duration-200" title="Kopyala">
                             <i class="fas fa-copy"></i>
                         </button>
-                        <!-- Düzenleme ve Silme butonları burada eklenebilir -->
+                         <button class="text-gray-400 hover:text-red-400 p-2 rounded-full transition duration-200" title="Sil">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
             `;
@@ -386,16 +492,22 @@
              tempInput.select();
              document.execCommand('copy');
              document.body.removeChild(tempInput);
-             // Basit bir bildirim mekanizması kullanın
-             const statusEl = document.getElementById('profileStatus');
-             if(statusEl) {
-                 statusEl.textContent = 'Bağlantı panoya kopyalandı!';
-                 statusEl.classList.remove('text-red-400');
-                 statusEl.classList.add('text-green-400');
-                 setTimeout(() => statusEl.textContent = '', 3000);
-             }
+             showNotification('Bağlantı panoya kopyalandı!', 'success');
         }
-        window.copyToClipboard = copyToClipboard; // HTML'den erişim için
+        window.copyToClipboard = copyToClipboard; 
+        
+        function showNotification(message, type) {
+            const statusEl = document.getElementById('profileStatus') || document.getElementById('linkStatus');
+            if(statusEl) {
+                 statusEl.textContent = message;
+                 statusEl.classList.remove('text-red-400', 'text-yellow-400', 'text-green-400');
+                 if(type === 'success') statusEl.classList.add('text-green-400');
+                 else if(type === 'error') statusEl.classList.add('text-red-400');
+                 else statusEl.classList.add('text-yellow-400');
+                 setTimeout(() => statusEl.textContent = '', 4000);
+            }
+        }
+
 
         // --- Link Yönetimi İşlemleri ---
         const loadUserLinks = (userId) => {
@@ -412,7 +524,7 @@
                 if (querySnapshot.empty) {
                     htmlContent = `
                         <div class="dashboard-card p-6 rounded-xl text-center text-gray-400 border-dashed border-2 border-gray-700">
-                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <i class="fas fa-inbox fa-3x mb-3 text-purple-500"></i>
                             <p class="text-lg font-semibold">Henüz bir bağlantınız yok.</p>
                             <p class="text-sm mt-1">Başlamak için "Yeni Bağlantı Oluştur" butonuna tıklayın.</p>
                         </div>
@@ -432,41 +544,76 @@
                 document.getElementById('total_views').textContent = totalViews.toLocaleString('tr-TR');
                 document.getElementById('active_links_count').textContent = activeLinksCount.toLocaleString('tr-TR');
                 
+                // Demo Grafik Verisi (Gelişmiş panel için)
+                initializeChart(totalViews, activeLinksCount); 
+
             }, (error) => {
                  console.error("Linkleri dinlerken hata oluştu: ", error);
-                 linksContainer.innerHTML = `<div class="p-4 bg-red-800/30 rounded-lg text-red-300">Bağlantılar yüklenemedi. Yetkilendirme hatası olabilir.</div>`;
+                 linksContainer.innerHTML = `<div class="p-4 bg-red-800/30 rounded-lg text-red-300">Bağlantılar yüklenemedi.</div>`;
             });
         };
+        
+        // --- Chart.js İle Grafik Başlatma (Demo amaçlı sabit veri) ---
+        let viewsChartInstance = null;
+        function initializeChart(totalViews, activeLinksCount) {
+             const ctx = document.getElementById('viewsChart');
+             if (!ctx) return;
+             
+             // Eğer grafik zaten varsa, yok et
+             if (viewsChartInstance) {
+                 viewsChartInstance.destroy();
+             }
+
+             // Demo Veri
+             const labels = ['Paz', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+             const data = labels.map((_, i) => Math.floor(Math.random() * (totalViews / 5)) + 10);
+             
+             viewsChartInstance = new Chart(ctx, {
+                 type: 'line',
+                 data: {
+                     labels: labels,
+                     datasets: [{
+                         label: 'Görüntülenme Sayısı',
+                         data: data,
+                         borderColor: 'rgba(156, 132, 255, 1)', // var(--accent-purple)
+                         backgroundColor: 'rgba(156, 132, 255, 0.2)',
+                         fill: true,
+                         tension: 0.4
+                     }]
+                 },
+                 options: {
+                     responsive: true,
+                     maintainAspectRatio: false,
+                     plugins: {
+                         legend: { display: false },
+                         tooltip: { mode: 'index', intersect: false }
+                     },
+                     scales: {
+                         x: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white' } },
+                         y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'white' } }
+                     }
+                 }
+             });
+        }
 
         const handleLinkSubmission = async (e) => {
             e.preventDefault();
             const user = auth.currentUser;
-            if (!user) return;
+            if (!user) { showNotification('Oturumunuz sona ermiş, lütfen tekrar giriş yapın.', 'error'); return; }
             
             const linkForm = e.target;
             const linkName = linkForm.link_name.value.trim();
             const linkUrl = linkForm.link_url.value.trim();
-            const shortCode = linkForm.short_code.value.trim() || Math.random().toString(36).substring(2, 8); // Kısa kod yoksa rastgele oluştur
+            const shortCode = linkForm.short_code.value.trim() || Math.random().toString(36).substring(2, 8); 
             const submitBtn = document.getElementById('linkSubmitBtn');
-            const statusEl = document.getElementById('linkStatus');
 
             submitBtn.disabled = true;
-            statusEl.textContent = 'Bağlantı oluşturuluyor...';
-            statusEl.classList.remove('text-red-400', 'text-green-400');
-            statusEl.classList.add('text-yellow-400');
+            submitBtn.textContent = 'Kaydediliyor...';
+            showNotification('Bağlantı oluşturuluyor...', 'loading');
             
             try {
-                // Linkler, kullanıcının özel koleksiyonuna eklenir.
                 const linksCollectionRef = getLinksCollectionRef(user.uid);
-                
-                // Firestore'da shortCode'a göre otomatik ID kullanmayacağız, kısa kodu doküman ID'si yapabiliriz.
-                // Ancak bu, link çakışmalarını kontrol etmeyi zorlaştırır. Standart addDoc kullanalım ve shortCode'u alan olarak saklayalım.
-                // Ancak çakışma kontrolü için shortCode'un global bir 'public_links' koleksiyonunda benzersiz olması gerekir.
-                // Basitlik için sadece kullanıcının koleksiyonuna ekleyip kısa kodu rastgele bırakalım veya alan olarak alalım (Gelişmiş kontrol için 'public' koleksiyonuna da yazmak gerekir).
-                
-                // Doküman ID'sini kullanmak yerine, kolaylık için shortCode'u doküman ID'si yapıyoruz.
-                // NOT: Gerçek bir kısaltıcıda, bu kodun *global olarak* benzersiz olması gerekir.
-                const newLinkRef = doc(linksCollectionRef, shortCode);
+                const newLinkRef = doc(linksCollectionRef, shortCode); // shortCode'u ID olarak kullanıyoruz.
 
                 await setDoc(newLinkRef, {
                     shortCode: shortCode,
@@ -477,24 +624,54 @@
                     createdAt: serverTimestamp(),
                 });
 
-                statusEl.textContent = '✅ Bağlantı başarıyla oluşturuldu!';
-                statusEl.classList.remove('text-yellow-400');
-                statusEl.classList.add('text-green-400');
+                showNotification('✅ Bağlantı başarıyla oluşturuldu!', 'success');
                 linkForm.reset();
-                setTimeout(() => {
-                    closeLinkModal();
-                    statusEl.textContent = '';
-                }, 1500);
+                setTimeout(() => closeLinkModal(), 1500);
 
             } catch (error) {
                 console.error("Link oluşturulurken hata:", error);
-                statusEl.textContent = `Hata: Link oluşturulamadı. (Hata Kodu: ${error.code || 'Bilinmiyor'})`;
-                statusEl.classList.remove('text-yellow-400', 'text-green-400');
-                statusEl.classList.add('text-red-400');
+                showNotification(`Hata: Link oluşturulamadı. Kod zaten kullanılmış olabilir.`, 'error');
             } finally {
                 submitBtn.disabled = false;
+                submitBtn.textContent = 'Kaydet';
             }
         };
+
+        // --- AUTH Mantığı (KRİTİK GÜVENLİK KISITLAMASI) ---
+        async function setupAuthAndData() {
+            if (initialAuthToken) {
+                try {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Canvas token ile oturum açıldı.");
+                } catch (error) {
+                    console.error("Canvas token ile oturum açma başarısız:", error);
+                }
+            } 
+            // Başarısız olsa bile, onAuthStateChanged ile kontrolü sağlayacağız.
+        }
+
+        setupAuthAndData().then(() => {
+             onAuthStateChanged(auth, (user) => {
+                // KRİTİK: Kullanıcı Paneli Koruması - SADECE GİRİŞ YAPAN KULLANICILAR GİREBİLSİN
+                if (!user || !user.email) { // Anonim veya oturum açmamış ise
+                    // Hızlıca giriş sayfasına yönlendir.
+                    window.location.href = 'girisyap.html'; 
+                    return;
+                }
+                
+                // Yetkili kullanıcı
+                updateHeaderUI(user);
+
+                // Oturum açan yetkili kullanıcı için link dinlemeyi başlat
+                let unsubscribeLinks = null; // onSnapshot iptal fonksiyonu
+                if (user && user.email) {
+                    if (unsubscribeLinks) {
+                        unsubscribeLinks();
+                    }
+                    unsubscribeLinks = loadUserLinks(user.uid);
+                }
+            });
+        });
 
         // --- Navigasyon ve Olay Dinleyicileri ---
         const navItems = document.querySelectorAll('.sidebar-nav-item');
@@ -502,11 +679,8 @@
         const quickCreateLinkBtn = document.getElementById('quickCreateLinkBtn');
         const openNewLinkModalBtn = document.getElementById('openNewLinkModalBtn');
         const profileForm = document.getElementById('profileForm');
-        const profileStatusEl = document.getElementById('profileStatus');
         const linkModal = document.getElementById('linkModal');
         const linkForm = document.getElementById('linkForm');
-
-        let unsubscribeLinks = null; // onSnapshot iptal fonksiyonu
 
         const switchTab = (targetContentId) => {
             contentTabs.forEach(tab => tab.classList.add('hidden'));
@@ -521,49 +695,6 @@
             });
         };
         
-        // --- AUTH Mantığı ---
-        async function setupAuthAndData() {
-            // İlk olarak Canvas token ile oturum açmayı dene
-            if (initialAuthToken) {
-                try {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Canvas token ile oturum açıldı.");
-                } catch (error) {
-                    console.error("Canvas token ile oturum açma başarısız, anonim olarak deneniyor:", error);
-                    await signInAnonymously(auth); // Hata durumunda anonim oturum
-                }
-            } else {
-                 await signInAnonymously(auth); // Token yoksa anonim oturum
-            }
-        }
-
-        setupAuthAndData().then(() => {
-             onAuthStateChanged(auth, (user) => {
-                updateHeaderUI(user);
-
-                // KRİTİK: Kullanıcı Paneli Koruması
-                if (!user || user.isAnonymous) {
-                    // Kullanıcı Giriş yapmamışsa veya anonimse yönlendir
-                    // NOT: signInAnonymously çağrıldığı için bu kısma gelmeyecek,
-                    // ancak gerçek bir uygulamada kullanıcı anonimse yetkili sayfaya giremez.
-                    // Burada sadece email/şifre ile girenleri yetkili kabul ediyoruz.
-                    if (!user.email) {
-                        window.location.href = 'girisyap.html'; 
-                        return;
-                    }
-                }
-
-                // Oturum açan yetkili kullanıcı için link dinlemeyi başlat
-                if (user && user.email) {
-                    // Önceki dinleyiciyi iptal et
-                    if (unsubscribeLinks) {
-                        unsubscribeLinks();
-                    }
-                    unsubscribeLinks = loadUserLinks(user.uid);
-                }
-            });
-        });
-
         // Event Listeners
         document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout);
         document.getElementById('profileMenuButton')?.addEventListener('click', (e) => {
@@ -582,6 +713,12 @@
         navItems.forEach(item => {
             item.addEventListener('click', () => switchTab(item.getAttribute('data-content')));
         });
+        
+        // Tema değiştirme butonları
+        document.getElementById('setThemePurple')?.addEventListener('click', () => applyTheme('purple'));
+        document.getElementById('setThemeBlue')?.addEventListener('click', () => applyTheme('blue'));
+        document.getElementById('setThemeRed')?.addEventListener('click', () => applyTheme('red'));
+
         
         // Modal Aç/Kapat
         window.openLinkModal = function() {
@@ -612,14 +749,12 @@
         profileForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const user = auth.currentUser;
-            if (!user) return;
+            if (!user) { showNotification('Oturumunuz sona ermiş, lütfen tekrar giriş yapın.', 'error'); return; }
 
             const displayName = document.getElementById('display_name').value.trim();
             const avatarUrl = document.getElementById('avatar_url').value.trim();
-
-            profileStatusEl.textContent = 'Kaydediliyor...';
-            profileStatusEl.classList.remove('text-red-400', 'text-green-400');
-            profileStatusEl.classList.add('text-yellow-400');
+            
+            showNotification('Kaydediliyor...', 'loading');
             
             try {
                 const userDocRef = doc(db, "users", user.uid);
@@ -629,17 +764,12 @@
                     updatedAt: serverTimestamp()
                 }, { merge: true }); 
 
-                profileStatusEl.textContent = '✅ Profil başarıyla güncellendi!';
-                profileStatusEl.classList.remove('text-yellow-400');
-                profileStatusEl.classList.add('text-green-400');
+                showNotification('✅ Profil başarıyla güncellendi!', 'success');
                 updateHeaderUI(user); 
-                setTimeout(() => profileStatusEl.textContent = '', 3000);
 
             } catch (error) {
                 console.error("Profil kaydedilirken hata:", error);
-                profileStatusEl.textContent = `Hata: ${error.message}`;
-                profileStatusEl.classList.remove('text-yellow-400', 'text-green-400');
-                profileStatusEl.classList.add('text-red-400');
+                showNotification(`Hata: ${error.message}`, 'error');
             }
         });
 
