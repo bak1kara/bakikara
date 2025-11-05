@@ -3,1146 +3,1129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tam Kapsamlı SMM Panel | Gemini Panel</title>
+    <title>SMM Panel Yönetimi | Firebase Bağlantılı</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
+
     <style>
-        /* TEMA RENKLERİ VE GENEL STİL */
+        /* TEMA VE GENEL STİL (Koyu Tema) */
         :root {
-            --primary-color: #3b82f6; /* Mavi Vurgu */
+            --primary-color: #3b82f6;   /* Mavi Vurgu */
             --primary-light: #60a5fa;
-            --bg-body: #f3f4f6;       /* Açık Gri Arka Plan */
-            --bg-card: #ffffff;       /* Kart Arka Planı */
-            --text-dark: #1f2937;
-            --text-muted: #6b7280;
+            --bg-body: #1a202c;         /* Çok Koyu Gri/Siyah */
+            --bg-card: #2d3748;         /* Koyu Kart Arka Planı */
+            --bg-sidebar: #1f2937;      /* Sidebar Arka Planı */
+            --text-light: #e2e8f0;      /* Açık Gri Metin */
+            --border-color: #4a5568;    /* Koyu Kenarlık */
             --sidebar-width: 280px;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
-        }
-
-        /* Navigasyon Aktifliği için özel stil */
-        .nav-active {
-            background-color: var(--primary-color);
-            color: var(--bg-card);
-            border-radius: 0.5rem;
-        }
-        
-        /* Mobil Sidebar Görünüm/Gizleme */
-        #sidebar {
-            /* Varsayılan olarak mobil cihazlarda gizli (ekran dışına kaydırılmış) */
-            transform: translateX(-100%);
-            transition: transform 0.3s ease-in-out;
-            z-index: 50; /* Diğer içeriğin üstünde kalması için */
-        }
-        
-        /* Desktop/Tablet (lg breakpoint) için görünür hale getir */
-        @media (min-width: 1024px) {
-            #sidebar {
-                transform: translateX(0);
-                position: fixed;
-                height: 100%;
-            }
-            #mainContent {
-                margin-left: var(--sidebar-width);
-            }
-        }
-        
-        /* Mobil menü açıldığında ana içeriğin üzerine koymak için */
-        .sidebar-open {
-            transform: translateX(0) !important;
-        }
-
-        .page-center-layout {
+            color: var(--text-light);
             min-height: 100vh;
+        }
+
+        /* Navigasyon Aktifliği */
+        .nav-item {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .nav-item.active {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: var(--primary-color);
+            transform: scale(1.02);
+        }
+        .nav-item:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--primary-color);
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Buton ve Input Animasyonları */
+        .btn-primary {
+            background-image: linear-gradient(to right, #3b82f6, #60a5fa);
+            box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.6);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px -5px rgba(59, 130, 246, 0.8);
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5) !important;
+            transition: all 0.2s;
+        }
+        .auth-container {
             display: flex;
             justify-content: center;
             align-items: center;
+            min-height: 100vh;
             background-color: var(--bg-body);
+        }
+
+        /* Kart Animasyonları */
+        .card-animate {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-animate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
         }
     </style>
 </head>
 <body>
-    
-    <!-- Ana Uygulama Konteyneri -->
-    <div id="appContainer" class="flex h-screen overflow-hidden">
-        
-        <!-- Sidebar (Oturum Açıldığında Gösterilir) -->
-        <div id="sidebar" 
-             class="w-72 bg-gray-800 text-white shadow-xl 
-                    fixed inset-y-0 left-0 p-6 
-                    lg:relative lg:translate-x-0 transition-transform 
-                    flex flex-col transform -translate-x-full"> 
-            
-            <div class="flex-shrink-0 mb-8">
-                <h1 class="text-3xl font-extrabold text-white tracking-wider">Gemini Panel</h1>
+
+    <!-- MODAL (Hata ve Bilgi Mesajları İçin) -->
+    <div id="modalContainer" class="hidden fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-75 flex items-center justify-center transition-opacity duration-300">
+        <div class="bg-gray-800 rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all duration-300 scale-100 border border-gray-700">
+            <div class="flex items-center space-x-3 mb-4">
+                <i id="modalIcon" class="text-3xl"></i>
+                <h3 id="modalTitle" class="text-xl font-bold text-white"></h3>
             </div>
-            
-            <!-- Navigasyon Menüsü -->
-            <nav class="flex-grow space-y-2">
-                <a href="#" onclick="handleNavigation('dashboard')" id="nav-dashboard"
-                   class="flex items-center p-3 text-lg font-medium text-gray-300 hover:bg-gray-700 rounded-lg transition duration-200">
-                    <i class="fas fa-home w-6"></i>
-                    <span class="ml-3">Ana Sayfa</span>
-                </a>
-                <a href="#" onclick="handleNavigation('newOrder')" id="nav-newOrder"
-                   class="flex items-center p-3 text-lg font-medium text-gray-300 hover:bg-gray-700 rounded-lg transition duration-200">
-                    <i class="fas fa-cart-plus w-6"></i>
-                    <span class="ml-3">Yeni Sipariş</span>
-                </a>
-                <a href="#" onclick="handleNavigation('orders')" id="nav-orders"
-                   class="flex items-center p-3 text-lg font-medium text-gray-300 hover:bg-gray-700 rounded-lg transition duration-200">
-                    <i class="fas fa-history w-6"></i>
-                    <span class="ml-3">Sipariş Geçmişi</span>
-                </a>
-                <a href="#" onclick="handleNavigation('profile')" id="nav-profile"
-                   class="flex items-center p-3 text-lg font-medium text-gray-300 hover:bg-gray-700 rounded-lg transition duration-200">
-                    <i class="fas fa-user-circle w-6"></i>
-                    <span class="ml-3">Profil & Bakiye</span>
-                </a>
-            </nav>
-            
-            <!-- Çıkış Butonu ve Kullanıcı Bilgisi -->
-            <div class="mt-auto pt-4 border-t border-gray-700">
-                <p class="text-sm font-medium text-gray-400 mb-2">
-                    <i class="fas fa-id-badge mr-2"></i>Kullanıcı ID: <span id="currentUserId">Yükleniyor...</span>
-                </p>
-                <button onclick="handleLogout()"
-                        class="w-full flex items-center justify-center p-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold transition duration-200 shadow-md">
-                    <i class="fas fa-sign-out-alt mr-2"></i>
-                    Çıkış Yap
-                </button>
+            <p id="modalMessage" class="text-gray-400 mb-6"></p>
+            <div class="flex justify-end">
+                <button id="modalCloseButton" class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150 btn-primary">Kapat</button>
             </div>
         </div>
-        
-        <!-- Ana İçerik Alanı -->
-        <main id="mainContent" 
-              class="flex-1 overflow-y-auto w-full transition-all duration-300">
-            
-            <!-- Mobil Menü Butonu (Sadece Mobil/Tablet) -->
-            <button id="mobileMenuButton" 
-                    class="lg:hidden fixed top-4 left-4 p-3 bg-blue-600 text-white rounded-full shadow-lg z-50">
-                <i class="fas fa-bars"></i>
-            </button>
+    </div>
 
-            <!-- Tüm Sayfaları Barındıran Konteyner (Sayfa Geçişi burada yönetilecek) -->
-            <div id="pageContainer">
-                
-                <!-- Oturum Açma Sayfası -->
-                <section data-page="login" id="loginPage" class="page-center-layout hidden">
-                    <div class="w-full max-w-md bg-white p-8 md:p-10 rounded-xl shadow-2xl transform hover:shadow-3xl transition duration-500">
-                        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Giriş Yap</h2>
-                        <form id="authForm" onsubmit="event.preventDefault(); handleAuthSubmit()">
-                            <div class="mb-4">
-                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
-                                <input type="email" id="email" required
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div class="mb-6">
-                                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
-                                <input type="password" id="password" required
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <button type="submit" 
-                                    class="w-full p-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300 shadow-lg">
-                                Giriş
-                            </button>
-                            <button type="button" onclick="handleGoogleSignInSimulation()"
-                                    class="w-full mt-3 p-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition duration-300 shadow-lg flex items-center justify-center">
-                                <i class="fab fa-google mr-2"></i> Google ile Giriş Yap (Simülasyon)
-                            </button>
-                        </form>
-                        <p class="mt-6 text-center text-gray-600">
-                            Hesabın yok mu? 
-                            <a href="#" onclick="handleNavigation('register')" class="text-blue-600 hover:text-blue-800 font-medium">Kayıt Ol</a>
-                        </p>
-                        <div id="authMessage" class="mt-4 text-center font-medium"></div>
+    <!-- ANA UYGULAMA YAPISI (Giriş yaptıktan sonra görünür) -->
+    <div id="appContainer" class="hidden flex">
+
+        <!-- 1. Kenar Çubuğu (Sidebar) -->
+        <nav id="sidebar" class="hidden md:block fixed h-full w-[var(--sidebar-width)] bg-[var(--bg-sidebar)] shadow-2xl flex flex-col z-20 border-r border-[var(--border-color)]">
+            <div class="p-6 border-b border-[var(--border-color)] flex items-center space-x-3">
+                <i class="fas fa-rocket text-3xl text-[var(--primary-color)]"></i>
+                <h1 class="text-2xl font-extrabold text-white">Gemini Panel</h1>
+            </div>
+
+            <!-- Navigasyon Menüsü -->
+            <div class="p-4 flex-grow overflow-y-auto">
+                <!-- Navigasyon butonlarında artık handleNavigation global olarak tanımlı -->
+                <a id="nav-dashboard" class="nav-item flex items-center space-x-3 p-3 my-2 font-medium rounded-xl transition duration-200 cursor-pointer active" data-page="dashboard">
+                    <i class="fas fa-home w-5"></i><span>Panelim</span>
+                </a>
+                <a id="nav-newOrder" class="nav-item flex items-center space-x-3 p-3 my-2 font-medium rounded-xl transition duration-200 cursor-pointer" data-page="newOrder">
+                    <i class="fas fa-plus-circle w-5"></i><span>Yeni Sipariş</span>
+                </a>
+                <a id="nav-orders" class="nav-item flex items-center space-x-3 p-3 my-2 font-medium rounded-xl transition duration-200 cursor-pointer" data-page="orders">
+                    <i class="fas fa-list-alt w-5"></i><span>Siparişlerim</span>
+                </a>
+                <a id="nav-addFunds" class="nav-item flex items-center space-x-3 p-3 my-2 font-medium rounded-xl transition duration-200 cursor-pointer" data-page="addFunds">
+                    <i class="fas fa-wallet w-5"></i><span>Bakiye Yükle</span>
+                </a>
+                <a id="nav-profile" class="nav-item flex items-center space-x-3 p-3 my-2 font-medium rounded-xl transition duration-200 cursor-pointer" data-page="profile">
+                    <i class="fas fa-user-circle w-5"></i><span>Profilim</span>
+                </a>
+            </div>
+
+            <!-- Kullanıcı Bilgisi ve Çıkış -->
+            <div class="p-4 border-t border-[var(--border-color)]">
+                <div class="flex items-center space-x-3 p-3 bg-[var(--bg-card)] rounded-xl shadow-inner">
+                    <div class="w-10 h-10 bg-[var(--primary-color)] rounded-full flex items-center justify-center text-white text-lg font-bold shadow-md">
+                        <span id="userInitial"></span>
                     </div>
-                </section>
-
-                <!-- Kayıt Olma Sayfası -->
-                <section data-page="register" id="registerPage" class="page-center-layout hidden">
-                    <div class="w-full max-w-md bg-white p-8 md:p-10 rounded-xl shadow-2xl transform hover:shadow-3xl transition duration-500">
-                        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Kayıt Ol</h2>
-                        <form id="registerForm" onsubmit="event.preventDefault(); handleAuthSubmit()">
-                            <div class="mb-4">
-                                <label for="displayName" class="block text-sm font-medium text-gray-700 mb-1">Adınız/Kullanıcı Adınız</label>
-                                <input type="text" id="displayName" required
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div class="mb-4">
-                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
-                                <input type="email" id="email" required
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div class="mb-6">
-                                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
-                                <input type="password" id="password" required
-                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <button type="submit" 
-                                    class="w-full p-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-300 shadow-lg">
-                                Hesap Oluştur
-                            </button>
-                        </form>
-                        <p class="mt-6 text-center text-gray-600">
-                            Zaten hesabın var mı? 
-                            <a href="#" onclick="handleNavigation('login')" class="text-green-600 hover:text-green-800 font-medium">Giriş Yap</a>
-                        </p>
-                        <div id="authMessage" class="mt-4 text-center font-medium"></div>
+                    <div class="flex-grow">
+                        <div id="userName" class="text-sm font-semibold text-white truncate"></div>
+                        <div id="userBalance" class="text-xs text-gray-400 font-medium">Bakiye: 0.00 TL</div>
                     </div>
-                </section>
-
-                <!-- Dashboard Sayfası (Oturum Açıldıktan Sonra) -->
-                <section data-page="dashboard" id="dashboardPage" class="p-8 hidden">
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-6 border-b pb-3">Kontrol Paneli</h1>
-                    
-                    <!-- İstatistik Kartları -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <!-- Bakiye Kartı -->
-                        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-500">Güncel Bakiye</p>
-                                    <p id="dashboardBalance" class="text-3xl font-bold text-gray-900 mt-1">₺0.00</p>
-                                </div>
-                                <i class="fas fa-wallet text-3xl text-blue-500 opacity-70"></i>
-                            </div>
-                        </div>
-                        <!-- Toplam Sipariş Kartı -->
-                        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-500">Toplam Sipariş</p>
-                                    <p id="dashboardTotalOrders" class="text-3xl font-bold text-gray-900 mt-1">0</p>
-                                </div>
-                                <i class="fas fa-shopping-cart text-3xl text-green-500 opacity-70"></i>
-                            </div>
-                        </div>
-                        <!-- Harcanan Tutar Kartı -->
-                        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-yellow-500">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-500">Harcanan Tutar</p>
-                                    <p id="dashboardTotalSpent" class="text-3xl font-bold text-gray-900 mt-1">₺0.00</p>
-                                </div>
-                                <i class="fas fa-money-bill-wave text-3xl text-yellow-500 opacity-70"></i>
-                            </div>
-                        </div>
-                        <!-- Bekleyen Sipariş Kartı -->
-                        <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-red-500">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-500">Bekleyen Sipariş</p>
-                                    <p id="dashboardPendingOrders" class="text-3xl font-bold text-gray-900 mt-1">0</p>
-                                </div>
-                                <i class="fas fa-hourglass-half text-3xl text-red-500 opacity-70"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Hızlı İşlemler -->
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Hızlı İşlemler</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <button onclick="handleNavigation('newOrder')"
-                                class="flex flex-col items-center justify-center p-8 bg-blue-100 text-blue-800 rounded-xl shadow-md hover:shadow-xl hover:bg-blue-200 transition duration-300">
-                            <i class="fas fa-plus-circle text-4xl mb-2"></i>
-                            <span class="text-lg font-bold">Yeni Sipariş Oluştur</span>
-                        </button>
-                        <button onclick="handleNavigation('orders')"
-                                class="flex flex-col items-center justify-center p-8 bg-green-100 text-green-800 rounded-xl shadow-md hover:shadow-xl hover:bg-green-200 transition duration-300">
-                            <i class="fas fa-list-alt text-4xl mb-2"></i>
-                            <span class="text-lg font-bold">Siparişlerimi Görüntüle</span>
-                        </button>
-                        <button onclick="handleNavigation('profile')"
-                                class="flex flex-col items-center justify-center p-8 bg-yellow-100 text-yellow-800 rounded-xl shadow-md hover:shadow-xl hover:bg-yellow-200 transition duration-300">
-                            <i class="fas fa-credit-card text-4xl mb-2"></i>
-                            <span class="text-lg font-bold">Bakiye Yükle</span>
-                        </button>
-                    </div>
-
-                    <!-- Son 5 Sipariş Tablosu (Örnek) -->
-                    <h2 class="text-2xl font-semibold text-gray-800 mt-10 mb-4">Son 5 Sipariş</h2>
-                    <div class="bg-white p-6 rounded-xl shadow-lg overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servis</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Miktar</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lastFiveOrdersBody" class="bg-white divide-y divide-gray-200">
-                                <!-- Siparişler buraya JS ile yüklenecek -->
-                                <tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Henüz siparişiniz bulunmamaktadır.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Yeni Sipariş Sayfası -->
-                <section data-page="newOrder" id="newOrderPage" class="p-8 hidden">
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-6 border-b pb-3">Yeni Sipariş Oluştur</h1>
-
-                    <div class="bg-white p-8 rounded-xl shadow-lg max-w-3xl mx-auto">
-                        <form id="newOrderForm">
-                            <!-- Platform Seçimi -->
-                            <div class="mb-6">
-                                <label for="platformSelect" class="block text-lg font-semibold text-gray-800 mb-2">1. Platform Seçin</label>
-                                <select id="platformSelect" required
-                                        class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-gray-50">
-                                    <option value="" disabled selected>Bir sosyal medya platformu seçin</option>
-                                </select>
-                            </div>
-
-                            <!-- Kategori Seçimi -->
-                            <div class="mb-6">
-                                <label for="categorySelect" class="block text-lg font-semibold text-gray-800 mb-2">2. Kategori Seçin</label>
-                                <select id="categorySelect" required disabled
-                                        class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-gray-50 disabled:bg-gray-200">
-                                    <option value="" disabled selected>Önce platform seçin</option>
-                                </select>
-                            </div>
-
-                            <!-- Servis Seçimi -->
-                            <div class="mb-6">
-                                <label for="serviceTypeSelect" class="block text-lg font-semibold text-gray-800 mb-2">3. Servis Seçin</label>
-                                <select id="serviceTypeSelect" required disabled
-                                        class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 bg-gray-50 disabled:bg-gray-200">
-                                    <option value="" disabled selected>Önce kategori seçin</option>
-                                </select>
-                            </div>
-
-                            <!-- Link Alanı -->
-                            <div class="mb-6">
-                                <label for="linkInput" class="block text-lg font-semibold text-gray-800 mb-2">4. Link (URL)</label>
-                                <input type="url" id="linkInput" required placeholder="https://instagram.com/kullanici_adi"
-                                       class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150">
-                            </div>
-
-                            <!-- Miktar Alanı -->
-                            <div class="mb-8">
-                                <label for="quantityInput" class="block text-lg font-semibold text-gray-800 mb-2">5. Miktar</label>
-                                <input type="number" id="quantityInput" required min="1" value="1000"
-                                       class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150">
-                                <p id="quantityInfo" class="text-sm text-gray-600 mt-2">Min: 500, Max: 10000</p>
-                            </div>
-
-                            <!-- Sipariş Özeti ve Buton -->
-                            <div class="bg-blue-50 p-6 rounded-xl border border-blue-200 mb-6">
-                                <h3 class="text-xl font-bold text-blue-800 mb-3">Sipariş Özeti</h3>
-                                <p class="text-lg text-gray-700">Birim Fiyat: <span id="servicePrice" class="font-bold text-blue-600">₺0.00</span> / 1000</p>
-                                <p class="text-2xl font-bold text-gray-900 mt-2">Toplam Tutar: <span id="totalCost" class="text-blue-700">₺0.00</span></p>
-                            </div>
-
-                            <button type="submit" id="submitOrderButton"
-                                    class="w-full p-4 bg-green-600 text-white font-bold text-xl rounded-lg hover:bg-green-700 transition duration-300 shadow-xl disabled:bg-gray-400" disabled>
-                                Sipariş Ver
-                            </button>
-                        </form>
-                        <div id="orderMessage" class="mt-4 text-center font-medium"></div>
-                    </div>
-                </section>
-
-                <!-- Siparişler Sayfası -->
-                <section data-page="orders" id="ordersPage" class="p-8 hidden">
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-6 border-b pb-3">Sipariş Geçmişim</h1>
-                    
-                    <div class="bg-white p-6 rounded-xl shadow-lg overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servis</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Miktar</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tutar</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ordersTableBody" class="bg-white divide-y divide-gray-200">
-                                <!-- Siparişler buraya JS ile yüklenecek -->
-                                <tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Siparişler yükleniyor...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                
-                <!-- Profil ve Bakiye Sayfası -->
-                <section data-page="profile" id="profilePage" class="p-8 hidden">
-                    <h1 class="text-4xl font-extrabold text-gray-900 mb-6 border-b pb-3">Profil ve Bakiye İşlemleri</h1>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        
-                        <!-- Profil Bilgileri Kartı -->
-                        <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-full">
-                            <h2 class="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Kullanıcı Bilgileri</h2>
-                            <p class="text-lg mb-2"><span class="font-medium text-gray-600">Ad/Kullanıcı Adı:</span> <span id="profileDisplayName" class="font-bold text-gray-900">Yükleniyor...</span></p>
-                            <p class="text-lg mb-4"><span class="font-medium text-gray-600">E-posta:</span> <span id="profileEmail" class="font-bold text-gray-900">Yükleniyor...</span></p>
-                            <p class="text-sm text-gray-500 mt-4">Kullanıcı ID: <span id="profileUserId">Yükleniyor...</span></p>
-                        </div>
-
-                        <!-- Bakiye Kartı -->
-                        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-                            <h2 class="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Bakiye Yönetimi</h2>
-                            
-                            <div class="flex items-center justify-between bg-blue-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
-                                <p class="text-xl font-medium text-gray-700">Güncel Bakiyeniz:</p>
-                                <p id="currentBalance" class="text-4xl font-extrabold text-blue-700">₺0.00</p>
-                            </div>
-
-                            <h3 class="text-xl font-semibold text-gray-800 mb-3">Bakiye Yükle (Simülasyon)</h3>
-                            <form id="addBalanceForm">
-                                <div class="mb-4">
-                                    <label for="amountInput" class="block text-md font-medium text-gray-700 mb-1">Yüklenecek Tutar (₺)</label>
-                                    <input type="number" id="amountInput" required min="1" value="50" step="0.01"
-                                           class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-                                <button type="submit" 
-                                        class="w-full p-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition duration-300 shadow-lg">
-                                    Bakiye Yükle
-                                </button>
-                            </form>
-                            <div id="balanceMessage" class="mt-4 text-center font-medium"></div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Başarılı İşlem Mesaj Modalı (Modal) -->
-                <div id="modalOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden z-[100] items-center justify-center">
-                    <div id="successModal" class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm transform scale-90 transition-transform duration-300">
-                        <div class="text-center">
-                            <i id="modalIcon" class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
-                            <h3 id="modalTitle" class="text-2xl font-bold text-gray-800 mb-3">Başarılı!</h3>
-                            <p id="modalMessage" class="text-gray-600 mb-6">İşleminiz başarıyla tamamlandı.</p>
-                            <button onclick="closeModal()" 
-                                    class="w-full p-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-                                Kapat
-                            </button>
-                        </div>
-                    </div>
+                    <!-- Çıkış Butonu ID ile tanımlandı -->
+                    <button id="logoutButton" class="p-2 text-gray-400 hover:text-red-500 transition duration-150 hover:bg-gray-700 rounded-lg" title="Çıkış Yap">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
+            </div>
+        </nav>
 
+        <!-- 2. Ana İçerik Alanı (Main Content) -->
+        <main id="mainContent" class="flex-grow p-4 md:p-8 ml-0 md:ml-[var(--sidebar-width)] transition-all duration-300">
+            <!-- Mobil Navigasyon Düğmesi -->
+            <div class="sticky top-0 z-10 bg-[var(--bg-body)] -mx-4 md:mx-0 p-4 md:p-0 flex justify-between items-center md:hidden border-b border-[var(--border-color)] mb-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-rocket text-2xl text-[var(--primary-color)]"></i>
+                    <h1 class="text-xl font-extrabold text-white">Gemini Panel</h1>
+                </div>
+                <button id="mobileMenuButton" class="p-2 text-gray-300 rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Mobil Menü İçeriği -->
+            <div id="mobileMenu" class="hidden fixed inset-0 bg-[var(--bg-sidebar)] z-40 p-6 transform transition-transform duration-300 ease-in-out md:hidden flex flex-col border-r border-[var(--border-color)]">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold text-white">Menü</h2>
+                    <button id="closeMobileMenuButton" class="p-2 text-gray-300 rounded-xl hover:bg-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="flex flex-col space-y-2">
+                    <a class="nav-item flex items-center space-x-3 p-3 font-medium rounded-xl hover:bg-gray-700 cursor-pointer mobile-nav-item" data-page="dashboard"><i class="fas fa-home w-5"></i><span>Panelim</span></a>
+                    <a class="nav-item flex items-center space-x-3 p-3 font-medium rounded-xl hover:bg-gray-700 cursor-pointer mobile-nav-item" data-page="newOrder"><i class="fas fa-plus-circle w-5"></i><span>Yeni Sipariş</span></a>
+                    <a class="nav-item flex items-center space-x-3 p-3 font-medium rounded-xl hover:bg-gray-700 cursor-pointer mobile-nav-item" data-page="orders"><i class="fas fa-list-alt w-5"></i><span>Siparişlerim</span></a>
+                    <a class="nav-item flex items-center space-x-3 p-3 font-medium rounded-xl hover:bg-gray-700 cursor-pointer mobile-nav-item" data-page="addFunds"><i class="fas fa-wallet w-5"></i><span>Bakiye Yükle</span></a>
+                    <a class="nav-item flex items-center space-x-3 p-3 font-medium rounded-xl hover:bg-gray-700 cursor-pointer mobile-nav-item" data-page="profile"><i class="fas fa-user-circle w-5"></i><span>Profilim</span></a>
+                </div>
+                <div class="mt-auto border-t border-[var(--border-color)] pt-4">
+                    <button id="mobileLogoutButton" class="w-full text-left flex items-center space-x-3 p-3 font-medium text-red-500 rounded-xl hover:bg-red-900/20 transition duration-150">
+                        <i class="fas fa-sign-out-alt w-5"></i><span>Çıkış Yap</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ana İçerik Yükleme Alanı -->
+            <div id="pageContent" class="min-h-[calc(100vh-64px)] transition-opacity duration-300">
+                <!-- Sayfalar buraya yüklenecek -->
             </div>
         </main>
     </div>
 
-    <!-- Firebase SDK'ları -->
+    <!-- 3. Kimlik Doğrulama Alanı (Default olarak gösterilir) -->
+    <div id="authPageContainer" class="auth-container">
+        <div class="w-full max-w-md p-8 m-4 bg-[var(--bg-card)] rounded-xl shadow-2xl border border-[var(--border-color)] transform transition-all duration-300 hover:shadow-blue-500/20">
+
+            <!-- Giriş Formu -->
+            <div id="loginFormContainer">
+                <h2 class="text-3xl font-bold text-center text-white mb-6">Giriş Yap</h2>
+                <form id="loginForm" onsubmit="event.preventDefault(); handleAuthSubmit('login');" class="space-y-4">
+                    <div>
+                        <label for="loginEmail" class="block text-sm font-medium text-gray-300 mb-1">E-posta</label>
+                        <input type="email" id="loginEmail" placeholder="ornek@mail.com" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150 shadow-inner">
+                    </div>
+                    <div>
+                        <label for="loginPassword" class="block text-sm font-medium text-gray-300 mb-1">Şifre</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150 shadow-inner">
+                    </div>
+                    <button type="submit" id="loginSubmitButton" class="btn-primary w-full py-3 text-white font-bold rounded-lg transition duration-200">
+                        Giriş Yap
+                    </button>
+                </form>
+                <div class="mt-6 text-center">
+                    <!-- Bu buton artık id ile JS'e bağlanacak -->
+                    <button id="switchToRegister" class="text-sm font-medium text-[var(--primary-color)] hover:text-[var(--primary-light)] transition duration-150">
+                        Hesabın yok mu? Kayıt Ol
+                    </button>
+                    <p id="loginMessage" class="mt-4 text-sm font-medium text-red-400"></p>
+                </div>
+            </div>
+
+            <!-- Kayıt Formu (Başlangıçta Gizli) -->
+            <div id="registerFormContainer" class="hidden">
+                <h2 class="text-3xl font-bold text-center text-white mb-6">Yeni Hesap Oluştur</h2>
+                <form id="registerForm" onsubmit="event.preventDefault(); handleAuthSubmit('register');" class="space-y-4">
+                    <div>
+                        <label for="registerDisplayName" class="block text-sm font-medium text-gray-300 mb-1">Adınız</label>
+                        <input type="text" id="registerDisplayName" placeholder="Adınız Soyadınız" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150 shadow-inner">
+                    </div>
+                    <div>
+                        <label for="registerEmail" class="block text-sm font-medium text-gray-300 mb-1">E-posta</label>
+                        <input type="email" id="registerEmail" placeholder="ornek@mail.com" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150 shadow-inner">
+                    </div>
+                    <div>
+                        <label for="registerPassword" class="block text-sm font-medium text-gray-300 mb-1">Şifre</label>
+                        <input type="password" id="registerPassword" placeholder="En az 6 karakter" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150 shadow-inner">
+                    </div>
+                    <button type="submit" id="registerSubmitButton" class="btn-primary w-full py-3 text-white font-bold rounded-lg transition duration-200">
+                        Kayıt Ol
+                    </button>
+                </form>
+                <div class="mt-6 text-center">
+                    <!-- Bu buton artık id ile JS'e bağlanacak -->
+                    <button id="switchToLogin" class="text-sm font-medium text-[var(--primary-color)] hover:text-[var(--primary-light)] transition duration-150">
+                        Zaten hesabın var mı? Giriş Yap
+                    </button>
+                    <p id="registerMessage" class="mt-4 text-sm font-medium text-red-400"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script type="module">
+        // =======================================================================
+        // FIREBASE İÇE AKTARMA VE BAŞLATMA
+        // =======================================================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, onSnapshot, collection, query, where, getDocs, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, addDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- GEREKLİ GLOBAL DEĞİŞKENLER ---
-        let app, db, auth, userId, isFirebaseInitialized = false;
+        // setLogLevel('Debug'); // Debug modunu açmak için yorum satırını kaldırın.
         
-        // Canvas ortamından gelen global değişkenleri güvenle kullanma
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Uygulama Durumu
-        const appState = {
-            isAuthenticated: false,
-            currentPage: 'login', // Başlangıçta giriş sayfası
-            userProfile: null,
-            servicesData: {}, // Tüm servis, kategori ve platform verilerini tutar
-            userOrders: []
+        // KULLANICININ VERDİĞİ FIREBASE CONFIG BİLGİLERİ
+        const customFirebaseConfig = {
+            apiKey: "AIzaSyDr5OUxQYMwPTNsUH3SjWUYr5ML51mQIZQ",
+            authDomain: "smm-go-50a17.firebaseapp.com",
+            projectId: "smm-go-50a17",
+            storageBucket: "smm-go-50a17.firebasestorage.app",
+            messagingSenderId: "731144225117",
+            appId: "1:731144225117:web:bcb39f04d446225beda8b4",
+            measurementId: "G-BCC5NJKLZH"
         };
-        
-        // --- FIREBASE BAŞLATMA VE AUTH İŞLEMLERİ ---
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            isFirebaseInitialized = true;
-            console.log("Firebase başarıyla başlatıldı.");
+        // Canvas ortamında sağlanan global değişkenleri kullanmak yerine,
+        // doğrudan kullanıcı tarafından sağlanan config'i kullanıyoruz.
+        const firebaseConfig = customFirebaseConfig; 
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-smm-app-id';
 
-            // Kütüphaneden gelen kullanıcı tokeni ile oturum açma veya anonim giriş
-            if (initialAuthToken) {
-                signInWithCustomToken(auth, initialAuthToken).catch(e => {
-                    console.error("Özel token ile oturum açılamadı, anonim giriş denenecek:", e);
-                    signInAnonymously(auth);
-                });
+        let app, db, auth;
+        let isFirebaseInitialized = false;
+        let appId = firebaseConfig.projectId; // Proje ID'sini app ID olarak kullanıyoruz.
+
+        if (firebaseConfig) {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                isFirebaseInitialized = true;
+            } catch (error) {
+                console.error("Firebase başlatılırken hata oluştu:", error);
+                showModal('Hata', 'Firebase bağlantısı kurulamadı. Lütfen konsolu kontrol edin.', 'fas fa-exclamation-triangle text-red-500');
+            }
+        } else {
+             console.error("Firebase konfigürasyonu bulunamadı. Uygulama çalışmayacaktır.");
+             showModal('Kritik Hata', 'Firebase yapılandırma bilgisi eksik. Uygulama başlatılamadı.', 'fas fa-exclamation-triangle text-red-500');
+        }
+
+        // =======================================================================
+        // GLOBAL DURUM YÖNETİMİ VE SABİTLER
+        // =======================================================================
+
+        const appState = {
+            currentPage: 'dashboard',
+            isAuthenticated: false,
+            userId: null,
+            displayName: 'Misafir',
+            userBalance: 0.00,
+            orders: [],
+        };
+
+        const categories = [
+            { id: 'insta', name: 'Instagram Servisleri', icon: 'fab fa-instagram text-pink-500' },
+            { id: 'tiktok', name: 'TikTok Servisleri', icon: 'fab fa-tiktok text-white' },
+            { id: 'x', name: 'X (Twitter) Servisleri', icon: 'fab fa-twitter text-blue-400' },
+            { id: 'youtube', name: 'YouTube Servisleri', icon: 'fab fa-youtube text-red-600' }
+        ];
+
+        // Servis fiyatları gerçekçi olmasa da, sistemin çalışması için gereklidir.
+        const services = {
+            insta: [
+                { id: 'follower', name: 'Takipçi - Hızlı', price: 0.015, min: 100, max: 10000, desc: 'Düşük düşüş garantili, hızlı takipçi.' },
+                { id: 'like', name: 'Beğeni - Yüksek Kalite', price: 0.005, min: 50, max: 50000, desc: 'Gerçek hesaplardan, anında gönderim.' },
+            ],
+            tiktok: [
+                { id: 'view', name: 'Görüntüleme - Premium', price: 0.0001, min: 1000, max: 1000000, desc: 'Tiktok algoritması dostu, organik görüntüleme.' },
+            ]
+        };
+
+        // =======================================================================
+        // TEMEL YARDIMCI VE UI FONKSİYONLARI
+        // =======================================================================
+
+        /**
+         * Firestore için kullanıcıya özgü koleksiyon yolu oluşturur.
+         * NOT: Kendi Firebase'inizi kullandığınızda güvenlik kurallarını buna göre ayarlamalısınız.
+         * Mevcut yapıda, kullanıcı profil bilgileri (bakiye, ad) 'user_profiles' ana koleksiyonunda tutulur.
+         * Siparişler ise Canvas güvenlik kuralları yapısına uygun tutulur.
+         * @param {string} collectionName - Koleksiyon adı (örn: 'orders').
+         * @returns {string} Tam koleksiyon yolu.
+         */
+        function getUserCollectionPath(collectionName) {
+            const userId = appState.userId || 'guest';
+            // Canvas Güvenlik Kuralları Yapısı: /artifacts/{canvasAppId}/users/{userId}/{collectionName}
+            // Kendi projenizde bu yapıyı kullanmasanız bile, uyumluluk için koruyoruz.
+            return `artifacts/${canvasAppId}/users/${userId}/${collectionName}`; 
+        }
+
+        /**
+         * Modalı gösterir.
+         */
+        function showModal(title, message, iconClass = 'fas fa-info-circle text-blue-500') {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('modalIcon').className = iconClass;
+            document.getElementById('modalContainer').classList.remove('hidden');
+        }
+        window.showModal = showModal; // Global erişim için açığa çıkar
+
+        /**
+         * Modalı gizler.
+         */
+        function hideModal() {
+            document.getElementById('modalCloseButton')?.removeEventListener('click', hideModal); // Eski dinleyiciyi kaldır
+            document.getElementById('modalContainer').classList.add('hidden');
+            document.getElementById('modalCloseButton')?.addEventListener('click', hideModal); // Yeniden ekle
+        }
+        window.hideModal = hideModal; // Global erişim için açığa çıkar
+
+        function clearAuthMessages() {
+            document.getElementById('loginMessage').textContent = '';
+            document.getElementById('registerMessage').textContent = '';
+        }
+
+        /**
+         * Giriş formunu gösterir ve kayıt formunu gizler.
+         */
+        function showLoginForm() {
+            const loginForm = document.getElementById('loginFormContainer');
+            const registerForm = document.getElementById('registerFormContainer');
+            if (loginForm && registerForm) {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                clearAuthMessages();
             } else {
-                signInAnonymously(auth);
-            }
-            
-            // Auth State Listener
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    userId = user.uid;
-                    appState.isAuthenticated = !user.isAnonymous; // Anonim değilse oturum açık say
-                    console.log("Kullanıcı durumu değişti. UID:", userId);
-
-                    // Eğer gerçek bir kullanıcıysa (anonim değilse)
-                    if (appState.isAuthenticated) {
-                         // Profil ve Servis verilerini yükle ve anlık dinlemeye başla
-                        setupRealtimeListeners();
-                        // İlk sayfayı dashboard olarak ayarla
-                        if(appState.currentPage === 'login' || appState.currentPage === 'register') {
-                            appState.currentPage = 'dashboard';
-                        }
-                    } else {
-                        // Anonim veya Token hatası varsa giriş sayfasına yönlendir
-                        appState.currentPage = 'login';
-                        appState.isAuthenticated = false; // Anonim kullanıcıyı oturum açmış gibi gösterme
-                    }
-                } else {
-                    // Kullanıcı çıkış yapmış veya oturum açmamışsa
-                    userId = null;
-                    appState.isAuthenticated = false;
-                    appState.currentPage = 'login';
-                }
-                updateUI();
-            });
-
-        } catch (error) {
-            console.error("Firebase başlatılırken hata:", error);
-            document.getElementById('authMessage').textContent = "Uygulama başlatılırken bir hata oluştu. Lütfen konsolu kontrol edin.";
-            updateUI(); // Firebase başlatılmasa bile UI'ı başlat
-        }
-
-
-        // --- FIRESTORE YOL YARDIMCI FONKSİYONLARI ---
-        const getProfileDocRef = (uid) => doc(db, `/artifacts/${appId}/users/${uid}/profile/main`);
-        const getOrdersCollectionRef = (uid) => collection(db, `/artifacts/${appId}/users/${uid}/orders`);
-        const getPublicDataRef = () => doc(db, `/artifacts/${appId}/public/data/service_data/latest`);
-
-        // --- REALTIME LİSTENER KURULUMU ---
-        function setupRealtimeListeners() {
-            if (!userId) return;
-
-            // 1. Profil ve Bakiye Dinleyicisi
-            onSnapshot(getProfileDocRef(userId), (docSnap) => {
-                if (docSnap.exists()) {
-                    appState.userProfile = docSnap.data();
-                    console.log("Profil verisi güncellendi.");
-                } else {
-                    // İlk defa giriş yapan kullanıcı için varsayılan profil oluştur
-                    console.log("Profil yok, varsayılan oluşturulacak.");
-                    initializeUserProfile(auth.currentUser);
-                }
-                updateUI();
-            }, (error) => console.error("Profil dinlenirken hata:", error));
-
-            // 2. Servis Verileri Dinleyicisi (Tüm kullanıcılar için ortak)
-            onSnapshot(getPublicDataRef(), (docSnap) => {
-                if (docSnap.exists()) {
-                    appState.servicesData = docSnap.data().data || {};
-                    console.log("Servis verileri güncellendi.");
-                    populateServiceDropdowns(); // Dropdownları doldur
-                } else {
-                    console.log("Servis verisi yok, varsayılan oluşturulacak.");
-                    initializeServiceData(); // Varsayılan servis verilerini oluştur
-                }
-                updateUI();
-            }, (error) => console.error("Servis verisi dinlenirken hata:", error));
-
-            // 3. Siparişler Dinleyicisi
-            const ordersQuery = query(getOrdersCollectionRef(userId));
-            onSnapshot(ordersQuery, (snapshot) => {
-                appState.userOrders = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                    createdAt: doc.data().createdAt ? new Date(doc.data().createdAt.seconds * 1000) : new Date()
-                })).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // En yeniyi üste koy
-                
-                console.log(`${appState.userOrders.length} sipariş güncellendi.`);
-                updateUI();
-            }, (error) => console.error("Siparişler dinlenirken hata:", error));
-        }
-
-        // --- İLK VERİ OLUŞTURMA FONKSİYONLARI ---
-        
-        // Kullanıcı profilini ilk kez oluşturur
-        async function initializeUserProfile(user) {
-            const profileRef = getProfileDocRef(user.uid);
-            await setDoc(profileRef, {
-                displayName: user.displayName || "Yeni Kullanıcı",
-                email: user.email || "Anonim Kullanıcı",
-                balance: 100.00, // Başlangıç bakiyesi
-                totalSpent: 0.00,
-                createdAt: serverTimestamp()
-            }, { merge: true }).catch(e => console.error("Profil oluşturulurken hata:", e));
-        }
-
-        // Varsayılan servis verilerini oluşturur (Public alana yazar)
-        async function initializeServiceData() {
-            const defaultData = {
-                "Instagram": {
-                    "Takipçi": {
-                        "Hızlı Takipçi": { min: 500, max: 10000, pricePerK: 15.00, desc: "Anında teslimat, garantili." },
-                        "Normal Takipçi": { min: 100, max: 50000, pricePerK: 7.50, desc: "Yavaş ve doğal artış." }
-                    },
-                    "Beğeni": {
-                        "Türk Beğeni": { min: 100, max: 20000, pricePerK: 5.00, desc: "Yüksek kaliteli Türk hesaplar." }
-                    }
-                },
-                "X (Twitter)": {
-                    "Retweet": {
-                        "Hızlı Retweet": { min: 50, max: 5000, pricePerK: 4.00, desc: "Hızlı etkileşim." }
-                    }
-                }
-            };
-
-            await setDoc(getPublicDataRef(), { data: defaultData, lastUpdated: serverTimestamp() }, { merge: true })
-                .then(() => console.log("Varsayılan servis verileri oluşturuldu."))
-                .catch(e => console.error("Servis verisi oluşturulurken hata:", e));
-        }
-        
-
-        // --- YARDIMCI FONKSİYONLAR ---
-
-        // Dropdown'ları doldurur ve event listener'ları kurar
-        function populateServiceDropdowns() {
-            const platformSelect = document.getElementById('platformSelect');
-            const categorySelect = document.getElementById('categorySelect');
-            const serviceTypeSelect = document.getElementById('serviceTypeSelect');
-
-            // Temizle
-            platformSelect.innerHTML = '<option value="" disabled selected>Bir sosyal medya platformu seçin</option>';
-            categorySelect.innerHTML = '<option value="" disabled selected>Önce platform seçin</option>';
-            serviceTypeSelect.innerHTML = '<option value="" disabled selected>Önce kategori seçin</option>';
-            categorySelect.disabled = true;
-            serviceTypeSelect.disabled = true;
-
-            const data = appState.servicesData;
-            
-            // Platformları doldur
-            Object.keys(data).forEach(platform => {
-                const option = document.createElement('option');
-                option.value = platform;
-                option.textContent = platform;
-                platformSelect.appendChild(option);
-            });
-
-            // Event Listeners'ı (Eğer henüz eklenmemişse)
-            if (!platformSelect.hasAttribute('data-listeners-added')) {
-                platformSelect.addEventListener('change', () => {
-                    const selectedPlatform = platformSelect.value;
-                    const categories = data[selectedPlatform];
-                    
-                    categorySelect.innerHTML = '<option value="" disabled selected>Bir kategori seçin</option>';
-                    serviceTypeSelect.innerHTML = '<option value="" disabled selected>Önce kategori seçin</option>';
-                    
-                    if (categories) {
-                        Object.keys(categories).forEach(category => {
-                            const option = document.createElement('option');
-                            option.value = category;
-                            option.textContent = category;
-                            categorySelect.appendChild(option);
-                        });
-                        categorySelect.disabled = false;
-                        serviceTypeSelect.disabled = true;
-                    }
-                    updateOrderSummary();
-                });
-                categorySelect.addEventListener('change', () => {
-                    const selectedPlatform = platformSelect.value;
-                    const selectedCategory = categorySelect.value;
-                    const services = data[selectedPlatform]?.[selectedCategory];
-
-                    serviceTypeSelect.innerHTML = '<option value="" disabled selected>Bir servis seçin</option>';
-                    
-                    if (services) {
-                        Object.keys(services).forEach(serviceName => {
-                            const option = document.createElement('option');
-                            option.value = serviceName;
-                            option.textContent = serviceName;
-                            serviceTypeSelect.appendChild(option);
-                        });
-                        serviceTypeSelect.disabled = false;
-                    }
-                    updateOrderSummary();
-                });
-                serviceTypeSelect.addEventListener('change', updateOrderSummary);
-                document.getElementById('quantityInput')?.addEventListener('input', updateOrderSummary);
-
-                platformSelect.setAttribute('data-listeners-added', 'true');
-            }
-
-            // Eğer form elementleri varsa ilk hesaplamayı tetikle
-            if(appState.currentPage === 'newOrder') {
-                updateOrderSummary();
+                 console.error("Hata: Giriş/Kayıt form kapsayıcıları bulunamadı.");
             }
         }
-        
-        // Sipariş formundaki tutar ve limitleri günceller
-        function updateOrderSummary() {
-            const platform = document.getElementById('platformSelect')?.value;
-            const category = document.getElementById('categorySelect')?.value;
-            const serviceName = document.getElementById('serviceTypeSelect')?.value;
-            const quantityInput = document.getElementById('quantityInput');
-            
-            const servicePriceEl = document.getElementById('servicePrice');
-            const totalCostEl = document.getElementById('totalCost');
-            const quantityInfoEl = document.getElementById('quantityInfo');
-            const submitButton = document.getElementById('submitOrderButton');
+        window.showLoginForm = showLoginForm; // Global erişim için açığa çıkar
 
-            // Varsayılan değerler
-            let pricePerK = 0;
-            let minQty = 1;
-            let maxQty = 999999;
-            let totalCost = 0;
-            
-            // Servis detaylarını bul
-            const serviceDetails = appState.servicesData?.[platform]?.[category]?.[serviceName];
+        /**
+         * Kayıt formunu gösterir ve giriş formunu gizler.
+         */
+        function showRegisterForm() {
+            const loginForm = document.getElementById('loginFormContainer');
+            const registerForm = document.getElementById('registerFormContainer');
+            if (loginForm && registerForm) {
+                registerForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                clearAuthMessages();
+            } else {
+                 console.error("Hata: Giriş/Kayıt form kapsayıcıları bulunamadı.");
+            }
+        }
+        window.showRegisterForm = showRegisterForm; // Global erişim için açığa çıkar
 
-            if (serviceDetails && quantityInput) {
-                pricePerK = serviceDetails.pricePerK || 0;
-                minQty = serviceDetails.min || 1;
-                maxQty = serviceDetails.max || 999999;
 
-                // Miktarı al ve limitleri kontrol et
-                const quantity = parseInt(quantityInput.value) || 0;
-                
-                // Toplam Tutar Hesaplama: (Miktar / 1000) * Birim Fiyat
-                totalCost = (quantity / 1000) * pricePerK;
-                
-                // Miktar inputunu güncelle ve geçerliliğini kontrol et
-                quantityInput.min = minQty;
-                quantityInput.max = maxQty;
-                
-                quantityInfoEl.textContent = `Min: ${minQty}, Max: ${maxQty}. ${serviceDetails.desc || ''}`;
-                
-                // Tutarın geçerli olup olmadığını kontrol et
-                const isFormValid = quantity >= minQty && quantity <= maxQty && totalCost > 0 && 
-                                    platform && category && serviceName;
-                
-                submitButton.disabled = !isFormValid;
+        /**
+         * Mobil menüyü açıp kapar.
+         */
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        }
+        window.toggleMobileMenu = toggleMobileMenu; // Global erişim için açığa çıkar
+
+
+        function updateUI() {
+            const appContainer = document.getElementById('appContainer');
+            const authPage = document.getElementById('authPageContainer');
+
+            if (appState.isAuthenticated) {
+                authPage.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                appContainer.style.display = 'flex';
+
+                document.getElementById('userName').textContent = appState.displayName;
+                document.getElementById('userInitial').textContent = appState.displayName.charAt(0).toUpperCase();
+                document.getElementById('userBalance').textContent = `Bakiye: ${appState.userBalance.toFixed(2)} TL`;
+
+                loadPageContent(appState.currentPage);
 
             } else {
-                // Servis seçilmemişse
-                quantityInfoEl.textContent = "Lütfen önce bir servis seçin.";
-                submitButton.disabled = true;
-            }
-
-            servicePriceEl.textContent = `₺${pricePerK.toFixed(2)}`;
-            totalCostEl.textContent = `₺${totalCost.toFixed(2)}`;
-        }
-
-
-        // --- İŞLEM FONKSİYONLARI ---
-
-        // Oturum Açma/Kayıt olma işlemini yönetir
-        async function handleAuthSubmit() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const authMessageEl = document.getElementById('authMessage');
-            authMessageEl.textContent = "İşleniyor...";
-            
-            if (appState.currentPage === 'login') {
-                try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    authMessageEl.textContent = "Giriş başarılı!";
-                    // onAuthStateChanged listener'ı dashboard'a yönlendirecektir.
-                } catch (error) {
-                    authMessageEl.textContent = `Giriş Hatası: ${error.message}`;
-                    console.error("Giriş hatası:", error);
-                }
-            } else if (appState.currentPage === 'register') {
-                const displayName = document.getElementById('displayName').value;
-                try {
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    await updateProfile(userCredential.user, { displayName: displayName });
-                    await initializeUserProfile(userCredential.user);
-                    
-                    authMessageEl.textContent = "Kayıt başarılı! Giriş yapılıyor...";
-                    // onAuthStateChanged listener'ı dashboard'a yönlendirecektir.
-                } catch (error) {
-                    authMessageEl.textContent = `Kayıt Hatası: ${error.message}`;
-                    console.error("Kayıt hatası:", error);
-                }
+                appContainer.classList.add('hidden');
+                appContainer.style.display = 'none';
+                authPage.classList.remove('hidden');
+                showLoginForm();
             }
         }
-        
-        // Simülasyon Google Girişi
-        function handleGoogleSignInSimulation() {
-            showModal('info', 'Google Girişi', 'Bu, sadece bir simülasyondur. Gerçek bir Google girişi entegrasyonu için ek yapılandırma gereklidir. Varsayılan kullanıcıyla giriş yapılıyor...');
-            
-            // Varsayılan bir kullanıcı adı ve şifre ile giriş yapma simülasyonu
-            document.getElementById('email').value = "test@geminipanel.com";
-            document.getElementById('password').value = "123456";
-            
-            // Otomatik olarak giriş yapmayı tetikle
-            setTimeout(() => {
-                handleAuthSubmit();
-            }, 1500);
+
+        /**
+         * Sayfa navigasyonunu yönetir.
+         */
+        function handleNavigation(pageName) {
+            if (appState.isAuthenticated) {
+                appState.currentPage = pageName;
+                loadPageContent(pageName);
+            } else {
+                // Giriş yapmadan navigasyona izin vermemek için
+                showModal('Giriş Gerekli', 'Bu sayfayı görmek için lütfen giriş yapın.', 'fas fa-lock text-yellow-500');
+            }
+        }
+        window.handleNavigation = handleNavigation; // Global erişim için açığa çıkar
+
+
+        function getAuthErrorMessage(code) {
+            switch (code) {
+                case 'auth/user-not-found':
+                case 'auth/wrong-password': return 'Hatalı e-posta veya şifre.';
+                case 'auth/invalid-credential': return 'Hatalı e-posta veya şifre.';
+                case 'auth/email-already-in-use': return 'Bu e-posta adresi zaten kullanımda.';
+                case 'auth/invalid-email': return 'Geçersiz e-posta formatı.';
+                case 'auth/weak-password': return 'Şifre en az 6 karakter olmalıdır.';
+                default: return `Bir hata oluştu (${code}). Lütfen tekrar deneyin.`;
+            }
         }
 
-        // Çıkış işlemi
+        // =======================================================================
+        // FIREBASE İŞLEMLERİ (AUTH & FIRESTORE)
+        // =======================================================================
+
+        async function handleRegister(email, password, displayName) {
+            const button = document.getElementById('registerSubmitButton');
+            button.textContent = 'Kayıt Olunuyor...';
+            button.disabled = true;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await updateProfile(user, { displayName: displayName });
+
+                // Firestore'a başlangıç verilerini kaydetme (Gerçek bakiye kaydı)
+                const userDocRef = doc(db, 'user_profiles', user.uid);
+                await setDoc(userDocRef, {
+                    displayName: displayName,
+                    email: email,
+                    balance: 0.00, // Yeni kullanıcı 0 bakiye ile başlar
+                    createdAt: serverTimestamp(),
+                    userId: user.uid
+                });
+
+                showModal('Başarılı', 'Kayıt başarılı! Hesabınıza giriş yapılıyor.', 'fas fa-check-circle text-green-500');
+
+            } catch (error) {
+                console.error("Kayıt hatası:", error);
+                document.getElementById('registerMessage').textContent = getAuthErrorMessage(error.code);
+            } finally {
+                button.textContent = 'Kayıt Ol';
+                button.disabled = false;
+            }
+        }
+
+        async function handleLogin(email, password) {
+            const button = document.getElementById('loginSubmitButton');
+            button.textContent = 'Giriş Yapılıyor...';
+            button.disabled = true;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showModal('Başarılı', 'Giriş başarılı!', 'fas fa-check-circle text-green-500');
+
+            } catch (error) {
+                console.error("Giriş hatası:", error);
+                document.getElementById('loginMessage').textContent = getAuthErrorMessage(error.code);
+            } finally {
+                button.textContent = 'Giriş Yap';
+                button.disabled = false;
+            }
+        }
+
+        function handleAuthSubmit(mode) {
+            if (!isFirebaseInitialized) {
+                showModal('Hata', 'Firebase başlatılamadı.', 'fas fa-exclamation-triangle text-red-500');
+                return;
+            }
+            clearAuthMessages();
+
+            if (mode === 'login') {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                handleLogin(email, password);
+            } else if (mode === 'register') {
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const displayName = document.getElementById('registerDisplayName').value;
+                handleRegister(email, password, displayName);
+            }
+        }
+        window.handleAuthSubmit = handleAuthSubmit; // Global erişim için açığa çıkar
+
+
         async function handleLogout() {
             try {
                 await signOut(auth);
-                showModal('success', 'Güle Güle', 'Oturum başarıyla kapatıldı.');
+                showModal('Güle Güle!', 'Hesabınızdan başarıyla çıkış yaptınız.', 'fas fa-door-open text-blue-500');
             } catch (error) {
-                showModal('error', 'Hata', 'Çıkış yapılırken bir hata oluştu.');
                 console.error("Çıkış hatası:", error);
+                showModal('Hata', 'Çıkış yapılırken bir sorun oluştu.', 'fas fa-exclamation-triangle text-red-500');
+            }
+        }
+        window.handleLogout = handleLogout; // Global erişim için açığa çıkar
+
+
+        function setupFirestoreListeners(uid) {
+            if (!uid || !db) return;
+
+            // 1. Kullanıcı Profili/Bakiye Dinleyicisi
+            // NOT: Kendi projenizde bu koleksiyonun güvenlik kurallarını (user_profiles/{uid}) 
+            // sadece oturum açan kullanıcının okuma/yazma yapabileceği şekilde ayarlamanız gerekir.
+            const userDocRef = doc(db, 'user_profiles', uid);
+            onSnapshot(userDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    appState.userBalance = data.balance || 0.00;
+                    appState.displayName = data.displayName || auth.currentUser.email?.split('@')[0] || uid.substring(0, 8);
+                } else {
+                    // İlk kez giriş yapan kullanıcı için profil oluşturulur
+                    setDoc(userDocRef, {
+                        displayName: auth.currentUser.displayName || auth.currentUser.email?.split('@')[0] || uid.substring(0, 8),
+                        email: auth.currentUser.email || 'N/A',
+                        balance: 0.00,
+                        createdAt: serverTimestamp(),
+                        userId: uid
+                    }, { merge: true });
+                }
+                updateUI();
+            }, (error) => {
+                console.error("Kullanıcı profili dinleme hatası:", error);
+            });
+
+            // 2. Siparişler Dinleyicisi
+            // Siparişler, Canvas Güvenlik Kuralları yapısına uygun yolda tutulur.
+            const ordersCollectionRef = collection(db, getUserCollectionPath('orders'));
+            onSnapshot(query(ordersCollectionRef), (snapshot) => {
+                appState.orders = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })).sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                updateUI();
+            }, (error) => {
+                console.error("Siparişler dinleme hatası:", error);
+            });
+        }
+
+        // --- AUTH DİNLEYİCİSİ ---
+        if (isFirebaseInitialized) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    appState.isAuthenticated = true;
+                    appState.userId = user.uid;
+                    // Eğer kullanıcı e-posta/şifre ile giriş yaptıysa displayName'i güncellenir
+                    appState.displayName = user.displayName || user.email?.split('@')[0] || user.uid.substring(0, 8);
+                    setupFirestoreListeners(user.uid);
+
+                    if (initialAuthToken && !user.displayName) {
+                        // Canvas ortamında token ile giriş varsa ve displayName boşsa, UID'den atama yap
+                        try {
+                           await updateProfile(user, { displayName: user.uid.substring(0, 8) });
+                           appState.displayName = user.uid.substring(0, 8);
+                        } catch(e) { /* Hata yoksayılabilir */ }
+                    }
+
+                } else {
+                    appState.isAuthenticated = false;
+                    appState.userId = null;
+                    appState.displayName = 'Misafir';
+                    appState.userBalance = 0.00;
+                    appState.orders = [];
+                }
+                updateUI();
+            });
+
+            // --- İLK BAŞLATMA ---
+            if (initialAuthToken) {
+                signInWithCustomToken(auth, initialAuthToken).catch(e => {
+                    console.error("Özel token ile giriş hatası:", e);
+                    signInAnonymously(auth); // Hata olursa anonim giriş
+                });
+            } else {
+                // Anonim giriş, kullanıcı giriş yapana kadar veritabanı okuma/yazma izni vermez.
+                signInAnonymously(auth); 
             }
         }
 
-        // Bakiye Yükleme işlemi
-        document.getElementById('addBalanceForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const amount = parseFloat(document.getElementById('amountInput').value);
-            const balanceMessageEl = document.getElementById('balanceMessage');
-            balanceMessageEl.textContent = "İşleniyor...";
 
-            if (amount <= 0 || isNaN(amount)) {
-                balanceMessageEl.textContent = "Lütfen geçerli bir miktar girin.";
-                return;
-            }
+        // =======================================================================
+        // SAYFA İÇERİKLERİNİ OLUŞTURMA (SPA)
+        // =======================================================================
 
-            const profileRef = getProfileDocRef(userId);
+        function generateDashboardContent() {
+            const totalOrders = appState.orders.length;
+            const completedOrders = appState.orders.filter(o => o.status === 'Tamamlandı').length;
+            const totalSpent = appState.orders.reduce((sum, order) => sum + (order.cost || 0), 0);
+
+            return `
+                <h2 class="text-3xl font-extrabold text-white mb-6">Panel Özeti</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] card-animate">
+                        <i class="fas fa-wallet text-3xl text-[var(--primary-color)] mb-3"></i>
+                        <p class="text-sm font-medium text-gray-400">Mevcut Bakiye</p>
+                        <p class="text-3xl font-extrabold text-white mt-1">${appState.userBalance.toFixed(2)} TL</p>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] card-animate">
+                        <i class="fas fa-money-bill-wave text-3xl text-green-500 mb-3"></i>
+                        <p class="text-sm font-medium text-gray-400">Toplam Harcama</p>
+                        <p class="text-3xl font-extrabold text-white mt-1">${totalSpent.toFixed(2)} TL</p>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] card-animate">
+                        <i class="fas fa-shopping-cart text-3xl text-yellow-500 mb-3"></i>
+                        <p class="text-sm font-medium text-gray-400">Toplam Sipariş</p>
+                        <p class="text-3xl font-extrabold text-white mt-1">${totalOrders}</p>
+                    </div>
+                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] card-animate">
+                        <i class="fas fa-check-double text-3xl text-teal-500 mb-3"></i>
+                        <p class="text-sm font-medium text-gray-400">Tamamlanan Sipariş</p>
+                        <p class="text-3xl font-extrabold text-white mt-1">${completedOrders}</p>
+                    </div>
+                </div>
+
+                <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
+                    <h3 class="text-xl font-semibold text-white mb-4">Son İşlemler</h3>
+                    ${renderOrderTable(appState.orders.slice(0, 5), 'dashboard')}
+                    <div class="text-right mt-4">
+                        <button id="viewAllOrdersButton" class="text-[var(--primary-color)] hover:text-[var(--primary-light)] transition duration-150 text-sm font-medium">Tüm Siparişleri Gör &rarr;</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateNewOrderContent() {
+            let categoryOptions = categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
             
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const profileDoc = await transaction.get(profileRef);
+            // Bu fonksiyonlar artık globalde olmasa da, DOM'a dinamik olarak eklendiği için newOrder sayfasını yükleyen
+            // loadPageContent fonksiyonundan sonra çağrılmalıdır.
+            
+            const handleNewOrder = async function() {
+                const form = document.getElementById('newOrderForm');
+                const formData = new FormData(form);
+                const orderData = Object.fromEntries(formData.entries());
 
-                    if (!profileDoc.exists()) {
-                        throw "Profil bulunamadı!";
-                    }
+                const service = services[orderData.platform]?.find(s => s.id === orderData.service);
+                const quantity = parseInt(orderData.quantity);
+                const link = orderData.link.trim();
 
-                    const newBalance = (profileDoc.data().balance || 0) + amount;
+                if (!service || !quantity || !link || quantity < service.min || quantity > service.max) {
+                    showModal('Hata', `Lütfen tüm alanları doldurun ve geçerli bir miktar girin. (Min: ${service?.min || 'N/A'}, Max: ${service?.max || 'N/A'})`, 'fas fa-exclamation-triangle text-red-500');
+                    return;
+                }
+                
+                const cost = service.price * quantity;
+                if (appState.userBalance < cost) {
+                    showModal('Hata', `Yetersiz bakiye! Bu işlem için ${cost.toFixed(2)} TL gereklidir. Lütfen önce bakiye yükleyin.`, 'fas fa-sad-tear text-red-500');
+                    return;
+                }
+                
+                // Siparişin veritabanına kaydedileceği ve bakiyenin düşüleceği kısım
+                const newOrder = {
+                    serviceName: service.name,
+                    platform: orderData.platform,
+                    link: link,
+                    quantity: quantity,
+                    cost: cost,
+                    status: 'Beklemede',
+                    timestamp: serverTimestamp(),
+                    userId: appState.userId
+                };
+
+                try {
+                    // 1. Siparişi kaydet (Canvas Güvenlik Kuralları Yapısına uygun yolda)
+                    await addDoc(collection(db, getUserCollectionPath('orders')), newOrder);
                     
-                    // Transaction ile güncelleme
-                    transaction.update(profileRef, { balance: newBalance });
-                });
-
-                showModal('success', 'Bakiye Yüklendi', `Başarıyla ₺${amount.toFixed(2)} bakiye yüklendi.`);
-                balanceMessageEl.textContent = "";
-
-            } catch (e) {
-                showModal('error', 'Bakiye Hatası', 'Bakiye yüklenirken bir sorun oluştu.');
-                balanceMessageEl.textContent = `Hata: ${e}`;
-                console.error("Bakiye yükleme hatası:", e);
-            }
-        });
-
-        // Yeni Sipariş verme işlemi
-        document.getElementById('newOrderForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const platform = document.getElementById('platformSelect').value;
-            const category = document.getElementById('categorySelect').value;
-            const serviceName = document.getElementById('serviceTypeSelect').value;
-            const link = document.getElementById('linkInput').value;
-            const quantity = parseInt(document.getElementById('quantityInput').value);
-            
-            const totalCost = parseFloat(document.getElementById('totalCost').textContent.replace('₺', ''));
-            const orderMessageEl = document.getElementById('orderMessage');
-            orderMessageEl.textContent = "Siparişiniz işleniyor...";
-            
-            if (totalCost <= 0) {
-                orderMessageEl.textContent = "Sipariş tutarı 0'dan büyük olmalıdır.";
-                return;
-            }
-
-            const profileRef = getProfileDocRef(userId);
-            const ordersCollectionRef = getOrdersCollectionRef(userId);
-            
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const profileDoc = await transaction.get(profileRef);
-                    if (!profileDoc.exists()) throw new Error("Profil bulunamadı!");
-
-                    const currentBalance = profileDoc.data().balance || 0;
-                    if (currentBalance < totalCost) {
-                        throw new Error("Yetersiz bakiye. Lütfen bakiye yükleyin.");
-                    }
-
-                    const newBalance = currentBalance - totalCost;
-                    const newTotalSpent = (profileDoc.data().totalSpent || 0) + totalCost;
-
-                    // 1. Profil ve bakiye güncelleme
-                    transaction.update(profileRef, { 
-                        balance: newBalance,
-                        totalSpent: newTotalSpent
+                    // 2. Bakiyeyi düşür (user_profiles ana koleksiyonunda)
+                    const userDocRef = doc(db, 'user_profiles', appState.userId);
+                    const newBalance = appState.userBalance - cost;
+                    await updateDoc(userDocRef, {
+                        balance: newBalance
                     });
 
-                    // 2. Yeni siparişi ekle
-                    const newOrder = {
-                        platform,
-                        category,
-                        serviceName,
-                        link,
-                        quantity,
-                        cost: totalCost,
-                        status: 'Pending', // Pending, Processing, Completed, Cancelled
-                        createdAt: serverTimestamp()
-                    };
-                    transaction.set(doc(ordersCollectionRef), newOrder);
-                });
+                    form.reset();
+                    document.getElementById('orderCost').textContent = '0.00 TL';
+                    showModal('Sipariş Başarılı!', `Siparişiniz alındı. Tutar: ${cost.toFixed(2)} TL bakiyenizden düşüldü.`, 'fas fa-check-circle text-green-500');
 
-                // Başarılı işlem sonrası form sıfırlama ve bildirim
-                document.getElementById('newOrderForm').reset();
-                orderMessageEl.textContent = "";
-                updateOrderSummary();
-                showModal('success', 'Siparişiniz Alındı', `Siparişiniz (₺${totalCost.toFixed(2)}) başarıyla oluşturuldu. Bakiye: ₺${(appState.userProfile.balance - totalCost).toFixed(2)}`);
-
-            } catch (error) {
-                orderMessageEl.textContent = `Sipariş Hatası: ${error.message}`;
-                showModal('error', 'Sipariş Hatası', error.message);
-                console.error("Sipariş verme hatası:", error);
-            }
-        });
-
-        // --- UI/RENDER FONKSİYONLARI ---
-
-        // Sayfa navigasyonunu yönetir
-        function handleNavigation(page) {
-            appState.currentPage = page;
-            updateUI();
-            
-            // Mobil menü açıksa kapat
-            if (window.innerWidth < 1024) {
-                document.getElementById('sidebar').classList.remove('sidebar-open');
-            }
-        }
-        
-        // Modalı gösterir
-        function showModal(type, title, message) {
-            const modalOverlay = document.getElementById('modalOverlay');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalMessage = document.getElementById('modalMessage');
-            const modalIcon = document.getElementById('modalIcon');
-            const successModal = document.getElementById('successModal');
-
-            modalTitle.textContent = title;
-            modalMessage.textContent = message;
-
-            modalIcon.classList.remove('fa-check-circle', 'fa-times-circle', 'fa-info-circle');
-            
-            if (type === 'success') {
-                modalIcon.classList.add('fa-check-circle', 'text-green-500');
-            } else if (type === 'error') {
-                modalIcon.classList.add('fa-times-circle', 'text-red-500');
-            } else {
-                modalIcon.classList.add('fa-info-circle', 'text-blue-500');
-            }
-
-            modalOverlay.classList.remove('hidden');
-            modalOverlay.classList.add('flex');
-            
-            // Modalın scale efekti ile gösterilmesi
-            setTimeout(() => {
-                successModal.classList.remove('scale-90');
-                successModal.classList.add('scale-100');
-            }, 10);
-        }
-
-        // Modalı gizler
-        function closeModal() {
-            const modalOverlay = document.getElementById('modalOverlay');
-            const successModal = document.getElementById('successModal');
-
-            // Modalın scale efekti ile gizlenmesi
-            successModal.classList.remove('scale-100');
-            successModal.classList.add('scale-90');
-
-            setTimeout(() => {
-                modalOverlay.classList.remove('flex');
-                modalOverlay.classList.add('hidden');
-            }, 300);
-        }
-
-        // Sipariş durumuna göre renk döndürür
-        function getStatusColor(status) {
-            switch (status) {
-                case 'Completed': return 'bg-green-100 text-green-800';
-                case 'Pending': return 'bg-yellow-100 text-yellow-800';
-                case 'Processing': return 'bg-blue-100 text-blue-800';
-                case 'Cancelled': return 'bg-red-100 text-red-800';
-                default: return 'bg-gray-100 text-gray-800';
-            }
-        }
-        
-        // Ana kullanıcı arayüzünü (UI) günceller
-        function updateUI() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const pageContainer = document.getElementById('pageContainer');
-            const mobileMenuButton = document.getElementById('mobileMenuButton');
-            
-            // --- 1. Layout ve Sayfa Görünürlüğü Yönetimi (KRİTİK) ---
-            
-            if (appState.isAuthenticated) {
-                // Oturum açılmış: Sidebar görünür, Ana İçerik kayar
-                sidebar.classList.remove('hidden', 'translate-x-full');
-                sidebar.classList.add('lg:block', 'lg:relative', 'lg:translate-x-0', 'fixed');
-                mainContent.classList.remove('page-center-layout', 'w-full');
-                mainContent.classList.add('lg:ml-72');
-                mobileMenuButton.classList.remove('hidden');
-                
-                // Eğer oturum açılmışken giriş/kayıt sayfasındaysa, dashboard'a yönlendir
-                if(appState.currentPage === 'login' || appState.currentPage === 'register') {
-                    appState.currentPage = 'dashboard';
+                } catch (e) {
+                    console.error("Sipariş gönderme/bakiye güncelleme hatası:", e);
+                    showModal('Sistem Hatası', 'Siparişiniz kaydedilirken kritik bir hata oluştu.', 'fas fa-bug text-red-500');
                 }
-
-            } else {
-                // Oturum kapalı: Sidebar gizli, Ana İçerik ortalanmış ve tam genişlikte
-                sidebar.classList.add('hidden', 'translate-x-full');
-                sidebar.classList.remove('lg:block', 'lg:relative', 'lg:translate-x-0', 'fixed');
-                mainContent.classList.add('page-center-layout', 'w-full');
-                mainContent.classList.remove('lg:ml-72');
-                mobileMenuButton.classList.add('hidden');
-
-                // Eğer oturum kapalıyken dashboard gibi bir sayfadaysa, login'e yönlendir
-                if(appState.currentPage !== 'login' && appState.currentPage !== 'register') {
-                    appState.currentPage = 'login';
-                }
-            }
-
-            // Sayfa Görünürlüğü Yönetimi
-            if (pageContainer) {
-                pageContainer.querySelectorAll('section[data-page]').forEach(pageElement => {
-                    const isCurrentPage = pageElement.getAttribute('data-page') === appState.currentPage;
-                    pageElement.classList.toggle('hidden', !isCurrentPage);
-                    // Login/Register sayfaları ortalanmış layout kullanmalı
-                    if (appState.currentPage === 'login' || appState.currentPage === 'register') {
-                        pageElement.classList.toggle('page-center-layout', isCurrentPage);
-                        mainContent.classList.add('p-0'); // İçeriği ortalamak için padding'i kaldır
-                    } else {
-                        pageElement.classList.remove('page-center-layout');
-                        mainContent.classList.remove('p-0');
-                    }
-                });
-            }
-
-            // --- 2. Navigasyon ve Veri Güncelleme ---
-            
-            // Navigasyon linklerini güncelle
-            document.querySelectorAll('nav a').forEach(link => {
-                const pageName = link.id.replace('nav-', '');
-                link.classList.toggle('nav-active', pageName === appState.currentPage);
-            });
-            
-            // Kullanıcı profili verilerini güncelle
-            if (appState.isAuthenticated && appState.userProfile) {
-                const profile = appState.userProfile;
-                const balance = `₺${(profile.balance || 0).toFixed(2)}`;
-                const displayName = profile.displayName || "Tanımsız";
-                const email = profile.email || "Tanımsız";
-                const spent = `₺${(profile.totalSpent || 0).toFixed(2)}`;
-                const totalOrders = appState.userOrders.length;
-                const pendingOrders = appState.userOrders.filter(o => o.status === 'Pending' || o.status === 'Processing').length;
-
-                // Dashboard
-                document.getElementById('dashboardBalance').textContent = balance;
-                document.getElementById('dashboardTotalOrders').textContent = totalOrders;
-                document.getElementById('dashboardTotalSpent').textContent = spent;
-                document.getElementById('dashboardPendingOrders').textContent = pendingOrders;
-                
-                // Sidebar
-                document.getElementById('currentUserId').textContent = userId ? userId.substring(0, 8) + '...' : 'Yükleniyor...';
-                
-                // Profile Page
-                document.getElementById('currentBalance').textContent = balance;
-                document.getElementById('profileDisplayName').textContent = displayName;
-                document.getElementById('profileEmail').textContent = email;
-                document.getElementById('profileUserId').textContent = userId || 'Yükleniyor...';
-
-                // Sipariş Tablolarını güncelle
-                renderOrdersTable();
-
-                // Yeni Sipariş sayfasında dropdownları doldur (veriler yüklendiyse)
-                if (Object.keys(appState.servicesData).length > 0) {
-                    populateServiceDropdowns();
-                }
-            }
-        }
-        
-        // Sipariş tablolarını (dashboard ve orders sayfası) render eder
-        function renderOrdersTable() {
-            const allOrdersBody = document.getElementById('ordersTableBody');
-            const lastFiveOrdersBody = document.getElementById('lastFiveOrdersBody');
-            
-            // Tabloyu temizle
-            allOrdersBody.innerHTML = '';
-            lastFiveOrdersBody.innerHTML = '';
-
-            if (appState.userOrders.length === 0) {
-                allOrdersBody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Henüz siparişiniz bulunmamaktadır.</td></tr>';
-                lastFiveOrdersBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Henüz siparişiniz bulunmamaktadır.</td></tr>';
-                return;
-            }
-
-            const formatRow = (order, isDashboard) => {
-                const statusColor = getStatusColor(order.status);
-                const date = order.createdAt.toLocaleDateString('tr-TR') + ' ' + order.createdAt.toLocaleTimeString('tr-TR');
-                const rowContent = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.id.substring(0, 6)}...</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.platform}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.serviceName}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.quantity}</td>
-                    ${!isDashboard ? `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₺${order.cost.toFixed(2)}</td>` : ''}
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
-                            ${order.status}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${date}</td>
-                `;
-                return `<tr class="hover:bg-gray-50">${rowContent}</tr>`;
             };
 
-            // Tüm siparişler tablosunu doldur
-            appState.userOrders.forEach(order => {
-                allOrdersBody.insertAdjacentHTML('beforeend', formatRow(order, false));
-            });
-            
-            // Son 5 sipariş tablosunu doldur (Dashboard)
-            appState.userOrders.slice(0, 5).forEach(order => {
-                lastFiveOrdersBody.insertAdjacentHTML('beforeend', formatRow(order, true));
-            });
-        }
-        
-        // --- EVENT LISTENERS VE SON AYARLAR ---
-        
-        // Mobile menü butonu listener'ı
-        document.getElementById('mobileMenuButton')?.addEventListener('click', () => {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('sidebar-open');
-        });
-        
-        // Dışarı tıklama ile mobil menüyü kapatma
-        document.addEventListener('click', (event) => {
-            const sidebar = document.getElementById('sidebar');
-            const menuButton = document.getElementById('mobileMenuButton');
-            
-            // Eğer mobil menü açıksa ve tıklama sidebar veya butona ait değilse kapat
-            if (window.innerWidth < 1024 && sidebar.classList.contains('sidebar-open') && 
-                !sidebar.contains(event.target) && !menuButton.contains(event.target)) {
-                sidebar.classList.remove('sidebar-open');
+            const loadServices = function() {
+                const platformId = document.getElementById('platformSelect').value;
+                const serviceSelect = document.getElementById('serviceTypeSelect');
+                serviceSelect.innerHTML = '<option value="">--- Servis Seçiniz ---</option>';
+
+                if (platformId && services[platformId]) {
+                    services[platformId].forEach(service => {
+                        const option = document.createElement('option');
+                        option.value = service.id;
+                        // Servis adı ve fiyatını göster
+                        option.textContent = `${service.name} (${(service.price * 1000).toFixed(2)} TL/1000)`;
+                        option.dataset.price = service.price;
+                        option.dataset.min = service.min;
+                        option.dataset.max = service.max;
+                        option.dataset.desc = service.desc;
+                        serviceSelect.appendChild(option);
+                    });
+                }
+                updateCostDetails();
             }
-        });
+
+            const updateCostDetails = function() {
+                const serviceSelect = document.getElementById('serviceTypeSelect');
+                const quantityInput = document.getElementById('quantityInput');
+                const costDisplay = document.getElementById('orderCost');
+                const serviceDetails = document.getElementById('serviceDetails');
+
+                const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+                const quantity = parseInt(quantityInput.value);
+
+                serviceDetails.innerHTML = '';
+                if (selectedOption && selectedOption.value) {
+                    const price = parseFloat(selectedOption.dataset.price);
+                    const min = parseInt(selectedOption.dataset.min);
+                    const max = parseInt(selectedOption.dataset.max);
+                    const desc = selectedOption.dataset.desc;
+                    const totalCost = (quantity > 0 && quantity <= max) ? price * quantity : 0;
+
+                    costDisplay.textContent = totalCost.toFixed(2) + ' TL';
+                    
+                    // Miktar kontrolü
+                    if (quantity < min || quantity > max) {
+                        quantityInput.classList.add('border-red-500', 'ring-red-500');
+                        serviceDetails.innerHTML += `<p class="text-sm text-red-400 font-semibold mt-2">! Miktar ${min} ile ${max} arasında olmalıdır.</p>`;
+                    } else {
+                        quantityInput.classList.remove('border-red-500', 'ring-red-500');
+                    }
+
+                    serviceDetails.innerHTML += `
+                        <p class="text-sm text-gray-400">Birim Fiyat: <span class="text-green-400 font-semibold">${(price * 1000).toFixed(2)} TL / 1000</span></p>
+                        <p class="text-sm text-gray-400">Min/Max Miktar: ${min} / ${max}</p>
+                        <p class="text-sm text-gray-400 mt-2">${desc}</p>
+                    `;
+                } else {
+                    costDisplay.textContent = '0.00 TL';
+                }
+            }
+            
+            // Dinamik fonksiyonları window objesine ata (Sadece bu sayfada çalışması için)
+            window.loadServices = loadServices;
+            window.updateCostDetails = updateCostDetails;
+            window.handleNewOrder = handleNewOrder;
 
 
-        // --- GLOBAL ERİŞİM İÇİN EŞLEŞTİRMELER --
-        window.handleNavigation = handleNavigation;
-        window.handleLogout = handleLogout;
-        window.handleAuthSubmit = handleAuthSubmit;
-        window.handleGoogleSignInSimulation = handleGoogleSignInSimulation;
-        window.closeModal = closeModal;
-        window.updateOrderSummary = updateOrderSummary;
-        
-        // --- SON YÜKLEME KONTROLÜ ---
-        
-        // Eğer Firebase başlatılmamışsa (try/catch blokunda hata oluşmuşsa),
-        // auth listener'ın çağrılmasını beklemeyiz. UI'ı hemen başlatırız.
-        if (!isFirebaseInitialized) {
-            updateUI(); 
+            return `
+                <h2 class="text-3xl font-extrabold text-white mb-6">Yeni Sipariş Oluştur</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <div class="lg:col-span-2 bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
+                        <!-- Form submit'i artık handleNewOrder() fonksiyonunu çağırır -->
+                        <form id="newOrderForm" onsubmit="event.preventDefault(); window.handleNewOrder();" class="space-y-4">
+                            <div>
+                                <label for="platformSelect" class="block text-sm font-medium text-gray-300 mb-1">Platform Seçin</label>
+                                <select id="platformSelect" name="platform" onchange="window.loadServices()" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150">
+                                    <option value="">--- Platform Seçiniz ---</option>
+                                    ${categoryOptions}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="serviceTypeSelect" class="block text-sm font-medium text-gray-300 mb-1">Servis Tipi Seçin</label>
+                                <select id="serviceTypeSelect" name="service" onchange="window.updateCostDetails()" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150">
+                                    <option value="">--- Servis Seçiniz ---</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="linkInput" class="block text-sm font-medium text-gray-300 mb-1">Hedef Link / Kullanıcı Adı</label>
+                                <input type="url" id="linkInput" name="link" placeholder="https://instagram.com/kullanici_adi" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150">
+                            </div>
+
+                            <div>
+                                <label for="quantityInput" class="block text-sm font-medium text-gray-300 mb-1">Miktar</label>
+                                <input type="number" id="quantityInput" name="quantity" min="1" oninput="window.updateCostDetails()" placeholder="Miktarı giriniz" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150">
+                            </div>
+
+                            <button type="submit" class="btn-primary w-full py-3 text-white font-bold rounded-lg mt-6">
+                                Sipariş Ver
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-1 bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)] h-fit sticky top-4">
+                        <h3 class="text-xl font-semibold text-white mb-4">Sipariş Özeti</h3>
+                        <div class="border-b border-[var(--border-color)] pb-4 mb-4">
+                            <p class="text-gray-400 flex justify-between items-center">
+                                Mevcut Bakiye:
+                                <span class="text-white font-semibold">${appState.userBalance.toFixed(2)} TL</span>
+                            </p>
+                            <div id="serviceDetails" class="mt-3 p-3 bg-gray-700/50 rounded-lg">
+                                <p class="text-sm text-gray-400">Servis detayları burada görünecektir.</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <p class="text-lg font-bold text-white">Toplam Maliyet:</p>
+                            <p id="orderCost" class="text-2xl font-extrabold text-green-400">0.00 TL</p>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
+
+        function generateOrdersContent() {
+            return `
+                <h2 class="text-3xl font-extrabold text-white mb-6">Siparişlerim</h2>
+                <div class="bg-[var(--bg-card)] p-4 md:p-6 rounded-xl shadow-lg border border-[var(--border-color)] overflow-x-auto">
+                    ${renderOrderTable(appState.orders, 'orders')}
+                    ${appState.orders.length === 0 ? '<p class="text-center text-gray-400 p-4">Henüz siparişiniz bulunmamaktadır.</p>' : ''}
+                </div>
+            `;
+        }
+
+        function generateAddFundsContent() {
+             const handlePayment = function() {
+                const amount = document.getElementById('amountInput').value;
+                const method = document.getElementById('methodSelect').value;
+                const parsedAmount = parseFloat(amount);
+
+                if (!amount || !method || isNaN(parsedAmount) || parsedAmount <= 0) {
+                     showModal('Uyarı', 'Lütfen geçerli bir miktar ve ödeme yöntemi seçiniz.', 'fas fa-exclamation-triangle text-yellow-500');
+                    return;
+                }
+
+                // BU KISIM GERÇEK BİR SİSTEMDE API'YE GİDERDİ.
+                // ŞİMDİLİK BAKİYEYİ DİREKT EKLEME İŞLEMİNİ YAPACAĞIZ.
+                try {
+                    const userDocRef = doc(db, 'user_profiles', appState.userId);
+                    const newBalance = appState.userBalance + parsedAmount;
+
+                    // Bakiyeyi Gerçekten Veritabanına Yükle
+                    updateDoc(userDocRef, { balance: newBalance });
+
+                    showModal('Bakiye Yüklendi (Manüel Onay)', `${parsedAmount.toFixed(2)} TL bakiyeniz ${method} yöntemi ile hesabınıza yüklendi.`, 'fas fa-money-check-alt text-green-500');
+                    document.getElementById('amountInput').value = '';
+
+                } catch (e) {
+                    console.error("Bakiye yükleme hatası:", e);
+                    showModal('Hata', 'Bakiyeniz yüklenirken bir hata oluştu.', 'fas fa-bug text-red-500');
+                }
+            }
+            window.handlePayment = handlePayment; // Global erişim için açığa çıkar
+
+            return `
+                <h2 class="text-3xl font-extrabold text-white mb-6">Bakiye Yükle</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
+                        <h3 class="text-xl font-semibold text-white mb-4">Ödeme İşlemi (Manüel Giriş)</h3>
+                        <form id="fundForm" onsubmit="event.preventDefault(); window.handlePayment();" class="space-y-4">
+                            <div>
+                                <label for="amountInput" class="block text-sm font-medium text-gray-300 mb-1">Yüklenecek Miktar (TL)</label>
+                                <input type="number" id="amountInput" min="10" placeholder="Minimum 10.00 TL" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150">
+                            </div>
+
+                            <div>
+                                <label for="methodSelect" class="block text-sm font-medium text-gray-300 mb-1">Ödeme Yöntemi</label>
+                                <select id="methodSelect" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150">
+                                    <option value="">--- Seçiniz ---</option>
+                                    <option value="Havale">Banka Havalesi/EFT</option>
+                                    <option value="KrediKarti">Kredi/Banka Kartı</option>
+                                </select>
+                            </div>
+
+                            <p class="text-sm text-yellow-400">NOT: Bu sayfada girdiğiniz miktar direkt olarak bakiyenize eklenir. Gerçek bir ödeme entegrasyonu yoktur.</p>
+
+                            <button type="submit" class="btn-primary w-full py-3 text-white font-bold rounded-lg mt-6">
+                                Bakiyeyi Hesaba Ekle
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
+                        <h3 class="text-xl font-semibold text-white mb-4">Banka Hesap Bilgileri</h3>
+                        <div class="space-y-3 text-gray-400">
+                            <p><strong>Banka Adı:</strong> GEMINI Teknoloji A.Ş.</p>
+                            <p><strong>Hesap Adı:</strong> Yapay Zeka Servisleri</p>
+                            <p><strong>IBAN:</strong> <span class="text-white font-mono">TRXX 0000 0000 0000 0000 0000</span></p>
+                            <p class="text-sm text-yellow-400 pt-2">Transferde açıklama kısmına <strong>Kullanıcı ID'nizi</strong> yazmayı unutmayın.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateProfileContent() {
+             const copyUserId = function() {
+                const userId = document.getElementById('fullUserId').textContent;
+                navigator.clipboard.writeText(userId).then(() => {
+                    showModal('Kopyalandı', 'Kullanıcı ID\'niz panoya kopyalandı.', 'fas fa-copy text-green-500');
+                }).catch(err => {
+                    console.error('Kopyalama başarısız oldu:', err);
+                    showModal('Hata', 'Kopyalama işlemi başarısız.', 'fas fa-exclamation-triangle text-red-500');
+                });
+            };
+            window.copyUserId = copyUserId; // Global erişim için açığa çıkar
+
+            return `
+                <h2 class="text-3xl font-extrabold text-white mb-6">Profilim</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
+                        <h3 class="text-xl font-semibold text-white mb-4">Kullanıcı Detayları</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-4">
+                                <i class="fas fa-user-circle text-4xl text-[var(--primary-color)]"></i>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Adınız</p>
+                                    <p class="text-lg font-semibold text-white">${appState.displayName}</p>
+                                </div>
+                            </div>
+                            <div class="border-t border-[var(--border-color)] pt-4">
+                                <p class="text-gray-400 text-sm">E-posta</p>
+                                <p class="text-white font-medium">${auth.currentUser?.email || 'N/A'}</p>
+                            </div>
+                             <div class="border-t border-[var(--border-color)] pt-4">
+                                <p class="text-gray-400 text-sm flex items-center justify-between">
+                                    Kullanıcı ID'niz
+                                    <button onclick="window.copyUserId()" class="text-[var(--primary-color)] hover:text-[var(--primary-light)] transition duration-150 ml-2 text-xs">
+                                        <i class="fas fa-copy"></i> Kopyala
+                                    </button>
+                                </p>
+                                <p id="fullUserId" class="text-white font-mono text-sm break-all">${appState.userId || 'Giriş yapılmadı'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
+                        <h3 class="text-xl font-semibold text-white mb-4">İşlemler</h3>
+                        <div class="space-y-4">
+                            <button onclick="window.showModal('Şifre Değiştirme', 'Bu özellik için Firebase şifre sıfırlama akışını entegre etmeniz gerekir.', 'fas fa-key text-yellow-500')" class="w-full text-left p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition duration-150 flex justify-between items-center text-white font-medium">
+                                Şifre Değiştir
+                                <i class="fas fa-chevron-right text-gray-400"></i>
+                            </button>
+                            <button onclick="window.handleLogout()" class="w-full text-left p-3 bg-red-700/50 hover:bg-red-700 rounded-lg transition duration-150 flex justify-between items-center text-red-300 font-medium">
+                                Güvenli Çıkış Yap
+                                <i class="fas fa-sign-out-alt text-red-300"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOrderTable(orders, page) {
+            if (!orders || orders.length === 0) {
+                if (page === 'dashboard') return '<p class="text-center text-gray-400 p-2">Henüz işlem yapılmadı.</p>';
+                return '';
+            }
+
+            const getStatusBadge = (status) => {
+                switch(status) {
+                    case 'Tamamlandı': return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-900 text-green-300">Tamamlandı</span>';
+                    case 'Beklemede': return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-900 text-yellow-300">Beklemede</span>';
+                    case 'İptal Edildi': return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-900 text-red-300">İptal Edildi</span>';
+                    default: return '<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-700 text-gray-400">İşleniyor</span>';
+                }
+            };
+
+            const rows = orders.map(order => {
+                const date = order.timestamp?.toDate ? order.timestamp.toDate().toLocaleDateString('tr-TR') : 'N/A';
+                return `
+                    <tr class="hover:bg-gray-700 transition duration-150">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-white">${order.id.substring(0, 8)}...</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">${order.serviceName}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-300">${order.quantity?.toLocaleString() || 0}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-yellow-400 font-semibold">${order.cost?.toFixed(2) || '0.00'} TL</td>
+                        <td class="px-4 py-3 whitespace-nowrap">${getStatusBadge(order.status)}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-400">${date}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <table class="min-w-full divide-y divide-[var(--border-color)]">
+                    <thead>
+                        <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-800">
+                            <th class="px-4 py-3">ID</th>
+                            <th class="px-4 py-3">Servis</th>
+                            <th class="px-4 py-3">Miktar</th>
+                            <th class="px-4 py-3">Maliyet</th>
+                            <th class="px-4 py-3">Durum</th>
+                            <th class="px-4 py-3">Tarih</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[var(--border-color)]">
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function loadPageContent(pageName) {
+            const pageContentDiv = document.getElementById('pageContent');
+            appState.currentPage = pageName;
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const activeNav = document.getElementById(`nav-${pageName}`);
+            if (activeNav) {
+                activeNav.classList.add('active');
+            }
+
+            pageContentDiv.innerHTML = '<div class="text-center p-10"><i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i><p class="text-gray-400 mt-3">Yükleniyor...</p></div>';
+
+            let contentHtml = '';
+            switch (pageName) {
+                case 'dashboard': contentHtml = generateDashboardContent(); break;
+                case 'newOrder': contentHtml = generateNewOrderContent(); break;
+                case 'orders': contentHtml = generateOrdersContent(); break;
+                case 'addFunds': contentHtml = generateAddFundsContent(); break;
+                case 'profile': contentHtml = generateProfileContent(); break;
+                default: contentHtml = generateDashboardContent();
+            }
+
+            // İçeriği animasyonlu yükle
+            setTimeout(() => {
+                pageContentDiv.style.opacity = '0';
+                setTimeout(() => {
+                    pageContentDiv.innerHTML = contentHtml;
+                    pageContentDiv.style.opacity = '1';
+                    
+                    // Dashboard sayfasında "Tüm Siparişleri Gör" butonuna listener ekle
+                    document.getElementById('viewAllOrdersButton')?.addEventListener('click', () => handleNavigation('orders'));
+                    
+                    // NewOrder sayfasında başlangıçta servisleri yükle
+                    if (pageName === 'newOrder') {
+                        document.getElementById('platformSelect')?.dispatchEvent(new Event('change'));
+                    }
+
+                }, 150);
+            }, 50);
+
+        }
+
+        // =======================================================================
+        // GÜVENİLİR DOM OLAY DİNLEYİCİLERİ
+        // =======================================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Modal kapatma
+            document.getElementById('modalCloseButton')?.addEventListener('click', hideModal);
+
+            // AUTH DİNLEYİCİLERİ
+            document.getElementById('switchToRegister')?.addEventListener('click', showRegisterForm);
+            document.getElementById('switchToLogin')?.addEventListener('click', showLoginForm);
+
+            // NAVİGASYON DİNLEYİCİLERİ (Sidebar ve Mobil)
+            document.querySelectorAll('.nav-item[data-page], .mobile-nav-item[data-page]').forEach(item => {
+                item.addEventListener('click', function() {
+                    const page = this.getAttribute('data-page');
+                    handleNavigation(page);
+                    // Mobil menü açıksa kapat
+                    if (this.classList.contains('mobile-nav-item')) {
+                        toggleMobileMenu();
+                    }
+                });
+            });
+
+            // ÇIKIŞ DİNLEYİCİLERİ
+            document.getElementById('logoutButton')?.addEventListener('click', handleLogout);
+            document.getElementById('mobileLogoutButton')?.addEventListener('click', handleLogout);
+
+            // MOBİL MENÜ DİNLEYİCİLERİ
+            document.getElementById('mobileMenuButton')?.addEventListener('click', toggleMobileMenu);
+            document.getElementById('closeMobileMenuButton')?.addEventListener('click', toggleMobileMenu);
+
+        });
 
     </script>
 </body>
