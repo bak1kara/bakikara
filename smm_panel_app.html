@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMM Panel Yönetimi | Çalışan Versiyon</title>
+    <title>SMM Panel Yönetimi | Final Sürüm</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -259,34 +259,30 @@
         import { getFirestore, doc, setDoc, onSnapshot, collection, query, addDoc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        setLogLevel('Debug');
+        // setLogLevel('Debug'); // Debug modunu açmak için yorum satırını kaldırın.
 
-        // KULLANICININ SAĞLADIĞI FIREBASE CONFIG BİLGİLERİ
-        const userProvidedConfig = {
-            apiKey: "AIzaSyDr5OUxQYMwPTNsUH3SjWUYr5ML51mQIZQ",
-            authDomain: "smm-go-50a17.firebaseapp.com",
-            projectId: "smm-go-50a17",
-            storageBucket: "smm-go-50a17.firebasestorage.app",
-            messagingSenderId: "731144225117",
-            appId: "1:731144225117:web:bcb39f04d446225beda8b4",
-            measurementId: "G-BCC5NJKLZH"
-        };
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userProvidedConfig;
+        // Global değişkenlerden Firebase yapılandırmasını al
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        const projectId = firebaseConfig.projectId;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : projectId;
-
+        
         let app, db, auth;
         let isFirebaseInitialized = false;
+        let appId = 'default-smm-app-id'; // Varsayılan uygulama ID'si
 
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            isFirebaseInitialized = true;
-        } catch (error) {
-            console.error("Firebase başlatılırken hata oluştu:", error);
-            showModal('Hata', 'Firebase bağlantısı kurulamadı. Lütfen konsolu kontrol edin.', 'fas fa-exclamation-triangle text-red-500');
+        if (firebaseConfig) {
+             appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                isFirebaseInitialized = true;
+            } catch (error) {
+                console.error("Firebase başlatılırken hata oluştu:", error);
+                showModal('Hata', 'Firebase bağlantısı kurulamadı. Lütfen konsolu kontrol edin.', 'fas fa-exclamation-triangle text-red-500');
+            }
+        } else {
+             console.error("Firebase konfigürasyonu bulunamadı. Uygulama çalışmayacaktır.");
+             showModal('Kritik Hata', 'Firebase yapılandırma bilgisi eksik. Uygulama başlatılamadı.', 'fas fa-exclamation-triangle text-red-500');
         }
 
         // =======================================================================
@@ -304,18 +300,19 @@
 
         const categories = [
             { id: 'insta', name: 'Instagram Servisleri', icon: 'fab fa-instagram text-pink-500' },
-            { id: 'tiktok', name: 'TikTok Servisleri', icon: 'fab fa-tiktok text-black' },
+            { id: 'tiktok', name: 'TikTok Servisleri', icon: 'fab fa-tiktok text-white' },
             { id: 'x', name: 'X (Twitter) Servisleri', icon: 'fab fa-twitter text-blue-400' },
             { id: 'youtube', name: 'YouTube Servisleri', icon: 'fab fa-youtube text-red-600' }
         ];
 
+        // Servis fiyatları gerçekçi olmasa da, sistemin çalışması için gereklidir.
         const services = {
             insta: [
-                { id: 'follower', name: 'Takipçi - Hızlı', price: 0.15, min: 100, max: 10000, desc: 'Düşük düşüş garantili, hızlı takipçi.' },
-                { id: 'like', name: 'Beğeni - Yüksek Kalite', price: 0.05, min: 50, max: 50000, desc: 'Gerçek hesaplardan, anında gönderim.' },
+                { id: 'follower', name: 'Takipçi - Hızlı', price: 0.015, min: 100, max: 10000, desc: 'Düşük düşüş garantili, hızlı takipçi.' },
+                { id: 'like', name: 'Beğeni - Yüksek Kalite', price: 0.005, min: 50, max: 50000, desc: 'Gerçek hesaplardan, anında gönderim.' },
             ],
             tiktok: [
-                { id: 'view', name: 'Görüntüleme - Premium', price: 0.001, min: 1000, max: 1000000, desc: 'Tiktok algoritması dostu, organik görüntüleme.' },
+                { id: 'view', name: 'Görüntüleme - Premium', price: 0.0001, min: 1000, max: 1000000, desc: 'Tiktok algoritması dostu, organik görüntüleme.' },
             ]
         };
 
@@ -323,8 +320,14 @@
         // TEMEL YARDIMCI VE UI FONKSİYONLARI
         // =======================================================================
 
+        /**
+         * Firestore için kullanıcıya özgü koleksiyon yolu oluşturur.
+         * @param {string} collectionName - Koleksiyon adı (örn: 'orders').
+         * @returns {string} Tam koleksiyon yolu.
+         */
         function getUserCollectionPath(collectionName) {
             const userId = appState.userId || 'guest';
+            // Firestore Güvenlik Kurallarına uygun yol: /artifacts/{appId}/users/{userId}/{collectionName}
             return `artifacts/${appId}/users/${userId}/${collectionName}`;
         }
 
@@ -339,9 +342,6 @@
             document.getElementById('modalContainer').classList.add('hidden');
         }
 
-        /**
-         * Auth formu hatalarını temizler
-         */
         function clearAuthMessages() {
             document.getElementById('loginMessage').textContent = '';
             document.getElementById('registerMessage').textContent = '';
@@ -363,9 +363,6 @@
             document.getElementById('mobileMenu').classList.toggle('hidden');
         }
 
-        /**
-         * UI'ı günceller (Giriş yaptı/yapmadı)
-         */
         function updateUI() {
             const appContainer = document.getElementById('appContainer');
             const authPage = document.getElementById('authPageContainer');
@@ -385,7 +382,7 @@
                 appContainer.classList.add('hidden');
                 appContainer.style.display = 'none';
                 authPage.classList.remove('hidden');
-                showLoginForm(); // Çıkış yapınca her zaman giriş formunu göster
+                showLoginForm();
             }
         }
 
@@ -394,6 +391,7 @@
                 appState.currentPage = pageName;
                 loadPageContent(pageName);
             } else {
+                // Giriş yapmadan navigasyona izin vermemek için
                 showModal('Giriş Gerekli', 'Bu sayfayı görmek için lütfen giriş yapın.', 'fas fa-lock text-yellow-500');
             }
         }
@@ -424,12 +422,12 @@
 
                 await updateProfile(user, { displayName: displayName });
 
-                // Firestore'a başlangıç verilerini kaydetme
+                // Firestore'a başlangıç verilerini kaydetme (Gerçek bakiye kaydı)
                 const userDocRef = doc(db, 'user_profiles', user.uid);
                 await setDoc(userDocRef, {
                     displayName: displayName,
                     email: email,
-                    balance: 0.00,
+                    balance: 0.00, // Yeni kullanıcı 0 bakiye ile başlar
                     createdAt: serverTimestamp(),
                     userId: user.uid
                 });
@@ -464,6 +462,10 @@
         }
 
         window.handleAuthSubmit = function(mode) {
+            if (!isFirebaseInitialized) {
+                showModal('Hata', 'Firebase başlatılamadı.', 'fas fa-exclamation-triangle text-red-500');
+                return;
+            }
             clearAuthMessages();
 
             if (mode === 'login') {
@@ -489,7 +491,7 @@
         }
 
         function setupFirestoreListeners(uid) {
-            if (!uid) return;
+            if (!uid || !db) return;
 
             // 1. Kullanıcı Profili/Bakiye Dinleyicisi
             const userDocRef = doc(db, 'user_profiles', uid);
@@ -499,7 +501,7 @@
                     appState.userBalance = data.balance || 0.00;
                     appState.displayName = data.displayName || auth.currentUser.email.split('@')[0];
                 } else {
-                    // İlk kez giriş yapan kullanıcı için profil oluştur
+                    // İlk kez giriş yapan kullanıcı için profil oluşturulur
                     setDoc(userDocRef, {
                         displayName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
                         email: auth.currentUser.email,
@@ -527,31 +529,33 @@
         }
 
         // --- AUTH DİNLEYİCİSİ ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                appState.isAuthenticated = true;
-                appState.userId = user.uid;
-                appState.displayName = user.displayName || user.email?.split('@')[0] || user.uid.substring(0, 8);
-                setupFirestoreListeners(user.uid);
-
-                // Canvas ortamında token ile giriş varsa ve displayName boşsa, UID'den atama yap
-                if (initialAuthToken && !user.displayName) {
-                    await updateProfile(user, { displayName: user.uid.substring(0, 8) });
-                    appState.displayName = user.uid.substring(0, 8);
-                }
-
-            } else {
-                appState.isAuthenticated = false;
-                appState.userId = null;
-                appState.displayName = 'Misafir';
-                appState.userBalance = 0.00;
-                appState.orders = [];
-            }
-            updateUI();
-        });
-
-        // --- İLK BAŞLATMA ---
         if (isFirebaseInitialized) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    appState.isAuthenticated = true;
+                    appState.userId = user.uid;
+                    appState.displayName = user.displayName || user.email?.split('@')[0] || user.uid.substring(0, 8);
+                    setupFirestoreListeners(user.uid);
+
+                    if (initialAuthToken && !user.displayName) {
+                        // Canvas ortamında token ile giriş varsa ve displayName boşsa, UID'den atama yap
+                        try {
+                           await updateProfile(user, { displayName: user.uid.substring(0, 8) });
+                           appState.displayName = user.uid.substring(0, 8);
+                        } catch(e) { /* Hata yoksayılabilir */ }
+                    }
+
+                } else {
+                    appState.isAuthenticated = false;
+                    appState.userId = null;
+                    appState.displayName = 'Misafir';
+                    appState.userBalance = 0.00;
+                    appState.orders = [];
+                }
+                updateUI();
+            });
+
+            // --- İLK BAŞLATMA ---
             if (initialAuthToken) {
                 signInWithCustomToken(auth, initialAuthToken).catch(e => {
                     console.error("Özel token ile giriş hatası:", e);
@@ -564,7 +568,7 @@
 
 
         // =======================================================================
-        // SAYFA İÇERİKLERİNİ OLUŞTURMA (SPA) - (Önceki versiyondan alınmıştır)
+        // SAYFA İÇERİKLERİNİ OLUŞTURMA (SPA)
         // =======================================================================
 
         function generateDashboardContent() {
@@ -620,16 +624,18 @@
                 const quantity = parseInt(orderData.quantity);
                 const link = orderData.link.trim();
 
-                if (!service || !quantity || !link) {
-                    showModal('Hata', 'Lütfen tüm alanları doldurun ve geçerli bir servis seçin.', 'fas fa-exclamation-triangle text-red-500');
+                if (!service || !quantity || !link || quantity < service.min || quantity > service.max) {
+                    showModal('Hata', `Lütfen tüm alanları doldurun ve geçerli bir miktar girin. (Min: ${service?.min || 'N/A'}, Max: ${service?.max || 'N/A'})`, 'fas fa-exclamation-triangle text-red-500');
                     return;
                 }
+                
                 const cost = service.price * quantity;
                 if (appState.userBalance < cost) {
-                    showModal('Hata', 'Yetersiz bakiye! Lütfen önce bakiye yükleyin.', 'fas fa-sad-tear text-red-500');
+                    showModal('Hata', `Yetersiz bakiye! Bu işlem için ${cost.toFixed(2)} TL gereklidir. Lütfen önce bakiye yükleyin.`, 'fas fa-sad-tear text-red-500');
                     return;
                 }
-
+                
+                // Siparişin veritabanına kaydedileceği ve bakiyenin düşüleceği kısım
                 const newOrder = {
                     serviceName: service.name,
                     platform: orderData.platform,
@@ -642,19 +648,23 @@
                 };
 
                 try {
+                    // 1. Siparişi kaydet
                     await addDoc(collection(db, getUserCollectionPath('orders')), newOrder);
+                    
+                    // 2. Bakiyeyi düşür
                     const userDocRef = doc(db, 'user_profiles', appState.userId);
+                    const newBalance = appState.userBalance - cost;
                     await updateDoc(userDocRef, {
-                        balance: appState.userBalance - cost
+                        balance: newBalance
                     });
 
                     form.reset();
                     document.getElementById('orderCost').textContent = '0.00 TL';
-                    showModal('Sipariş Başarılı!', `Siparişiniz alındı. Tutar: ${cost.toFixed(2)} TL`, 'fas fa-check-circle text-green-500');
+                    showModal('Sipariş Başarılı!', `Siparişiniz alındı. Tutar: ${cost.toFixed(2)} TL bakiyenizden düşüldü.`, 'fas fa-check-circle text-green-500');
 
                 } catch (e) {
-                    console.error("Sipariş gönderme hatası:", e);
-                    showModal('Sistem Hatası', 'Siparişiniz kaydedilemedi.', 'fas fa-bug text-red-500');
+                    console.error("Sipariş gönderme/bakiye güncelleme hatası:", e);
+                    showModal('Sistem Hatası', 'Siparişiniz kaydedilirken kritik bir hata oluştu.', 'fas fa-bug text-red-500');
                 }
             };
 
@@ -667,7 +677,8 @@
                     services[platformId].forEach(service => {
                         const option = document.createElement('option');
                         option.value = service.id;
-                        option.textContent = service.name;
+                        // Servis adı ve fiyatını göster
+                        option.textContent = `${service.name} (${(service.price * 1000).toFixed(2)} TL/1000)`;
                         option.dataset.price = service.price;
                         option.dataset.min = service.min;
                         option.dataset.max = service.max;
@@ -688,16 +699,25 @@
                 const quantity = parseInt(quantityInput.value);
 
                 serviceDetails.innerHTML = '';
-                if (selectedOption && selectedOption.value && quantity > 0) {
+                if (selectedOption && selectedOption.value) {
                     const price = parseFloat(selectedOption.dataset.price);
-                    const min = selectedOption.dataset.min;
-                    const max = selectedOption.dataset.max;
+                    const min = parseInt(selectedOption.dataset.min);
+                    const max = parseInt(selectedOption.dataset.max);
                     const desc = selectedOption.dataset.desc;
-                    const totalCost = price * quantity;
+                    const totalCost = (quantity > 0 && quantity <= max) ? price * quantity : 0;
 
                     costDisplay.textContent = totalCost.toFixed(2) + ' TL';
-                    serviceDetails.innerHTML = `
-                        <p class="text-sm text-gray-400">Birim Fiyat: <span class="text-green-400 font-semibold">${price.toFixed(4)} TL</span></p>
+                    
+                    // Miktar kontrolü
+                    if (quantity < min || quantity > max) {
+                        quantityInput.classList.add('border-red-500', 'ring-red-500');
+                        serviceDetails.innerHTML += `<p class="text-sm text-red-400 font-semibold mt-2">! Miktar ${min} ile ${max} arasında olmalıdır.</p>`;
+                    } else {
+                        quantityInput.classList.remove('border-red-500', 'ring-red-500');
+                    }
+
+                    serviceDetails.innerHTML += `
+                        <p class="text-sm text-gray-400">Birim Fiyat: <span class="text-green-400 font-semibold">${(price * 1000).toFixed(2)} TL / 1000</span></p>
                         <p class="text-sm text-gray-400">Min/Max Miktar: ${min} / ${max}</p>
                         <p class="text-sm text-gray-400 mt-2">${desc}</p>
                     `;
@@ -707,7 +727,7 @@
             }
 
 
-            // loadServices'i tetiklemesi için, içeriği yükledikten sonra JS tarafından çalıştırılması gerekir.
+            // İçerik yüklendikten sonra servisleri bir kez yükle
             setTimeout(() => {
                  document.getElementById('platformSelect')?.dispatchEvent(new Event('change'));
             }, 100);
@@ -781,7 +801,7 @@
         }
 
         function generateAddFundsContent() {
-            window.handlePayment = function() {
+             window.handlePayment = function() {
                 const amount = document.getElementById('amountInput').value;
                 const method = document.getElementById('methodSelect').value;
                 const parsedAmount = parseFloat(amount);
@@ -791,26 +811,30 @@
                     return;
                 }
 
+                // BU KISIM GERÇEK BİR SİSTEMDE API'YE GİDERDİ.
+                // ŞİMDİLİK BAKİYEYİ DİREKT EKLEME İŞLEMİNİ YAPACAĞIZ.
                 try {
                     const userDocRef = doc(db, 'user_profiles', appState.userId);
                     const newBalance = appState.userBalance + parsedAmount;
 
+                    // Bakiyeyi Gerçekten Veritabanına Yükle
                     updateDoc(userDocRef, { balance: newBalance });
 
-                    showModal('Bakiye Yüklendi (Simülasyon)', `${parsedAmount.toFixed(2)} TL bakiyeniz ${method} yöntemi ile yüklendi!`, 'fas fa-money-check-alt text-green-500');
+                    showModal('Bakiye Yüklendi (Manüel Onay)', `${parsedAmount.toFixed(2)} TL bakiyeniz ${method} yöntemi ile hesabınıza yüklendi.`, 'fas fa-money-check-alt text-green-500');
                     document.getElementById('amountInput').value = '';
 
                 } catch (e) {
-                    console.error("Bakiye yükleme simülasyon hatası:", e);
-                    showModal('Hata', 'İşlem sırasında bir hata oluştu.', 'fas fa-bug text-red-500');
+                    console.error("Bakiye yükleme hatası:", e);
+                    showModal('Hata', 'Bakiyeniz yüklenirken bir hata oluştu.', 'fas fa-bug text-red-500');
                 }
             }
+
 
             return `
                 <h2 class="text-3xl font-extrabold text-white mb-6">Bakiye Yükle</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
-                        <h3 class="text-xl font-semibold text-white mb-4">Ödeme İşlemi (Simülasyon)</h3>
+                        <h3 class="text-xl font-semibold text-white mb-4">Ödeme İşlemi (Manüel Giriş)</h3>
                         <form onsubmit="event.preventDefault(); handlePayment();" class="space-y-4">
                             <div>
                                 <label for="amountInput" class="block text-sm font-medium text-gray-300 mb-1">Yüklenecek Miktar (TL)</label>
@@ -822,12 +846,14 @@
                                 <select id="methodSelect" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 text-white rounded-lg focus:ring-2 transition duration-150">
                                     <option value="">--- Seçiniz ---</option>
                                     <option value="Havale">Banka Havalesi/EFT</option>
-                                    <option value="KrediKarti">Kredi/Banka Kartı (Sanal POS)</option>
+                                    <option value="KrediKarti">Kredi/Banka Kartı</option>
                                 </select>
                             </div>
 
+                            <p class="text-sm text-yellow-400">NOT: Bu sayfada girdiğiniz miktar direkt olarak bakiyenize eklenir. Gerçek bir ödeme entegrasyonu yoktur.</p>
+
                             <button type="submit" class="btn-primary w-full py-3 text-white font-bold rounded-lg mt-6">
-                                Bakiye Yükle (Simülasyon)
+                                Bakiyeyi Hesaba Ekle
                             </button>
                         </form>
                     </div>
@@ -835,10 +861,10 @@
                     <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
                         <h3 class="text-xl font-semibold text-white mb-4">Banka Hesap Bilgileri</h3>
                         <div class="space-y-3 text-gray-400">
-                            <p><strong>Banka Adı:</strong> GeminiBank</p>
-                            <p><strong>Hesap Adı:</strong> SMM Panel Bilişim A.Ş.</p>
-                            <p><strong>IBAN:</strong> <span class="text-white font-mono">TRXX XXXX XXXX XXXX XXXX XX</span></p>
-                            <p class="text-sm text-yellow-400 pt-2">Lütfen açıklama kısmına <strong>Kullanıcı ID'nizi</strong> yazmayı unutmayın.</p>
+                            <p><strong>Banka Adı:</strong> GEMINI Teknoloji A.Ş.</p>
+                            <p><strong>Hesap Adı:</strong> Yapay Zeka Servisleri</p>
+                            <p><strong>IBAN:</strong> <span class="text-white font-mono">TRXX 0000 0000 0000 0000 0000</span></p>
+                            <p class="text-sm text-yellow-400 pt-2">Transferde açıklama kısmına <strong>Kullanıcı ID'nizi</strong> yazmayı unutmayın.</p>
                         </div>
                     </div>
                 </div>
@@ -887,9 +913,9 @@
                     </div>
 
                     <div class="bg-[var(--bg-card)] p-6 rounded-xl shadow-lg border border-[var(--border-color)]">
-                        <h3 class="text-xl font-semibold text-white mb-4">Ayarlar</h3>
+                        <h3 class="text-xl font-semibold text-white mb-4">İşlemler</h3>
                         <div class="space-y-4">
-                            <button onclick="showModal('Şifre Değiştirme', 'Bu özellik simülasyondur.', 'fas fa-key text-yellow-500')" class="w-full text-left p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition duration-150 flex justify-between items-center text-white font-medium">
+                            <button onclick="showModal('Şifre Değiştirme', 'Bu özellik için Firebase şifre sıfırlama akışını entegre etmeniz gerekir.', 'fas fa-key text-yellow-500')" class="w-full text-left p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition duration-150 flex justify-between items-center text-white font-medium">
                                 Şifre Değiştir
                                 <i class="fas fa-chevron-right text-gray-400"></i>
                             </button>
