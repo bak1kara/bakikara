@@ -220,7 +220,7 @@
     <script type="module">
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // 🚨 KRİTİK: firebase-auth-service.js dosyanızın uygulamasını içe aktarın
+        // KRİTİK: firebase-auth-service.js dosyanızın uygulamasını içe aktarın
         import { app } from "./firebase-auth-service.js"; 
 
         const auth = getAuth(app);
@@ -234,8 +234,8 @@
         const navProfileInitials = document.getElementById('nav_profile_initials');
         const logoutButtonNav = document.getElementById('logoutButtonNav');
 
-        // --- Yardımcı Fonksiyonlar ---
-
+        // ... (getInitials ve setActiveNavLink fonksiyonları burada olmalı) ...
+        
         function getInitials(name) {
             if (!name) return '??';
             const parts = name.split(' ');
@@ -254,19 +254,18 @@
 
                 link.classList.remove('nav-active');
                 
-                // panel.html'i vurgula (Ana Sayfa)
                 if (linkPath === currentPath || currentPath === '' || currentPath === 'index.html' && linkPath === 'panel.html') {
                     link.classList.add('nav-active');
                 } 
             });
         }
-
-        /** Header UI'yı kullanıcı oturum durumuna göre günceller ve Firestore'dan veri çeker. */
+        
+        // Burası en kritik kısımdır.
         async function updateHeaderUI(user) {
             if (!loggedOutNav || !loggedInNav) return;
 
             if (user && !user.isAnonymous) {
-                // GİRİŞ YAPILMIŞ DURUM
+                // ✅ GİRİŞ YAPILMIŞ: Butonları gizle, profil kartını göster
                 loggedOutNav.classList.add('hidden');
                 loggedInNav.classList.remove('hidden');
 
@@ -274,7 +273,7 @@
                 let accountType = "STANDART"; 
                 let photoURL = user.photoURL || '';
                 
-                // Firestore'dan kullanıcı verilerini çekme
+                // Firestore'dan veri çekme
                 try {
                     const docSnap = await getDoc(doc(db, "users", user.uid));
                     if (docSnap.exists()) {
@@ -284,11 +283,11 @@
                     console.error("Firestore veri çekme hatası:", e);
                 }
 
-                // UI Güncelleme
+                // Profil kartı elementlerini doldurma
                 if (navDisplayName) navDisplayName.textContent = displayName;
                 if (navAccountType) {
                     navAccountType.textContent = accountType.toUpperCase();
-                    // Rol bazlı renk kodlaması
+                    // Rol renk kodlaması (Önceki yanıtta verdiğim renk kodları)
                     if (accountType.toUpperCase() === 'PREMIUM') {
                         navAccountType.style.backgroundColor = 'rgba(255, 193, 7, 0.3)';
                         navAccountType.style.color = '#FFC107';
@@ -301,8 +300,9 @@
                     }
                 }
                 
-                // Profil Resmi veya Baş Harfler
+                // PP veya Baş Harfler
                 if (navProfileInitials) {
+                    // ... (Baş harf/PP mantığı burada olmalı) ...
                     if (photoURL) {
                         navProfileInitials.style.backgroundImage = `url(${photoURL})`;
                         navProfileInitials.style.backgroundSize = 'cover';
@@ -316,17 +316,15 @@
                 }
                 
             } else {
-                // GİRİŞ YAPILMAMIŞ DURUM
+                // ❌ GİRİŞ YAPILMAMIŞ: Profil kartını gizle, butonları göster
                 loggedOutNav.classList.remove('hidden');
                 loggedInNav.classList.add('hidden');
             }
         }
 
-        // Çıkış Yapma Fonksiyonu
         async function handleLogout() {
             try {
                 await signOut(auth);
-                // Çıkış yapıldıktan sonra giriş sayfasına yönlendir.
                 window.location.href = 'girisyap.html'; 
             } catch (error) {
                 console.error("Çıkış hatası:", error);
@@ -344,10 +342,8 @@
             // 2. Aktif Nav Linkini Vurgula
             setActiveNavLink();
             
-            // 3. Dropdown ve Çıkış Butonu Olaylarını Bağla
-            if (logoutButtonNav) {
-                logoutButtonNav.addEventListener('click', handleLogout);
-            }
+            // 3. Dropdown ve Çıkış Butonu Olaylarını Bağla (Sadece element varsa)
+            document.getElementById('logoutButtonNav')?.addEventListener('click', handleLogout);
             
             // Dropdown açma/kapama JS'i
             document.getElementById('profileMenuButton')?.addEventListener('click', (e) => {
