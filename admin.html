@@ -162,7 +162,7 @@
     } from './firebase-config.js'; 
 
     // 🔴 1. ADIM: YÖNETİCİ E-POSTASINI BURAYA YAZIN!
-    const ADMIN_EMAIL = "SİZİN_YÖNETİCİ_EPOSTANIZ@example.com"; 
+    const ADMIN_EMAIL = "mehmeteminacan13@gmail.com"; 
     
     const loading = document.getElementById('loading');
     const table = document.getElementById('customerTable');
@@ -205,6 +205,7 @@
                 const userEmail = user.email || 'Bilinmiyor';
                 const username = userEmail.split('@')[0];
                 const siteUrl = `bakikara.xyz/${username}`;
+                // createdAt alanı, Firebase Timestamp nesnesidir.
                 const regDate = user.createdAt ? user.createdAt.toDate().toLocaleDateString('tr-TR') : 'Bilinmiyor';
                 const status = user.serviceStatus || 'FILE_WAITING'; // Varsayılan durum
 
