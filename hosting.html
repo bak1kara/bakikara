@@ -8,28 +8,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* TEMA TANIMLARI */
+        /* TEMA RENKLERİ */
         :root {
-            /* Ana Renkler */
-            --primary-color: #5d3f6a; /* Kapalı Mor Siyahımsı */
-            --secondary-color: #9c89a3; 
-            --accent-color: #ffc107; /* Sarı Vurgu */
-            
-            /* Varsayılan (Aydınlık) Tema */
-            --bg-color: #ffffff;
-            --secondary-bg-color: #f8f9fa;
-            --text-color: #333333;
-            --border-color: #e0e0e0;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        /* KARANLIK TEMA */
-        body.dark-mode {
-            --bg-color: #1a1a1a;
-            --secondary-bg-color: #2c2c2c;
-            --text-color: #e0e0e0;
-            --border-color: #444444;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --primary-color: #5d3f6a;       /* Kapalı Mor Vurgu */
+            --bg-dark: #1e1e2d;             /* Koyu Arka Plan (Genel) */
+            --bg-card: #27293d;             /* Koyu Kart Arka Planı (Form/Fiyat) */
+            --text-light: #e0e0e0;          /* Açık Metin */
+            --text-secondary: #a9a9b6;      /* İkincil Metin */
+            --border-dark: #3b3b51;         /* Koyu Sınır */
+            --success-color: #28a745;       /* Yeşil (Başarılı/Check) */
+            --danger-color: #e74c3c;        /* Kırmızı (Çarpı) */
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
         }
 
         /* GENEL STİL */
@@ -37,46 +26,47 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: var(--secondary-bg-color);
-            color: var(--text-color);
-            transition: background-color 0.4s, color 0.4s;
+            background-color: var(--bg-dark); /* Koyu Arka Plan */
+            color: var(--text-light);
             line-height: 1.6;
+            transition: background-color 0.4s, color 0.4s;
         }
 
         /* HEADER & BANNER STİLİ */
         .header-banner {
-            background-color: var(--primary-color);
+            background-color: var(--bg-card); /* Kart rengi kullanılarak kontrast sağlandı */
             color: white;
             padding: 50px 20px;
             text-align: center;
             box-shadow: var(--shadow);
-            position: relative;
+            border-bottom: 3px solid var(--primary-color); /* Mor Alt Çizgi */
         }
         .header-banner h1 {
             font-weight: 700;
             font-size: 2.5em;
             margin-bottom: 5px;
+            color: var(--primary-color); /* Başlık Mor vurgu */
         }
         .header-banner p {
             font-size: 1.1em;
-            opacity: 0.9;
+            color: var(--text-secondary);
         }
-
-        /* TEMA DEĞİŞTİRME DÜĞMESİ */
-        #theme-toggle {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: color 0.3s;
+        .header-banner strong {
+            color: var(--text-light);
         }
-        #theme-toggle:hover {
+        .header-banner a {
+            color: var(--text-light);
+            text-decoration: none;
+            margin-top: 10px;
+            display: inline-block;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        .header-banner a:hover {
+            opacity: 1;
             color: var(--accent-color);
         }
+
 
         /* ANA İÇERİK */
         .main-content {
@@ -87,30 +77,28 @@
         .section-title {
             text-align: center;
             font-weight: 600;
-            color: var(--primary-color);
+            color: var(--text-light);
             margin-bottom: 30px;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
         }
 
         /* FİYATLANDIRMA/PAKET KUTUSU */
         .pricing-table {
-            max-width: 400px;
+            max-width: 450px;
             margin: 0 auto 50px;
-            background: var(--bg-color);
+            background: var(--bg-card);
             border-radius: 10px;
             box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-dark);
             overflow: hidden;
         }
         .package-header {
             background-color: var(--primary-color);
             color: white;
-            padding: 20px 0;
+            padding: 25px 0;
             text-align: center;
         }
         .price {
-            font-size: 2em;
+            font-size: 2.2em;
             font-weight: 700;
             margin: 5px 0;
         }
@@ -120,46 +108,56 @@
             margin: 0;
         }
         .package-features li {
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-dark);
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: 0.95em;
+            color: var(--text-secondary);
+        }
+        .package-features li:last-child {
+             border-bottom: none;
         }
         .check-icon {
-            color: var(--primary-color);
+            color: var(--success-color);
             font-size: 1.1em;
         }
 
         /* BAŞVURU FORMU */
         .form-section {
-            background-color: var(--bg-color);
-            padding: 30px;
+            background-color: var(--bg-card);
+            padding: 35px;
             border-radius: 8px;
             box-shadow: var(--shadow);
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border-dark);
         }
         .form-section h2 {
             color: var(--primary-color);
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: 500;
             font-size: 0.9em;
+            color: var(--text-light);
         }
+        label i {
+            color: var(--secondary-color);
+            margin-right: 5px;
+        }
+
         input[type="text"], input[type="email"], textarea {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            background-color: var(--secondary-bg-color);
-            color: var(--text-color);
+            padding: 12px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border-dark);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             border-radius: 4px;
             box-sizing: border-box;
             font-size: 1em;
@@ -173,7 +171,7 @@
         .submit-btn {
             background-color: var(--primary-color);
             color: white;
-            padding: 12px 20px;
+            padding: 14px 25px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -181,24 +179,26 @@
             font-size: 1.05em;
             font-weight: 600;
             transition: background-color 0.3s;
+            margin-top: 10px;
         }
         .submit-btn:hover {
-            background-color: #4a3355; /* Morun biraz koyusu */
+            background-color: #4a3355; 
         }
         
         /* MOBİL UYUMLULUK */
         @media (max-width: 768px) {
             .header-banner { padding: 40px 20px; }
             .header-banner h1 { font-size: 2em; }
+            .form-section { padding: 25px; }
         }
     </style>
 </head>
 <body>
 
 <div class="header-banner">
-    <button id="theme-toggle" aria-label="Temayı Değiştir"><i class="fas fa-moon"></i></button>
     <h1>Hızlı ve Ücretsiz Statik Hosting</h1>
-    <p>Projelerinizi **kapalı mor** temalı altyapımızda kolayca yayınlayın.</p>
+    <p>Projelerinizi güvenilir altyapımızda kolayca yayınlayın.</p>
+    <a href="login.html">Zaten Hesabınız Var mı? Müşteri Paneline Giriş Yapın <i class="fas fa-arrow-right"></i></a>
 </div>
 
 <div class="main-content">
@@ -206,7 +206,7 @@
     <h2 class="section-title">Tek ve Sade Paketimiz</h2>
     <div class="pricing-table">
         <div class="package-header">
-            <h3>Ücretsiz Başlangıç</h3>
+            <h3>Ücretsiz Statik Başlangıç</h3>
             <div class="price">0₺ <small>/ Süresiz</small></div>
         </div>
         <ul class="package-features">
@@ -214,12 +214,13 @@
             <li>Statik Dosya Barındırma <span class="check-icon"><i class="fas fa-check"></i></span></li>
             <li>HTTPS (SSL) Desteği <span class="check-icon"><i class="fas fa-check"></i></span></li>
             <li>Özel Alan Adı Seçeneği <span class="check-icon"><i class="fas fa-check"></i></span></li>
-            <li>Veritabanı Desteği <span style="color: #dc3545;"><i class="fas fa-times"></i></span></li>
+            <li>Yüksek Hız ve Erişilebilirlik <span class="check-icon"><i class="fas fa-check"></i></span></li>
+            <li>Dinamik (PHP/Veritabanı) Destek <span style="color: var(--danger-color);"><i class="fas fa-times"></i></span></li>
         </ul>
     </div>
     
     <div class="form-section">
-        <h2>Hemen Başvurunuzu Tamamlayın</h2>
+        <h2>Hizmetten Faydalanmak İçin Başvurun</h2>
         
         <form id="hostingBasvuruFormu" action="https://formspree.io/f/manlrnqz" method="POST"> 
             
@@ -243,33 +244,9 @@
             <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Başvuruyu Gönder</button>
         </form>
 
-        <p style="text-align: center; margin-top: 20px; font-size: 0.85em; opacity: 0.8;">Onay sonrası dosya gönderme yönergeleri e-posta ile tarafınıza iletilecektir.</p>
+        <p style="text-align: center; margin-top: 25px; font-size: 0.85em; color: var(--text-secondary);">Başvurunuzu gönderdikten sonra, kayıt olduğunuz e-posta adresine **dosya gönderme yönergeleri** gelecektir.</p>
     </div>
 </div>
-
-<script>
-    // Tema Değiştirme Fonksiyonu
-    document.getElementById('theme-toggle').addEventListener('click', function() {
-        const body = document.body;
-        body.classList.toggle('dark-mode');
-        
-        // İkonu değiştirme
-        const icon = this.querySelector('i');
-        if (body.classList.contains('dark-mode')) {
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        } else {
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-        }
-    });
-
-    // Sayfa yüklendiğinde tercihi kontrol et (isteğe bağlı)
-    document.addEventListener('DOMContentLoaded', () => {
-        // Burada yerel depolamadan (localStorage) temayı okuyabilirsiniz.
-        // Şimdilik sadece varsayılan temada bırakalım.
-    });
-</script>
 
 </body>
 </html>
