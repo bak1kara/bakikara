@@ -4,30 +4,176 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giriş / Kayıt | bakikara.xyz</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .auth-container { background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); width: 100%; max-width: 400px; }
-        .tabs { display: flex; margin-bottom: 25px; }
-        .tab-button { flex-grow: 1; padding: 15px 0; cursor: pointer; border: none; background: none; font-size: 1.1em; font-weight: 600; border-bottom: 3px solid transparent; color: #aaa; transition: all 0.3s; }
-        .tab-button.active { color: #007bff; border-bottom: 3px solid #007bff; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9em; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1em; }
-        .auth-btn { width: 100%; padding: 15px; border: none; border-radius: 6px; background-color: #28a745; color: white; font-size: 1.1em; font-weight: 600; cursor: pointer; transition: background-color 0.3s; margin-top: 10px; }
-        .auth-btn:hover { background-color: #218838; }
-        #authMessage { margin-top: 15px; padding: 10px; border-radius: 4px; text-align: center; display: none; }
-        .error { background-color: #ffdddd; color: #d8000c; }
-        .success { background-color: #d4edda; color: #155724; }
+        /* TEMA VE DEĞİŞKENLER (Önceki sayfalara uyumlu) */
+        :root {
+            --primary-color: #5d3f6a;       /* Kapalı Mor Vurgu */
+            --bg-dark: #12121e;             /* Çok Koyu Arka Plan */
+            --bg-card: #1e1e2d;             /* Koyu Kart Arka Planı */
+            --text-light: #e0e0e0;          /* Açık Metin */
+            --text-secondary: #a9a9b6;      /* İkincil Metin */
+            --border-dark: #2a2a3f;         /* Koyu Sınır */
+            --success-color: #28a745;       /* Yeşil (Başarılı) */
+            --danger-color: #e74c3c;        /* Kırmızı (Hata) */
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        /* GENEL STİL VE ANİMASYONLAR */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text-light);
+            transition: background-color 0.5s;
+        }
+
+        /* ANİMASYONLU KART KAPSAYICISI */
+        .auth-container {
+            background-color: var(--bg-card);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid var(--border-dark);
+            opacity: 0;
+            transform: scale(0.9);
+            animation: card-in 0.6s ease-out forwards;
+        }
+
+        @keyframes card-in {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* TAB STİLİ */
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-dark);
+        }
+        .tab-button {
+            flex-grow: 1;
+            padding: 15px 0;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+            outline: none;
+        }
+        .tab-button:hover:not(.active) {
+             color: var(--text-light);
+        }
+        .tab-button.active { 
+            color: var(--primary-color); 
+            border-bottom: 3px solid var(--primary-color);
+        }
+        .tab-button.active i {
+            color: var(--primary-color);
+        }
+
+        /* FORM STİLİ */
+        .form-group { 
+            margin-bottom: 20px; 
+            position: relative;
+        }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 500; 
+            font-size: 0.9em; 
+            color: var(--text-secondary);
+            transition: color 0.3s;
+        }
+        input { 
+            width: 100%; 
+            padding: 12px 15px; 
+            border: 1px solid var(--border-dark); 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 1em;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            outline: none;
+        }
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(93, 63, 106, 0.4);
+        }
+        
+        /* BUTON STİLİ */
+        .auth-btn { 
+            width: 100%; 
+            padding: 15px; 
+            border: none; 
+            border-radius: 8px; 
+            background-color: var(--primary-color); 
+            color: white; 
+            font-size: 1.1em; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s; 
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .auth-btn:hover { 
+            background-color: #4a3355; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+        .auth-btn:active {
+            transform: translateY(0);
+        }
+
+        /* MESAJ STİLİ */
+        #authMessage { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border-radius: 8px; 
+            text-align: center; 
+            font-size: 0.95em;
+            font-weight: 600;
+            display: none; 
+            animation: message-fade 0.4s ease-out;
+        }
+        .error { 
+            background-color: #3b2020; 
+            color: var(--danger-color); 
+            border: 1px solid var(--danger-color);
+        }
+        .success { 
+            background-color: #213c23; 
+            color: var(--success-color); 
+            border: 1px solid var(--success-color);
+        }
         .hidden { display: none; }
+
+        @keyframes message-fade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
 <div class="auth-container">
     <div class="tabs">
-        <button class="tab-button active" onclick="showTab('login')">Giriş Yap</button>
-        <button class="tab-button" onclick="showTab('register')">Kayıt Ol</button>
+        <button class="tab-button active" onclick="showTab('login')"><i class="fas fa-sign-in-alt"></i> Giriş Yap</button>
+        <button class="tab-button" onclick="showTab('register')"><i class="fas fa-user-plus"></i> Kayıt Ol</button>
     </div>
 
     <div id="login" class="tab-content">
@@ -39,7 +185,7 @@
             <label for="loginPassword">Şifre</label>
             <input type="password" id="loginPassword" placeholder="En az 6 karakter">
         </div>
-        <button class="auth-btn" onclick="handleLogin()">Giriş Yap</button>
+        <button class="auth-btn" onclick="handleLogin()"><i class="fas fa-lock"></i> Giriş Yap</button>
     </div>
 
     <div id="register" class="tab-content hidden">
@@ -51,15 +197,33 @@
             <label for="registerPassword">Şifre</label>
             <input type="password" id="registerPassword" placeholder="En az 6 karakter">
         </div>
-        <button class="auth-btn" onclick="handleRegister()">Kayıt Ol</button>
+        <button class="auth-btn" onclick="handleRegister()"><i class="fas fa-paper-plane"></i> Kayıt Ol</button>
     </div>
 
     <div id="authMessage" class="error"></div>
 </div>
 
 <script type="module">
-    // Firebase yapılandırmasını ve fonksiyonlarını içe aktar
-    import { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, doc, setDoc } from './firebase-config.js'; 
+    // Firebase bağlantılarını ve modüllerini import ediyoruz
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, signInWithCustomToken, setPersistence, browserLocalPersistence, getRedirectResult, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    
+    // Firestore log seviyesini ayarla (hata ayıklama için faydalı)
+    setLogLevel('Debug');
+
+    // Global Firebase Değişkenleri
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+    // Firebase'i başlat
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Oturum kalıcılığını yerel depolamaya ayarla
+    setPersistence(auth, browserLocalPersistence);
 
     // Tab geçiş işlevi
     window.showTab = function(tabId) {
@@ -79,13 +243,31 @@
         msgEl.style.display = 'block';
     }
 
+    // İlk kullanıcı verilerini Firestore'a kaydetme
+    async function saveInitialUserData(user) {
+        const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
+        const initialUserData = {
+            email: user.email,
+            createdAt: new Date(),
+            lastLogin: new Date(),
+            siteCount: 0, // Başlangıçta site sayısı 0
+            package: 'none'
+        };
+        try {
+            await setDoc(userDocRef, initialUserData, { merge: true });
+            console.log("İlk kullanıcı profili başarıyla oluşturuldu/güncellendi.");
+        } catch (error) {
+            console.error("Kullanıcı profili oluşturulurken/güncellenirken hata:", error);
+        }
+    }
+
     // Kayıt İşlemi
     window.handleRegister = async function() {
         const email = document.getElementById('registerEmail').value;
         const password = document.getElementById('registerPassword').value;
 
-        if (password.length < 6) {
-            return displayMessage("Şifre en az 6 karakter olmalıdır.", true);
+        if (!email || password.length < 6) {
+            return displayMessage("Lütfen geçerli bir e-posta girin ve şifrenin en az 6 karakter olduğundan emin olun.", true);
         }
 
         try {
@@ -93,19 +275,25 @@
             const user = userCredential.user;
 
             // Kullanıcı verilerini Firestore'a kaydet (İlk Veri)
-            await setDoc(doc(db, "users", user.uid), {
-                email: user.email,
-                createdAt: new Date(),
-                // Diğer başlangıç verileri buraya eklenebilir
-            });
+            await saveInitialUserData(user);
 
-            displayMessage("Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...", false);
+            displayMessage("Kayıt başarılı! Müşteri paneline yönlendiriliyorsunuz...", false);
+            // Başarılıysa paneli yönlendir
             setTimeout(() => {
-                window.location.href = 'dashboard.html'; // Başarılıysa paneli yönlendir
+                window.location.href = 'dashboard.html'; 
             }, 1500);
 
         } catch (error) {
-            displayMessage("Kayıt hatası: " + error.message, true);
+            let errorMessage = "Kayıt hatası. Lütfen tekrar deneyin.";
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = "Bu e-posta adresi zaten kullanılıyor. Giriş yapmayı deneyin.";
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = "Şifre çok zayıf. En az 6 karakter kullanın.";
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = "Geçersiz e-posta formatı.";
+            }
+            displayMessage(errorMessage, true);
+            console.error("Kayıt Hatası:", error);
         }
     }
 
@@ -114,14 +302,32 @@
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
 
+        if (!email || !password) {
+            return displayMessage("Lütfen e-posta ve şifrenizi girin.", true);
+        }
+
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // Firestore'daki son giriş tarihini güncelle
+            const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
+            await setDoc(userDocRef, { lastLogin: new Date() }, { merge: true });
+            
             displayMessage("Giriş başarılı! Yönlendiriliyorsunuz...", false);
+            // Başarılıysa paneli yönlendir
             setTimeout(() => {
-                window.location.href = 'dashboard.html'; // Başarılıysa paneli yönlendir
+                window.location.href = 'dashboard.html'; 
             }, 1000);
         } catch (error) {
-            displayMessage("Giriş hatası: " + error.message, true);
+            let errorMessage = "Giriş başarısız. E-posta veya şifreniz yanlış olabilir.";
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                errorMessage = "Geçersiz e-posta veya şifre.";
+            } else if (error.code === 'auth/invalid-email') {
+                errorMessage = "Geçersiz e-posta formatı.";
+            }
+            displayMessage(errorMessage, true);
+            console.error("Giriş Hatası:", error);
         }
     }
 </script>
