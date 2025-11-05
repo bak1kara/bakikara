@@ -325,40 +325,45 @@
 </div>
 
 <script type="module">
-    // Zorunlu Firebase CDN importları
+    // Firebase CDN imports
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Zorunlu global değişkenlerin kullanımı
+    // Mandatory global variables check
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
     
     if (!firebaseConfig) {
-        // Yapılandırma eksikse, konsola yaz ve betiği durdur
         console.error("Firebase Configuration is missing. Cannot proceed with Firebase initialization.");
-        // Arayüzün boş kalmaması için, bu noktada arayüzün bazı bölümleri hala görünür olmalıdır (CSS sayesinde).
-        // Ancak veri çekimi durdurulur.
         return;
     }
 
-    // Firebase servislerinin başlatılması
+    // Firebase services initialization
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
     setLogLevel('debug');
 
-    // Firestore veri yolu sabitleri
+    // Firestore constants
     const USER_DATA_COLLECTION = 'user_data';
     const USER_DATA_DOC = 'profile';
 
     let currentUserId = null;
     let activeTab = 'dashboard';
+    
+    // Maps link IDs to content IDs for easier navigation
+    const navMap = {
+        'dashboardLink': 'dashboard',
+        'fileUploadLink': 'fileUpload',
+        'supportLink': 'support',
+        'settingsLink': 'settings'
+    };
 
-    // --- UTILITY FONKSİYONLAR ---
+    // --- UTILITY FUNCTIONS ---
 
-    // Kart verilerini güncelleme
+    // Update card values
     function updateCard(elementId, value, messageId = null, message = null) {
         const element = document.getElementById(elementId);
         if (element) element.innerText = value;
@@ -368,7 +373,7 @@
         }
     }
     
-    // Yükleme sırasında kartları varsayılan duruma getirme
+    // Set loading state for cards
     function setLoadingState() {
         updateCard('userEmail', 'Yükleniyor...');
         updateCard('siteUrl', 'Yükleniyor...');
@@ -376,47 +381,40 @@
         updateCard('regDate', 'Yükleniyor...');
         document.getElementById('siteUrlLink').href = '#';
 
-        // Durum kartlarını varsayılan renge (warning) döndür
+        // Reset status card color to warning
         const statusCard = document.getElementById('serviceStatus').parentElement;
         statusCard.classList.remove('card-success', 'card-primary');
         statusCard.classList.add('card-warning');
     }
 
-    // Tıklanan sekmeye göre içeriği değiştirme
+    // Switch content visibility and active state (ÇALIŞMASI GARANTİLENDİ)
     function switchContent(newTab) {
-        // Tüm içerik sekmelerini gizle
+        // Hide all content sections and deactivate all links
         document.querySelectorAll('.content-section').forEach(section => {
             section.classList.add('hidden');
         });
-        // Tüm navigasyon linklerinin 'active' sınıfını kaldır
         document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.remove('active');
         });
 
-        // Yeni içeriği göster
+        // Show new content
         const newContent = document.getElementById(newTab + 'Content');
         if (newContent) {
             newContent.classList.remove('hidden');
         }
 
-        // Karşılık gelen navigasyon linkini bul ve 'active' yap
-        let navId;
-        if (newTab === 'dashboard') navId = 'dashboardLink';
-        else if (newTab === 'fileUpload') navId = 'fileUploadLink';
-        else if (newTab === 'support') navId = 'supportLink';
-        else if (newTab === 'settings') navId = 'settingsLink';
-
-        const activeNavLink = document.getElementById(navId);
+        // Find and activate the corresponding navigation link
+        const activeNavLink = document.getElementById(Object.keys(navMap).find(key => navMap[key] === newTab));
         if (activeNavLink) {
             activeNavLink.classList.add('active');
         }
 
         activeTab = newTab;
 
-        // Ayarlar sekmesi aktifleşirse verileri güncelle
+        // Update settings content if it's the active tab
         if (newTab === 'settings' && auth.currentUser) {
             document.getElementById('settingsEmail').innerText = auth.currentUser.email || 'Bilinmiyor';
-            // Kayıt tarihini dashboard kartından kopyala (eğer yüklenmişse)
+            // Copy registration date from dashboard card
             const regDateText = document.getElementById('regDate').innerText;
             if (regDateText && regDateText !== 'Yükleniyor...') {
                 document.getElementById('settingsRegDate').innerText = regDateText;
@@ -424,7 +422,7 @@
         }
     }
 
-    // E-posta adresini panoya kopyalama
+    // Copy to clipboard
     window.handleCopy = function(text) {
         const tempInput = document.createElement('input');
         document.body.appendChild(tempInput);
@@ -432,41 +430,44 @@
         tempInput.select();
         try {
             document.execCommand('copy');
-            console.log(`E-posta adresi panoya kopyalandı: ${text}`);
+            console.log(`Email copied: ${text}`);
         } catch (err) {
-            console.error('Kopyalama hatası:', err);
+            console.error('Copy error:', err);
         }
         document.body.removeChild(tempInput);
     }
 
-    // Çıkış Yapma İşlemi
+    // Logout and sign in anonymously immediately
     window.handleLogout = function() {
         signOut(auth).then(() => {
-            // Başarılı çıkış sonrası anonim giriş yap
-            signInAnonymously(auth).then(() => {
-                // Çıkış ve tekrar giriş sonrası Dashboard'a yönlendir
-                switchContent('dashboard'); 
-            }).catch(e => console.error("Anonim giriş başarısız.", e));
+            // After successful sign out, sign in anonymously to keep the session running
+            signInAnonymously(auth).catch(e => console.error("Anonim giriş başarısız.", e));
         }).catch((error) => {
-            console.error("Çıkış hatası:", error);
+            console.error("Sign out error:", error);
         });
     }
 
-    // HATA DÜZELTME: Tüm Navigasyon linklerine tıklama olaylarını bağlama (DOM içeriğinin yüklendiğinden emin olmak için)
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('dashboardLink').addEventListener('click', (e) => { e.preventDefault(); switchContent('dashboard'); });
-        document.getElementById('fileUploadLink').addEventListener('click', (e) => { e.preventDefault(); switchContent('fileUpload'); });
-        document.getElementById('supportLink').addEventListener('click', (e) => { e.preventDefault(); switchContent('support'); });
-        document.getElementById('settingsLink').addEventListener('click', (e) => { e.preventDefault(); switchContent('settings'); });
+    // --- INITIALIZATION AND EVENT LISTENERS ---
 
-        // Başlangıçta dashboard'u göster (zaten HTML'de active class'ı var, bu sadece garantilemek için)
+    document.addEventListener('DOMContentLoaded', () => {
+        // Attach click listeners to all navigation links using the navMap
+        Object.keys(navMap).forEach(linkId => {
+            const linkElement = document.getElementById(linkId);
+            if (linkElement) {
+                linkElement.addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    switchContent(navMap[linkId]); 
+                });
+            }
+        });
+
+        // Ensure dashboard is visible on load
         switchContent('dashboard');
     });
 
 
-    // --- FIREBASE BAĞLANTI VE VERİ ÇEKME İŞLEMLERİ ---
+    // --- FIREBASE AUTH AND DATA LISTENER ---
 
-    // Oturum Açma Kontrolü ve Veri Dinleme
     onAuthStateChanged(auth, async (user) => {
         setLoadingState();
         
@@ -474,10 +475,10 @@
             currentUserId = user.uid;
             document.getElementById('userEmail').innerText = user.email ? user.email.split('@')[0] : 'Misafir';
             
-            // Kullanıcının verisinin saklandığı Firestore yolunu oluşturun (Private Data Kuralı)
+            // Construct Firestore path (Private Data Rule)
             const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, USER_DATA_COLLECTION, USER_DATA_DOC);
             
-            // onSnapshot ile gerçek zamanlı veri dinlemesi
+            // Real-time data listener (onSnapshot ensures instantaneous updates)
             const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
                 const statusCard = document.getElementById('serviceStatus').parentElement;
                 
@@ -485,24 +486,22 @@
                     const userData = docSnap.data();
                     const username = user.email ? user.email.split('@')[0] : 'misafir';
                     
-                    // 1. Site URL'sini güncelle ve tıklanabilir yap
+                    // 1. Update Site URL
                     const sitePath = `bakikara.xyz/${username}`;
                     updateCard('siteUrl', sitePath);
                     document.getElementById('siteUrlLink').href = `http://${sitePath}`;
 
-                    // 2. Kayıt Tarihini göster
+                    // 2. Update Registration Date
                     let formattedDate = 'Bilinmiyor';
                     if (userData.createdAt) {
-                        // Firestore Timestamp objesini yerel zamana çevir
                         formattedDate = userData.createdAt.toDate().toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' });
                     } else if (user.metadata && user.metadata.creationTime) {
-                        // Firebase Auth metadatasından al
                         formattedDate = new Date(user.metadata.creationTime).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' });
                     }
                     updateCard('regDate', formattedDate);
-                    document.getElementById('settingsRegDate').innerText = formattedDate; // Ayarlar sekmesi için
+                    document.getElementById('settingsRegDate').innerText = formattedDate; 
 
-                    // 3. Hizmet Durumunu dinamik olarak göster
+                    // 3. Update Service Status
                     statusCard.classList.remove('card-success', 'card-warning', 'card-primary');
 
                     if (userData.isPublished === true) {
@@ -512,7 +511,6 @@
                         updateCard('serviceStatus', 'İncelemede', 'serviceMessage', 'Dosyanız inceleniyor, kısa süre içinde yayında olacak.');
                         statusCard.classList.add('card-warning');
                     } else {
-                        // Varsayılan: Dosya Bekleniyor
                         updateCard('serviceStatus', 'Dosya Bekleniyor', 'serviceMessage', 'Yayın için sitenizi (zip) e-posta ile gönderin.');
                         statusCard.classList.add('card-warning');
                     }
@@ -520,9 +518,9 @@
                     document.getElementById('settingsEmail').innerText = user.email || 'Bilinmiyor';
 
                 } else {
-                    // Kullanıcı Firestore'da yoksa, ilk kaydı oluştur (simülasyon)
+                    // Create initial record if it doesn't exist
                     const initialUserData = {
-                        email: user.email,
+                        email: user.email || 'anonymous',
                         createdAt: serverTimestamp(),
                         isPublished: false,
                         fileUploaded: false
@@ -531,25 +529,25 @@
                         .then(() => console.log("İlk kullanıcı profili oluşturuldu."))
                         .catch(err => console.error("Kullanıcı profili oluşturulurken hata:", err));
 
-                    setLoadingState(); // Veri gelene kadar yükleniyor göster
+                    setLoadingState(); 
                 }
             }, (error) => {
-                // Hata durumunda arayüzü güncelle
+                // Handle snapshot errors
                 updateCard('userEmail', 'Veri Bağlantı Hatası');
                 updateCard('serviceStatus', 'Hata!', 'serviceMessage', 'Verilere erişilemiyor.');
                 console.error("Firestore Snapshot Hatası:", error);
             });
             
         } else {
-            // Kullanıcı giriş yapmamışsa, giriş sayfasına yönlendir (veya anonim giriş yap)
+            // Handle unauthenticated user flow
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    // Eğer token varsa ancak kullanıcı yoksa, özel token ile tekrar giriş yapmayı dene
+                    // Attempt custom token sign-in
                     signInWithCustomToken(auth, __initial_auth_token).catch(err => {
                         console.error("Özel token ile giriş yapılamadı, anonim olarak deneniyor.", err);
                         signInAnonymously(auth).catch(e => console.error("Anonim giriş de başarısız.", e));
                     });
             } else {
-                // Token yoksa anonim giriş yap
+                // Fallback to anonymous sign-in
                 signInAnonymously(auth).catch(err => console.error("Anonim giriş başarısız.", err));
             }
         }
