@@ -4,54 +4,218 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Müşteri Paneli | bakikara.xyz</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
-        .header { background-color: #007bff; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-        .header h1 { margin: 0; font-size: 1.5em; }
-        .header button { padding: 10px 15px; border: none; border-radius: 6px; background-color: #dc3545; color: white; font-weight: 600; cursor: pointer; transition: background-color 0.3s; }
-        .header button:hover { background-color: #c82333; }
-        .dashboard-content { max-width: 1000px; margin: 40px auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
-        .welcome-msg { font-size: 1.2em; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .welcome-msg strong { color: #007bff; }
-        /* Panel kart stili */
-        .card { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #28a745; }
-        .card h3 { color: #28a745; margin-top: 0; }
-        .instruction-box { border-left: 5px solid #ff9800; background-color: #fffaf0; padding: 20px; margin-top: 20px; }
-        .instruction-box a { color: #007bff; font-weight: 600; text-decoration: none; }
+        /* GENEL STİL */
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; /* Sidebar ve Ana İçerik için Flex */
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* 1. KENAR ÇUBUĞU (SIDEBAR) STİLİ */
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50; /* Koyu Mavi/Gri */
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: #007bff; /* Vurgu rengi */
+        }
+        .nav-link {
+            width: 100%;
+            padding: 15px 30px;
+            text-decoration: none;
+            color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .nav-link i {
+            margin-right: 10px;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: #34495e;
+            color: #007bff;
+        }
+        .logout-btn {
+            margin-top: auto; /* En alta ittirir */
+            padding: 15px 30px;
+            width: 100%;
+            border: none;
+            background-color: #e74c3c;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* 2. ANA İÇERİK (MAIN CONTENT) STİLİ */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .welcome-msg {
+            font-size: 1.5em;
+            font-family: 'Poppins', sans-serif;
+        }
+        .welcome-msg strong {
+            color: #007bff;
+            font-weight: 700;
+        }
+        
+        /* BİLGİ KARTLARI (STATUS CARDS) */
+        .status-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .info-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid;
+        }
+        .info-card h3 {
+            margin-top: 0;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        .card-value {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        /* Kart Renkleri */
+        .card-primary { border-left-color: #007bff; }
+        .card-success { border-left-color: #28a745; }
+        .card-warning { border-left-color: #ffc107; }
+
+        /* YÖNERGE KUTUSU */
+        .instruction-box { 
+            border: 1px solid #ff9800; 
+            background-color: #fffaf0; 
+            padding: 25px; 
+            border-radius: 8px;
+            margin-top: 20px; 
+        }
+        .instruction-box h3 { 
+            color: #ff9800; 
+            margin-top: 0;
+        }
+        .instruction-box a { 
+            color: #007bff; 
+            font-weight: 600; 
+            text-decoration: none; 
+        }
+        .email-address {
+            font-size: 1.2em;
+            color: #dc3545;
+            font-weight: 700;
+            margin: 15px 0;
+            display: block;
+        }
+        
+        /* MOBİL UYUMLULUK */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                padding: 10px 0;
+                flex-direction: row;
+                justify-content: space-around;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+            .sidebar .logo { display: none; }
+            .sidebar .logout-btn { display: none; }
+            .sidebar .nav-link { padding: 10px 15px; }
+            .main-content { padding: 20px; }
+            .top-bar { flex-direction: column; align-items: flex-start; }
+            .welcome-msg { margin-bottom: 10px; }
+            .status-cards { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <h1>Müşteri Paneli</h1>
-    <button onclick="handleLogout()">Çıkış Yap</button>
+<div class="sidebar">
+    <div class="logo">Baki Hosting</div>
+    
+    <a href="dashboard.html" class="nav-link active"><i class="fas fa-tachometer-alt"></i> Panelim</a>
+    <a href="#" class="nav-link"><i class="fas fa-file-upload"></i> Dosya Yönetimi</a>
+    <a href="#" class="nav-link"><i class="fas fa-question-circle"></i> Destek</a>
+    <a href="#" class="nav-link"><i class="fas fa-cog"></i> Ayarlar</a>
+
+    <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
 </div>
 
-<div class="dashboard-content">
-    <div class="welcome-msg">Hoş Geldiniz, <strong id="userEmail">Yükleniyor...</strong></div>
+<div class="main-content">
     
-    <h2>Hizmet Durumu</h2>
-
-    <div class="card">
-        <h3>Statik Hosting Hizmeti</h3>
-        <p><strong>URL:</strong> <span id="siteUrl">bakikara.xyz/kullanici-adi</span></p>
-        <p><strong>Durum:</strong> Dosya Bekleniyor</p>
-        <p><strong>Kayıt Tarihi:</strong> <span id="regDate">Yükleniyor...</span></p>
+    <div class="top-bar">
+        <div class="welcome-msg">Merhaba, <strong id="userEmail">Yükleniyor...</strong></div>
     </div>
+    
+    <div class="status-cards">
+        
+        <div class="info-card card-primary">
+            <h3>Site Adresiniz</h3>
+            <div class="card-value" id="siteUrl">Yükleniyor...</div>
+            <p style="font-size: 0.9em; margin: 0;">Alt klasörde yayınlanacak.</p>
+        </div>
 
-    <h2>Dosya Gönderimi ve Yayınlama</h2>
+        <div class="info-card card-success">
+            <h3>Hizmet Durumu</h3>
+            <div class="card-value" id="serviceStatus">Dosya Bekleniyor</div>
+            <p style="font-size: 0.9em; margin: 0;">Yayın için dosyanızı gönderin.</p>
+        </div>
+
+        <div class="info-card card-warning">
+            <h3>Kayıt Tarihi</h3>
+            <div class="card-value" id="regDate">Yükleniyor...</div>
+            <p style="font-size: 0.9em; margin: 0;">Hosting'e başlama tarihiniz.</p>
+        </div>
+    </div>
+    
+    <h2><i class="fas fa-paper-plane"></i> Dosya Gönderim Yönergesi</h2>
     <div class="instruction-box">
-        <h3>Site Dosyalarınızı Nasıl Göndereceksiniz?</h3>
-        <p>Web sitenizi yayınlamak için, lütfen sitenizin tüm dosyalarını (HTML, CSS, görseller vb.) tek bir **.zip** dosyası halinde sıkıştırın.</p>
+        <h3>Sitenizin Yayınlanması İçin Son Adım</h3>
+        <p>Web sitenizi (HTML, CSS, JS) tek bir **.zip** dosyası halinde sıkıştırdıktan sonra, lütfen bu dosyayı aşağıdaki e-posta adresine gönderin.</p>
         
-        <p style="font-weight: bold; margin-top: 15px;">Lütfen sıkıştırılmış .zip dosyasını (veya dosyanın Google Drive/Wetransfer bağlantısını) aşağıdaki e-posta adresine gönderin:</p>
+        <p style="font-weight: bold; margin-top: 15px;">Gönderim Adresi:</p>
         
-        <p style="font-size: 1.1em; color: #dc3545; margin: 15px 0;">
-            <a href="mailto:SİZİN_EPOSTA_ADRESİNİZ@example.com">SİZİN_EPOSTA_ADRESİNİZ@example.com</a>
-        </p>
-
-        <p style="font-size: 0.9em;">Dosyanız bize ulaştıktan sonra, maksimum 24 saat içinde siteniz **bakikara.xyz/[Kullanıcı Adınız]** adresinde yayına alınacaktır. Yayınlandığında size e-posta ile bildirim yapılacaktır.</p>
+        <a href="mailto:SİZİN_EPOSTA_ADRESİNİZ@example.com" class="email-address">mehmeteminacan13@gmail.com</a>
+        
+        <p style="font-size: 0.9em;">Dosyanız bize ulaştığında, maks. 24 saat içinde siteniz yayına alınır ve size onay e-postası gönderilir.</p>
     </div>
 
 </div>
