@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMM Panel Yönetimi | Final Sürüm</title>
+    <title>SMM Panel Yönetimi | Firebase Bağlantılı</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -264,17 +264,28 @@
         import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // setLogLevel('Debug'); // Debug modunu açmak için yorum satırını kaldırın.
-
-        // Global değişkenlerden Firebase yapılandırmasını al
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         
+        // KULLANICININ VERDİĞİ FIREBASE CONFIG BİLGİLERİ
+        const customFirebaseConfig = {
+            apiKey: "AIzaSyDr5OUxQYMwPTNsUH3SjWUYr5ML51mQIZQ",
+            authDomain: "smm-go-50a17.firebaseapp.com",
+            projectId: "smm-go-50a17",
+            storageBucket: "smm-go-50a17.firebasestorage.app",
+            messagingSenderId: "731144225117",
+            appId: "1:731144225117:web:bcb39f04d446225beda8b4",
+            measurementId: "G-BCC5NJKLZH"
+        };
+        // Canvas ortamında sağlanan global değişkenleri kullanmak yerine,
+        // doğrudan kullanıcı tarafından sağlanan config'i kullanıyoruz.
+        const firebaseConfig = customFirebaseConfig; 
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const canvasAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-smm-app-id';
+
         let app, db, auth;
         let isFirebaseInitialized = false;
-        let appId = 'default-smm-app-id'; // Varsayılan uygulama ID'si
+        let appId = firebaseConfig.projectId; // Proje ID'sini app ID olarak kullanıyoruz.
 
         if (firebaseConfig) {
-             appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
@@ -326,13 +337,17 @@
 
         /**
          * Firestore için kullanıcıya özgü koleksiyon yolu oluşturur.
+         * NOT: Kendi Firebase'inizi kullandığınızda güvenlik kurallarını buna göre ayarlamalısınız.
+         * Mevcut yapıda, kullanıcı profil bilgileri (bakiye, ad) 'user_profiles' ana koleksiyonunda tutulur.
+         * Siparişler ise Canvas güvenlik kuralları yapısına uygun tutulur.
          * @param {string} collectionName - Koleksiyon adı (örn: 'orders').
          * @returns {string} Tam koleksiyon yolu.
          */
         function getUserCollectionPath(collectionName) {
             const userId = appState.userId || 'guest';
-            // Firestore Güvenlik Kurallarına uygun yol: /artifacts/{appId}/users/{userId}/{collectionName}
-            return `artifacts/${appId}/users/${userId}/${collectionName}`;
+            // Canvas Güvenlik Kuralları Yapısı: /artifacts/{canvasAppId}/users/{userId}/{collectionName}
+            // Kendi projenizde bu yapıyı kullanmasanız bile, uyumluluk için koruyoruz.
+            return `artifacts/${canvasAppId}/users/${userId}/${collectionName}`; 
         }
 
         /**
@@ -350,7 +365,9 @@
          * Modalı gizler.
          */
         function hideModal() {
+            document.getElementById('modalCloseButton')?.removeEventListener('click', hideModal); // Eski dinleyiciyi kaldır
             document.getElementById('modalContainer').classList.add('hidden');
+            document.getElementById('modalCloseButton')?.addEventListener('click', hideModal); // Yeniden ekle
         }
         window.hideModal = hideModal; // Global erişim için açığa çıkar
 
@@ -443,6 +460,7 @@
             switch (code) {
                 case 'auth/user-not-found':
                 case 'auth/wrong-password': return 'Hatalı e-posta veya şifre.';
+                case 'auth/invalid-credential': return 'Hatalı e-posta veya şifre.';
                 case 'auth/email-already-in-use': return 'Bu e-posta adresi zaten kullanımda.';
                 case 'auth/invalid-email': return 'Geçersiz e-posta formatı.';
                 case 'auth/weak-password': return 'Şifre en az 6 karakter olmalıdır.';
@@ -541,17 +559,19 @@
             if (!uid || !db) return;
 
             // 1. Kullanıcı Profili/Bakiye Dinleyicisi
+            // NOT: Kendi projenizde bu koleksiyonun güvenlik kurallarını (user_profiles/{uid}) 
+            // sadece oturum açan kullanıcının okuma/yazma yapabileceği şekilde ayarlamanız gerekir.
             const userDocRef = doc(db, 'user_profiles', uid);
             onSnapshot(userDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     appState.userBalance = data.balance || 0.00;
-                    appState.displayName = data.displayName || auth.currentUser.email.split('@')[0];
+                    appState.displayName = data.displayName || auth.currentUser.email?.split('@')[0] || uid.substring(0, 8);
                 } else {
                     // İlk kez giriş yapan kullanıcı için profil oluşturulur
                     setDoc(userDocRef, {
-                        displayName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
-                        email: auth.currentUser.email,
+                        displayName: auth.currentUser.displayName || auth.currentUser.email?.split('@')[0] || uid.substring(0, 8),
+                        email: auth.currentUser.email || 'N/A',
                         balance: 0.00,
                         createdAt: serverTimestamp(),
                         userId: uid
@@ -563,6 +583,7 @@
             });
 
             // 2. Siparişler Dinleyicisi
+            // Siparişler, Canvas Güvenlik Kuralları yapısına uygun yolda tutulur.
             const ordersCollectionRef = collection(db, getUserCollectionPath('orders'));
             onSnapshot(query(ordersCollectionRef), (snapshot) => {
                 appState.orders = snapshot.docs.map(doc => ({
@@ -581,6 +602,7 @@
                 if (user) {
                     appState.isAuthenticated = true;
                     appState.userId = user.uid;
+                    // Eğer kullanıcı e-posta/şifre ile giriş yaptıysa displayName'i güncellenir
                     appState.displayName = user.displayName || user.email?.split('@')[0] || user.uid.substring(0, 8);
                     setupFirestoreListeners(user.uid);
 
@@ -609,7 +631,8 @@
                     signInAnonymously(auth); // Hata olursa anonim giriş
                 });
             } else {
-                signInAnonymously(auth); // Token yoksa anonim giriş
+                // Anonim giriş, kullanıcı giriş yapana kadar veritabanı okuma/yazma izni vermez.
+                signInAnonymously(auth); 
             }
         }
 
@@ -698,10 +721,10 @@
                 };
 
                 try {
-                    // 1. Siparişi kaydet
+                    // 1. Siparişi kaydet (Canvas Güvenlik Kuralları Yapısına uygun yolda)
                     await addDoc(collection(db, getUserCollectionPath('orders')), newOrder);
                     
-                    // 2. Bakiyeyi düşür
+                    // 2. Bakiyeyi düşür (user_profiles ana koleksiyonunda)
                     const userDocRef = doc(db, 'user_profiles', appState.userId);
                     const newBalance = appState.userBalance - cost;
                     await updateDoc(userDocRef, {
@@ -949,7 +972,7 @@
                             </div>
                             <div class="border-t border-[var(--border-color)] pt-4">
                                 <p class="text-gray-400 text-sm">E-posta</p>
-                                <p class="text-white font-medium">${auth.currentUser.email || 'N/A'}</p>
+                                <p class="text-white font-medium">${auth.currentUser?.email || 'N/A'}</p>
                             </div>
                              <div class="border-t border-[var(--border-color)] pt-4">
                                 <p class="text-gray-400 text-sm flex items-center justify-between">
@@ -958,7 +981,7 @@
                                         <i class="fas fa-copy"></i> Kopyala
                                     </button>
                                 </p>
-                                <p id="fullUserId" class="text-white font-mono text-sm break-all">${appState.userId}</p>
+                                <p id="fullUserId" class="text-white font-mono text-sm break-all">${appState.userId || 'Giriş yapılmadı'}</p>
                             </div>
                         </div>
                     </div>
@@ -1058,9 +1081,7 @@
                     pageContentDiv.style.opacity = '1';
                     
                     // Dashboard sayfasında "Tüm Siparişleri Gör" butonuna listener ekle
-                    if (pageName === 'dashboard') {
-                        document.getElementById('viewAllOrdersButton')?.addEventListener('click', () => handleNavigation('orders'));
-                    }
+                    document.getElementById('viewAllOrdersButton')?.addEventListener('click', () => handleNavigation('orders'));
                     
                     // NewOrder sayfasında başlangıçta servisleri yükle
                     if (pageName === 'newOrder') {
@@ -1073,7 +1094,7 @@
         }
 
         // =======================================================================
-        // GÜVENİLİR DOM OLAY DİNLEYİCİLERİ (onclick sorununun çözümü)
+        // GÜVENİLİR DOM OLAY DİNLEYİCİLERİ
         // =======================================================================
 
         document.addEventListener('DOMContentLoaded', () => {
