@@ -14,36 +14,63 @@ const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Auth Form Durumu
 let isSignUpMode = false; // Başlangıçta Giriş Yap modunda
 
+// Global Alert Kutusu (sosyal.html'den gelir)
+if (typeof showAlert !== 'function') {
+    // showAlert HTML'de tanımlı değilse hata vermemek için bir fallback
+    window.showAlert = (message, type = 'green') => {
+        console.log(`[ALERT] ${type.toUpperCase()}: ${message}`);
+    };
+}
+
+
 // =========================================================================
 // UI YÖNETİMİ
 // =========================================================================
 
 /**
  * Kullanıcı oturum durumuna göre Navbar, Auth Formu ve Yorum Formunu günceller.
+ * Bu fonksiyon, kullanıcının giriş yapıp yapmadığını kontrol eder
+ * ve UI'da profil kartını gösterir veya gizler.
  * @param {object} session - Supabase oturum nesnesi.
  */
 function updateUIForAuth(session) {
-    const authButtons = document.getElementById('auth-buttons'); // Navbar'daki Giriş/Kayıt butonu alanı
-    const profileArea = document.getElementById('profile-area'); // Navbar'daki kullanıcı bilgisi/Çıkış alanı
+    const authButtons = document.getElementById('auth-buttons'); // Giriş/Kayıt butonu alanı (Oturum kapalıyken görünür)
+    const profileArea = document.getElementById('profile-area'); // Profil kartı alanı (Oturum açıkken görünür)
     const authFormArea = document.getElementById('auth-form-area'); // Giriş/Kayıt formu alanı
     const commentInputArea = document.getElementById('comment-input-area'); // Yorum gönderme formu alanı
     const userInfo = document.getElementById('user-info'); // Kullanıcı adı gösterim alanı
     
+    // Gerekli tüm elemanların var olduğundan emin olun
+    if (!authButtons || !profileArea || !authFormArea || !commentInputArea || !userInfo) {
+        console.error("KRİTİK HATA: UI elementlerinden biri veya birkaçı bulunamadı.");
+        return; 
+    }
+
     if (session?.user) {
-        // Kullanıcı giriş yapmış
+        // ⭐ KULLANICI GİRİŞ YAPMIŞ DURUMU (PROFİL KARTI GÖRÜNÜR)
         const email = session.user.email;
-        if (authButtons) authButtons.classList.add('hidden');
-        if (profileArea) profileArea.classList.remove('hidden');
-        if (authFormArea) authFormArea.classList.add('hidden');
-        if (commentInputArea) commentInputArea.classList.remove('hidden');
-        if (userInfo) userInfo.textContent = email ? email.split('@')[0] : 'Kullanıcı'; // Kullanıcı adını göster
+        
+        // Navbar Düzeltmeleri
+        authButtons.classList.add('hidden'); // Giriş/Kayıt butonu gizlenir
+        profileArea.classList.remove('hidden'); // Profil alanı GÖRÜNÜR olur
+
+        // Kullanıcı Adını Göster: E-posta adının @'den önceki kısmını alır
+        if (userInfo) userInfo.textContent = email ? email.split('@')[0] : 'Kullanıcı'; 
+
+        // Form Düzeltmeleri (Yorum formunu açar)
+        authFormArea.classList.add('hidden');
+        commentInputArea.classList.remove('hidden');
         
     } else {
-        // Kullanıcı giriş yapmamış
-        if (authButtons) authButtons.classList.remove('hidden');
-        if (profileArea) profileArea.classList.add('hidden');
-        if (authFormArea) authFormArea.classList.remove('hidden');
-        if (commentInputArea) commentInputArea.classList.add('hidden');
+        // KULLANICI ÇIKIŞ YAPMIŞ DURUMU (PROFİL KARTI GİZLİ)
+        
+        // Navbar Düzeltmeleri
+        authButtons.classList.remove('hidden'); // Giriş/Kayıt butonu GÖRÜNÜR olur
+        profileArea.classList.add('hidden'); // Profil alanı gizlenir
+
+        // Form Düzeltmeleri (Auth formunu açar)
+        authFormArea.classList.remove('hidden');
+        commentInputArea.classList.add('hidden');
         
         // Formu başlangıç moduna döndür
         setAuthMode(false);
@@ -60,6 +87,11 @@ function setAuthMode(isSignUp) {
     const authSubmitBtn = document.getElementById('auth-submit-btn');
     const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
     
+    if (!authTitle || !authSubmitBtn || !toggleAuthModeBtn) {
+        console.error("Auth UI elementleri bulunamadı. setAuthMode çalışamıyor.");
+        return;
+    }
+
     if (isSignUp) {
         authTitle.textContent = 'Yeni Hesap Oluştur';
         authSubmitBtn.textContent = 'Kayıt Ol';
@@ -76,9 +108,7 @@ function setAuthMode(isSignUp) {
 // YETKİLENDİRME (AUTH) İŞLEMLERİ
 // =========================================================================
 
-/**
- * Giriş yapma işlemini gerçekleştirir.
- */
+/** Kullanıcı girişini dener. */
 async function signIn(email, password) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     
@@ -90,9 +120,7 @@ async function signIn(email, password) {
     return true;
 }
 
-/**
- * Kayıt olma işlemini gerçekleştirir.
- */
+/** Yeni kullanıcı kaydını dener. */
 async function signUp(email, password) {
     const { error } = await supabase.auth.signUp({ email, password });
 
@@ -101,15 +129,13 @@ async function signUp(email, password) {
         return false;
     }
     
+    // Kayıt başarılı olduğunda kullanıcıyı giriş yapma moduna döndür.
     showAlert('Kayıt başarılı! Lütfen giriş yapın.');
-    // Kayıt başarılıysa, Giriş Yap moduna geç
     setAuthMode(false); 
     return true;
 }
 
-/**
- * Form gönderimini işler (Giriş veya Kayıt).
- */
+/** Form gönderimini işler (Giriş veya Kayıt). */
 async function handleAuthFormSubmit(e) {
     e.preventDefault();
 
@@ -128,58 +154,30 @@ async function handleAuthFormSubmit(e) {
     }
 }
 
-/**
- * Kullanıcının oturumunu sonlandırır.
- */
+/** Kullanıcının oturumunu sonlandırır. */
 async function signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) {
         showAlert(`Çıkış hatası: ${error.message}`, 'red');
     } else {
         showAlert('Başarıyla çıkış yaptınız.');
-        updateUIForAuth(null);
+        updateUIForAuth(null); // UI'ı oturum kapalı duruma getir
     }
 }
 
 
 // =========================================================================
-// YORUM İŞLEMLERİ (Render API'sini Kullanır)
+// YORUM İŞLEMLERİ
 // =========================================================================
 
 /**
- * API'yi kullanarak yeni bir yorum gönderir.
- * (Bu fonksiyonu API'nizin beklediği şekilde tutuyorum)
- */
-async function sendComment(pageSlug, userId, userName, content) {
-    try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        // Supabase ile test için basitçe ekranda gösterelim
-        if (!session) throw new Error("Oturum bulunamadı. Lütfen giriş yapın.");
-        
-        // Yorumu ekrana ekleme (API'siz geçici gösterim)
-        renderNewComment({
-            user_name: userName,
-            content: content,
-            created_at: new Date().toISOString()
-        });
-        
-        return true; // Başarılı kabul et
-    } catch (error) {
-        showAlert(`Yorum gönderme hatası: ${error.message}`, 'red');
-        return false;
-    }
-}
-
-/**
- * Yeni gönderilen yorumu yorum listesine ekler.
+ * Yeni gönderilen yorumu yorum listesine ekler (Geçici Simülasyon).
  */
 function renderNewComment(comment) {
     const list = document.getElementById('comments-list');
     const loadingMessage = document.getElementById('loading-message');
-    if (loadingMessage) loadingMessage.remove(); // Yükleniyor mesajını kaldır
+    if (loadingMessage) loadingMessage.remove(); 
 
-    // Yeni yorum öğesini oluştur
     const newCommentDiv = document.createElement('div');
     newCommentDiv.className = 'p-5 primary-light rounded-xl border border-slate-700 section-animate';
     newCommentDiv.innerHTML = `
@@ -187,8 +185,25 @@ function renderNewComment(comment) {
         <p class="text-gray-300 mt-1">${comment.content}</p>
     `;
     
-    // Listenin en üstüne ekle (En yeni yorum en üstte)
     list.prepend(newCommentDiv);
+}
+
+/** Yorum gönderme simülasyonu */
+async function sendComment(pageSlug, userId, userName, content) {
+    try {
+        // Bu kısım normalde Render API'sine POST atar. Şimdi sadece UI güncellemesi yapıyoruz.
+        renderNewComment({
+            user_name: userName,
+            content: content,
+            created_at: new Date().toISOString()
+        });
+        
+        showAlert('Yorumunuz başarıyla gönderildi!', 'green');
+        return true; 
+    } catch (error) {
+        showAlert(`Yorum gönderme hatası: ${error.message}`, 'red');
+        return false;
+    }
 }
 
 // =========================================================================
@@ -205,7 +220,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     supabase.auth.onAuthStateChange((event, session) => {
         updateUIForAuth(session);
         // Oturum açılıp kapanınca formu temizle
-        if (document.getElementById('auth-form')) document.getElementById('auth-form').reset();
+        const authForm = document.getElementById('auth-form');
+        if (authForm) authForm.reset();
     });
 
     // C. Auth Formu Listener'ları
@@ -219,6 +235,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (toggleAuthModeBtn) {
         toggleAuthModeBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            // isSignUpMode'un tersine ayarlar
             setAuthMode(!isSignUpMode);
             // Mod değişince formu temizle
             if (authForm) authForm.reset(); 
@@ -251,12 +268,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             const userId = user.id;
+            // Kullanıcı adını, e-posta isminden alıyoruz
             const userName = user.user_metadata?.full_name || user.email.split('@')[0];
 
             const result = await sendComment(window.CURRENT_PAGE_SLUG, userId, userName, commentText);
             
             if (result) {
-                showAlert('Yorumunuz başarıyla gönderildi!');
+                // Başarılıysa form temizlenir (sendComment içinde zaten showAlert çalıştı)
                 commentForm.reset();
             }
         });
@@ -271,11 +289,11 @@ document.addEventListener('DOMContentLoaded', async () => {
              if (loadingMessage) loadingMessage.remove(); 
              
              commentsList.innerHTML = `
-                <div class="p-5 primary-light rounded-xl border border-slate-700">
+                <div class="p-5 primary-light rounded-xl border border-slate-700 section-animate">
                     <p class="text-sm font-semibold text-green-400">Ahmet Yılmaz <span class="text-gray-500 ml-2 font-normal text-xs"> (1 gün önce)</span></p>
                     <p class="text-gray-300 mt-1">Hizmet kalitesi gerçekten harika! Destek ekibi çok hızlı. 5 yıldız.</p>
                 </div>
-                <div class="p-5 primary-light rounded-xl border border-slate-700">
+                <div class="p-5 primary-light rounded-xl border border-slate-700 section-animate" style="animation-delay: 0.1s;">
                     <p class="text-sm font-semibold text-green-400">Gizem Demir <span class="text-gray-500 ml-2 font-normal text-xs"> (3 gün önce)</span></p>
                     <p class="text-gray-300 mt-1">Fiyatlar piyasaya göre çok uygun. Instagram takipçileri anında yüklendi. Teşekkürler!</p>
                 </div>
