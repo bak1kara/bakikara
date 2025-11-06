@@ -1,7 +1,8 @@
-// auth.js - Modüler ve Sayfa Bağımsız Sürüm
+// auth.js - FULL Yetkilendirme (Auth) ve UI Yönetimi
 
 // Not: Bu dosyanın çalışması için 'createClient' fonksiyonunun
-// (örneğin Supabase JS kütüphanesinden) başka bir yerden yüklenmesi gerekir.
+// (örneğin Supabase JS kütüphanesinden) ve diğer Auth form/UI elementlerinin
+// HTML'de mevcut olması gerekir.
 
 // --- KRİTİK SABİTLER (DEĞİŞMEYENLER) ---
 const SUPABASE_URL = 'https://ywxhworspkocuzsygsgc.supabase.co'; 
@@ -11,34 +12,136 @@ const RENDER_API_URL = 'https://sosyalpro-api-1.onrender.com'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
+// =========================================================================
+// UI YÖNETİMİ: Giriş Durumuna Göre Arayüzü Günceller
+// =========================================================================
+
 /**
- * Belirtilen sayfa için yorumları API üzerinden çeker.
- * @param {string} pageSlug - Yorumların çekileceği sayfanın slug'ı (örneğin: 'fiyatlar-sayfasi').
- * @returns {Promise<Array|null>} Yorum dizisi veya hata durumunda null.
+ * Kullanıcı oturum durumuna göre navigasyon/header elementlerini günceller.
+ * @param {Object} user - Supabase'den gelen kullanıcı nesnesi (varsa).
  */
-async function loadComments(pageSlug) {
-    try {
-        const response = await fetch(`${RENDER_API_URL}/api/comments/${pageSlug}`);
-        if (!response.ok) {
-            console.error(`Hata: ${response.status} - Yorumlar yüklenemedi.`);
-            return null;
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('API isteği sırasında hata:', error);
-        return null;
-    }
+function updateAuthStatus(user) {
+    const authButtons = document.getElementById('auth-buttons'); // Giriş Yap/Kayıt Ol butonlarını içeren div
+    const profileSection = document.getElementById('profile-section'); // Profil kartı ve Çıkış butonunu içeren div
+    const profileName = document.getElementById('profile-name');
+    const profileEmail = document.getElementById('profile-email');
+
+    if (user) {
+        // Kullanıcı Giriş Yapmışsa (Oturum Açık)
+        if (authButtons) authButtons.classList.add('hidden');
+        if (profileSection) profileSection.classList.remove('hidden');
+        
+        // Kullanıcı adını/e-postasını gösterme
+        if (profileName) profileName.textContent = user.user_metadata?.full_name || 'Kullanıcı';
+        if (profileEmail) profileEmail.textContent = user.email;
+
+    } else {
+        // Kullanıcı Çıkış Yapmışsa (Oturum Kapalı)
+        if (authButtons) authButtons.classList.remove('hidden');
+        if (profileSection) profileSection.classList.add('hidden');
+    }
+}
+
+
+// =========================================================================
+// YETKİLENDİRME (AUTH) FONKSİYONLARI
+// =========================================================================
+
+/**
+ * Yeni kullanıcı kaydı oluşturur.
+ * @param {string} email - Kullanıcı e-posta adresi.
+ * @param {string} password - Kullanıcı şifresi.
+ */
+async function handleSignUp(email, password, fullName) {
+    try {
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: fullName // Opsiyonel: Kullanıcı metadata'sına ad ekleme
+                }
+            }
+        });
+
+        if (error) throw error;
+
+        // Kayıt başarılı. Supabase, doğrulama e-postası gönderir.
+        console.log("Kayıt Başarılı:", data);
+        alert("Kayıt başarılı! Lütfen e-postanızı kontrol ederek hesabınızı onaylayın.");
+        return true;
+    } catch (error) {
+        console.error('Kayıt Hatası:', error.message);
+        alert(`Kayıt sırasında bir hata oluştu: ${error.message}`);
+        return false;
+    }
 }
 
 /**
- * Yeni bir yorumu API'ye gönderir.
- * @param {string} pageSlug - Yorumun ait olduğu sayfanın slug'ı.
- * @param {string} userId - Yorumu yapan kullanıcının ID'si.
- * @param {string} userName - Yorumu yapan kullanıcının adı.
- * @param {string} commentText - Yorum metni.
- * @returns {Promise<Object|null>} Gönderilen yorum nesnesi veya hata durumunda null.
+ * Kullanıcının giriş yapmasını sağlar.
+ * @param {string} email - Kullanıcı e-posta adresi.
+ * @param {string} password - Kullanıcı şifresi.
  */
+async function handleSignIn(email, password) {
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password,
+        });
+
+        if (error) throw error;
+
+        // Giriş başarılı. updateAuthStatus, onAuthStateChange listener'ı tarafından otomatik tetiklenecek.
+        console.log("Giriş Başarılı:", data.user);
+        alert("Giriş başarılı! Hoş geldiniz.");
+        return true;
+    } catch (error) {
+        console.error('Giriş Hatası:', error.message);
+        alert(`Giriş sırasında bir hata oluştu: ${error.message}`);
+        return false;
+    }
+}
+
+/**
+ * Kullanıcının oturumunu sonlandırır.
+ */
+async function handleSignOut() {
+    try {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) throw error;
+
+        // Çıkış başarılı. updateAuthStatus otomatik olarak tetiklenir.
+        console.log("Çıkış Başarılı");
+        alert("Başarıyla çıkış yapıldı.");
+    } catch (error) {
+        console.error('Çıkış Hatası:', error.message);
+        alert(`Çıkış sırasında bir hata oluştu: ${error.message}`);
+    }
+}
+
+
+// =========================================================================
+// YORUM FONKSİYONLARI (Önceki versiyondan alınmıştır)
+// =========================================================================
+
+async function loadComments(pageSlug) {
+    // ... API isteği yaparken pageSlug kullanılacak ...
+    try {
+        const response = await fetch(`${RENDER_API_URL}/api/comments/${pageSlug}`);
+        if (!response.ok) {
+            console.error(`Hata: ${response.status} - Yorumlar yüklenemedi.`);
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API isteği sırasında hata:', error);
+        return null;
+    }
+}
+
 async function sendComment(pageSlug, userId, userName, commentText) {
+    // ... Yorum gönderme mantığı ...
     try {
         const response = await fetch(`${RENDER_API_URL}/api/comments/add`, {
             method: 'POST',
@@ -63,11 +166,34 @@ async function sendComment(pageSlug, userId, userName, commentText) {
     }
 }
 
-// --- Diğer Yetkilendirme (Auth) Fonksiyonları Buraya Gelecektir ---
-// updateAuthStatus, handleSignUp, handleSignIn gibi Supabase ile ilgili 
-// genel işlevler bu dosyada kalmalıdır.
 
+// =========================================================================
+// İLK BAŞLATMA VE OTURUM DİNLEME
+// =========================================================================
 
-// NOT: Sayfaya özel olan YORUM GÖNDERME FORMU Event Listener'ı, 
-// 'window.CURRENT_PAGE_SLUG' bağımlılığını ortadan kaldırmak için bu dosyadan kaldırılmıştır.
-// Bu listener, pageSlug değerini bildiğiniz HTML dosyasındaki <script> bloğuna taşınmalıdır.
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Sayfa yüklendiğinde mevcut oturumu kontrol et ve UI'ı güncelle
+    const { data: { session } } = await supabase.auth.getSession();
+    updateAuthStatus(session?.user);
+
+    // 2. Auth durumundaki değişiklikleri (Giriş/Çıkış) sürekli dinle
+    supabase.auth.onAuthStateChange((event, session) => {
+        // Oturum değiştiğinde (SIGN_IN, SIGN_OUT, vb.) UI'ı otomatik güncelle
+        updateAuthStatus(session?.user);
+
+        // Örnek: Çıkış butonuna basıldığında oturum kapandığı için bu event tetiklenir.
+        if (event === 'SIGNED_OUT') {
+            // Çıkış yapıldığında ek işlemler (örn: formu temizleme)
+            console.log('Kullanıcı oturumu kapattı.');
+        }
+    });
+
+    // 3. Çıkış butonuna dinleyici ekleme (Bu butonun id'si 'sign-out-button' olmalıdır)
+    const signOutButton = document.getElementById('sign-out-button');
+    if (signOutButton) {
+        signOutButton.addEventListener('click', handleSignOut);
+    }
+    
+    // NOT: Giriş/Kayıt formlarının Event Listener'ları, form elementleri bu dosyada
+    // tanımlı olmadığı için, HTML sayfasından veya ayrı bir form.js dosyasından çağrılmalıdır.
+});
