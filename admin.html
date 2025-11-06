@@ -739,6 +739,9 @@
     /**
      * Müşteri Verilerini Gerçek Zamanlı Dinleme ve Özet Kartları Güncelleme
      */
+    /**
+     * Müşteri Verilerini Gerçek Zamanlı Dinleme ve Özet Kartları Güncelleme
+     */
     function listenForCustomers() {
         loading.style.display = 'block';
         table.style.display = 'none';
@@ -747,7 +750,8 @@
         // Koleksiyon adının 'users' olduğundan emin olun
         const usersRef = collection(db, "users"); 
         
-        const unsubscribe = onSnapshot(query(usersRef), (snapshot) => { /* ... */ });
+        // onSnapshot dinleyicisini doğru şekilde başlatıp kapatıyoruz
+        const unsubscribe = onSnapshot(query(usersRef), (snapshot) => {
             
             // 🔥 DEBUG KODU BAŞLANGIÇ - KONSOLE KONTROLÜ 🔥
             console.log("Firestore Bağlantısı Başarılı. Çekilen belge sayısı:", snapshot.docs.length);
@@ -795,9 +799,9 @@
                 errorMessage.innerText = `Veri dinleme hatası: ${error.message}`;
                 errorMessage.style.display = 'block';
             }
-        };
+        }); // <-- onSnapshot parantezi ve callback'i burada BİTİYOR
         
-        return unsubscribe;
+        return unsubscribe; // <-- return ifadesi şimdi fonksiyonun içinde ve DOĞRU YERDE
     };
     
     /**
