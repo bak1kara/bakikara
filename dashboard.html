@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
-        /* CSS BÖLÜMÜ - TEMA RENKLERİ ADMIN PANELİ İLE UYUMLU GÜNCELLENDİ */
+        /* CSS BÖLÜMÜ - TEMA RENKLERİ */
         :root {
             --primary-color: #5d3f6a;      /* Kapalı Mor Vurgu */
             --bg-dark: #1e1e2d;             /* Koyu Arka Plan */
@@ -44,6 +44,7 @@
         .card-success { border-left-color: var(--success-color); }
         .card-warning { border-left-color: var(--warning-color); }
         .card-info    { border-left-color: var(--info-color); }
+        .card-danger  { border-left-color: var(--danger-color); }
         .card-primary .card-value { color: var(--primary-color); }
         .card-success .card-value { color: var(--success-color); }
         .card-warning .card-value { color: var(--warning-color); }
@@ -108,7 +109,7 @@
         <div class="status-cards">
             
             <div class="info-card card-primary">
-                <h3>Site Adresiniz (Kaydedilen)</h3>
+                <h3>Site Adresiniz (Yönetici Onaylı)</h3>
                 <a id="siteUrlLink" target="_blank" style="text-decoration: none;">
                     <div class="card-value" id="siteUrl">Yükleniyor...</div>
                 </a>
@@ -209,7 +210,7 @@
 </div>
 
 <script type="module">
-    // 🔥 SİZİN GERÇEK FIREBASE YAPILANDIRMANIZ (Admin paneli ile aynı)
+    // 🔥 SİZİN GERÇEK FIREBASE YAPILANDIRMANIZ (Admin paneli ile aynı olmalı)
     const firebaseConfig = {
       apiKey: "AIzaSyATqhJsWJGv3AxdvLmCKS-T9UlDycwhXys",
       authDomain: "baki-s2-hosting.firebaseapp.com",
@@ -220,15 +221,9 @@
     };
     
     // GEREKLİ CDN İMPORTLARI
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithCustomToken, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, onSnapshot, query, collection, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    
-    // 🔥 BAĞLANTI KONTROLÜ VE YÖNLENDİRME
-    const userToken = localStorage.getItem('baki_auth_token');
-    if (!userToken) {
-        window.location.href = 'login.html'; 
-    }
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signOut, onAuthStateChanged, getIdToken } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { getFirestore, doc, onSnapshot, query, collection, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
     
     // Firebase servislerinin başlatılması
     const app = initializeApp(firebaseConfig);
@@ -237,6 +232,7 @@
 
     // Firestore Yol Sabitleri
     const FirestoreCollectionRoot = 'users'; 
+    const FALLBACK_SITE_DOMAIN = 'bakikara.xyz'; // Varsayılan site domaini
 
     // --- YARDIMCI FONKSİYONLAR ---
     
@@ -267,23 +263,57 @@
         statusCard.className = 'info-card card-warning'; // Yükleme sırasında varsayılan sarı
     }
     
-    // Tarih formatlama (Kayıt Tarihi için)
+    // Tarih formatlama (Kayıt Tarihi ve Ödeme Tarihi için)
     function formatDate(timestamp) {
         if (!timestamp) return 'Bilinmiyor';
         
         let date;
-        // Firebase Timestamp objesi ise toDate() kullan
         if (timestamp.toDate) {
             date = timestamp.toDate();
         } else {
-            // JS Date objesi veya milisaniye ise direkt kullan
             date = new Date(timestamp);
         }
         
         return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-    // --- NAVİGASYON ve KOPYALAMA ---
+    // Durum metnini ve rengini admin panelindeki ile uyumlu hale getirir
+    function getStatusInfo(status) {
+        switch (status) {
+            case 'ACTIVE':
+                return { text: '✅ YAYINDA', message: 'Tebrikler! Siteniz başarılı bir şekilde yayında.', color: 'card-success' };
+            case 'PENDING':
+                return { text: '🔍 Onay Bekliyor', message: 'Dosyanız ekibimize ulaştı. Yayın için son kontroller yapılıyor.', color: 'card-warning' };
+            case 'SUSPENDED':
+                return { text: '❌ ASKIYA ALINDI', message: 'Hizmetiniz askıya alınmıştır. Destek ile iletişime geçin.', color: 'card-danger' };
+            case 'PASSIVE':
+                return { text: '⏳ PASİF', message: 'Hizmetiniz pasif durumdadır. Yenileme/Yükleme bekliyor.', color: 'card-info' };
+            case 'FILE_WAITING':
+            default:
+                return { text: '📤 Dosya Bekleniyor', message: 'Yayın için sitenizi (zip) e-posta ile bekliyoruz.', color: 'card-info' };
+        }
+    }
+    
+    // En son duyuruyu çeker ve gösterir
+    function listenForLatestAnnouncement() {
+        const announcementsRef = collection(db, "announcements");
+        const q = query(announcementsRef, orderBy('createdAt', 'desc'), limit(1));
+        
+        onSnapshot(q, (snapshot) => {
+            const announcementBar = document.getElementById('adminAnnouncement');
+            const announcementText = document.getElementById('announcementText');
+            
+            if (!snapshot.empty) {
+                const latest = snapshot.docs[0].data();
+                announcementText.innerText = latest.text;
+                announcementBar.style.display = 'block';
+            } else {
+                announcementBar.style.display = 'none';
+            }
+        });
+    }
+
+    // --- NAVİGASYON, KOPYALAMA ve ÇIKIŞ ---
     window.switchContent = function(newTab) {
         document.querySelectorAll('.content-section').forEach(section => {
             section.classList.add('hidden');
@@ -311,7 +341,6 @@
         alert(`✅ ${text} adresi panoya kopyalandı!`); 
     }
 
-    // --- GÜVENLİ ÇIKIŞ ---
     window.handleLogout = function() {
         if (!confirm('Güvenli çıkış yapmak istediğinizden emin misiniz?')) {
             return;
@@ -325,47 +354,8 @@
         });
     }
 
-    // --- VERİ ÇEKME VE GÜNCELLEME İŞLEVİ ---
+    // --- BAŞLATMA VE VERİ AKIŞI ---
 
-    // Durum metnini ve rengini admin panelindeki ile uyumlu hale getirir
-    function getStatusInfo(status) {
-        switch (status) {
-            case 'ACTIVE':
-                return { text: 'YAYINDA', message: 'Tebrikler! Siteniz başarılı bir şekilde yayında.', color: 'card-success' };
-            case 'PENDING':
-                return { text: 'Onay Bekliyor', message: 'Dosyanız ekibimize ulaştı. Yayın için son kontroller yapılıyor.', color: 'card-warning' };
-            case 'SUSPENDED':
-                return { text: 'ASKIYA ALINDI', message: 'Hizmetiniz askıya alınmıştır. Destek ile iletişime geçin.', color: 'card-danger' };
-            case 'PASSIVE':
-                return { text: 'PASİF', message: 'Hizmetiniz pasif durumdadır. Yenileme/Yükleme bekliyor.', color: 'card-info' };
-            case 'FILE_WAITING':
-            default:
-                return { text: 'Dosya Bekleniyor', message: 'Yayın için sitenizi (zip) e-posta ile bekliyoruz.', color: 'card-info' };
-        }
-    }
-
-    // En son duyuruyu çeker ve gösterir
-    function listenForLatestAnnouncement() {
-        const announcementsRef = collection(db, "announcements");
-        const q = query(announcementsRef, orderBy('createdAt', 'desc'), limit(1));
-        
-        onSnapshot(q, (snapshot) => {
-            const announcementBar = document.getElementById('adminAnnouncement');
-            const announcementText = document.getElementById('announcementText');
-            
-            if (!snapshot.empty) {
-                const latest = snapshot.docs[0].data();
-                announcementText.innerText = latest.text;
-                announcementBar.style.display = 'block';
-            } else {
-                announcementBar.style.display = 'none';
-            }
-        });
-    }
-
-    // --- FIREBASE BAŞLATMA VE VERİ AKIŞI ---
-
-    // 1. Auth ile Giriş Denemesi
     document.addEventListener('DOMContentLoaded', () => {
         // Navigasyon tıklamalarını bağla
         document.querySelectorAll('.nav-link').forEach(linkElement => {
@@ -377,89 +367,93 @@
         switchContent('dashboard');
         
         setLoadingState();
-        
-        // Token ile anında giriş denemesi
-        if (userToken) {
-            signInWithCustomToken(auth, userToken)
-                .catch(err => {
-                    console.error("Token ile giriş başarısız. Oturum sonlandırılıyor.", err);
-                    localStorage.removeItem('baki_auth_token');
-                    window.location.href = 'login.html';
-                });
-        }
-        
-        // Duyuru dinleyicisini başlat
-        listenForLatestAnnouncement();
+        listenForLatestAnnouncement(); // Duyuru dinleyicisini başlat
     });
 
-
-    // 2. Auth Durumu Değiştiğinde Veri Dinlemeyi Başlat
+    // onAuthStateChanged, hem oturum açma durumunu kontrol eder hem de token yenilemeyi yönetir.
     onAuthStateChanged(auth, async (user) => {
-        
-        if (user) {
-            // Kullanıcı oturum açtı
-            
-            const displayEmail = user.email || 'Bilinmiyor';
-            const username = displayEmail.split('@')[0];
-            const upperUsername = username.charAt(0).toUpperCase() + username.slice(1);
-            
-            updateCard('userEmail', `<strong>${upperUsername}</strong>`);
-            
-            // Firestore Gerçek Zamanlı Dinleyici
-            const userDocRef = doc(db, FirestoreCollectionRoot, user.uid);
-            
-            onSnapshot(userDocRef, (docSnap) => {
-                const statusCard = document.getElementById('serviceStatus').parentElement;
-                let userData = docSnap.exists() ? docSnap.data() : {};
-                
-                // Firestore Verilerini Çek
-                const regDate = userData.createdAt;
-                const balance = userData.balance || 0.00; // Varsayılan Bakiye: 0.00
-                const lastPayment = userData.lastPayment;
-                const serviceStatus = userData.serviceStatus || 'FILE_WAITING'; // Admin panelinden gelen durum
-                const siteAdi = userData.site_adi || username; // Admin panelinden site adı
-                const adminNotes = userData.admin_notes || 'Yönetici tarafından henüz not eklenmemiş.';
-                
-                const statusInfo = getStatusInfo(serviceStatus);
-
-                // --- KART VERİLERİNİ GÜNCELLEME ---
-                
-                // 1. Site Adresi
-                const sitePath = `bakikara.xyz/${siteAdi}`; 
-                updateCard('siteUrl', sitePath);
-                document.getElementById('siteUrlLink').href = `http://${sitePath}`;
-
-                // 2. Hizmet Durumu
-                statusCard.className = `info-card ${statusInfo.color}`;
-                updateCard('serviceStatus', statusInfo.text, 'serviceMessage', statusInfo.message);
-                
-                // 3. Hesap Bakiyesi
-                updateCard('accountBalance', `₺ ${parseFloat(balance).toFixed(2)}`);
-                updateCard('billingBalance', `₺ ${parseFloat(balance).toFixed(2)}`); 
-
-                // 4. Kayıt Tarihi (Hizmet Süresi yerine)
-                updateCard('serviceDuration', formatDate(regDate));
-                
-                // --- DİĞER SEKME VERİLERİ ---
-                updateCard('lastPaymentDate', formatDate(lastPayment));
-
-                // Ayarlar Sekmesi Verileri
-                updateCard('settingsUID', user.uid);
-                updateCard('settingsEmail', displayEmail);
-                updateCard('settingsRegDate', formatDate(regDate));
-                updateCard('settingsAdminNotes', adminNotes);
-
-            }, (error) => {
-                // Veri çekme hatası
-                updateCard('userEmail', 'Veri Çekme Hatası! 😵');
-                console.error("Firestore Snapshot Hatası:", error);
-                alert('⚠️ Kritik Hata: Panel verileri yüklenemedi. Oturumu yenileyin.');
-            });
-            
-        } else {
-             // onAuthStateChanged token ile giriş başarısız olursa buraya düşer. Zaten en başta yönlendirdik.
-             // Buraya düşerse token süresi dolmuş demektir, otomatik yönlendirme çalışır.
+        // 🔥 KRİTİK KONTROL: Eğer kullanıcı yoksa veya token geçersizse hemen yönlendir
+        if (!user) {
+            const userToken = localStorage.getItem('baki_auth_token');
+            if (userToken) {
+                // Token varsa, Custom Token ile giriş yapmayı dene (bu, login.html'de de olmalı)
+                try {
+                    await signInWithCustomToken(auth, userToken);
+                    // Başarılıysa, onAuthStateChanged tekrar çalışır ve aşağıdaki if (user) bloğuna girer.
+                    return; 
+                } catch (err) {
+                    console.error("Token ile giriş başarısız. Yönlendiriliyor:", err);
+                    localStorage.removeItem('baki_auth_token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } else {
+                // Token zaten yoksa, direkt login'e at
+                 window.location.href = 'login.html';
+                 return;
+            }
         }
+        
+        // Kullanıcı oturum açtı (Veya token ile giriş başarılı oldu)
+        const displayEmail = user.email || 'Bilinmiyor';
+        const username = displayEmail.split('@')[0];
+        const upperUsername = username.charAt(0).toUpperCase() + username.slice(1);
+        
+        updateCard('userEmail', `<strong>${upperUsername}</strong>`);
+        
+        // Firestore Gerçek Zamanlı Dinleyici
+        const userDocRef = doc(db, FirestoreCollectionRoot, user.uid);
+        
+        onSnapshot(userDocRef, (docSnap) => {
+            const statusCard = document.getElementById('serviceStatus').parentElement;
+            let userData = docSnap.exists() ? docSnap.data() : {};
+            
+            // --- FIREBASE VERİLERİ ---
+            const regDate = userData.createdAt;
+            const balance = userData.balance || 0.00; // Yönetici panelinde 0.00 olarak ayarlandıysa
+            const lastPayment = userData.lastPayment;
+            const serviceStatus = userData.serviceStatus || 'FILE_WAITING'; // Admin panelinden gelen durum
+            const siteAdi = userData.site_adi || username; // Admin panelinde atanmış site adı veya varsayılan kullanıcı adı
+            const adminNotes = userData.admin_notes || 'Yönetici tarafından henüz not eklenmemiş.';
+            
+            const statusInfo = getStatusInfo(serviceStatus);
+
+            // --- KART VERİLERİNİ GÜNCELLEME ---
+            
+            // 1. Site Adresi
+            const sitePath = `${FALLBACK_SITE_DOMAIN}/${siteAdi}`; 
+            updateCard('siteUrl', sitePath);
+            document.getElementById('siteUrlLink').href = `http://${sitePath}`;
+
+            // 2. Hizmet Durumu
+            statusCard.className = `info-card ${statusInfo.color}`;
+            updateCard('serviceStatus', statusInfo.text, 'serviceMessage', statusInfo.message);
+            
+            // 3. Hesap Bakiyesi
+            updateCard('accountBalance', `₺ ${parseFloat(balance).toFixed(2)}`);
+            updateCard('billingBalance', `₺ ${parseFloat(balance).toFixed(2)}`); 
+
+            // 4. Kayıt Tarihi (Hizmet Süresi yerine)
+            updateCard('serviceDuration', formatDate(regDate));
+            
+            // --- DİĞER SEKME VERİLERİ ---
+            updateCard('lastPaymentDate', formatDate(lastPayment));
+
+            // Ayarlar Sekmesi Verileri
+            updateCard('settingsUID', user.uid);
+            updateCard('settingsEmail', displayEmail);
+            updateCard('settingsRegDate', formatDate(regDate));
+            updateCard('settingsAdminNotes', adminNotes);
+
+        }, (error) => {
+            // Veri çekme hatası (Bağlantı kesintisi vs.)
+            updateCard('userEmail', 'Veri Çekme Hatası! 😵');
+            console.error("Firestore Snapshot Hatası:", error);
+            // Kullanıcıyı uyarmak yerine, sadece kartı kırmızıya çevirebiliriz.
+            const statusCard = document.getElementById('serviceStatus').parentElement;
+            statusCard.className = 'info-card card-danger';
+            updateCard('serviceStatus', 'VERİ HATASI', 'serviceMessage', 'Veri akışı kesildi. Sayfayı yenileyin.');
+        });
     });
 </script>
 
