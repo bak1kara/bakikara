@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yönetici Paneli | bakikara.xyz</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght(400);700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <style>
@@ -511,7 +511,7 @@
     import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
-    // GÜVENLİK UYARISI: Firebase konfigürasyonunuzu bu alana yapıştırın.
+    // 🔥 GÜVENLİK UYARISI: Firebase konfigürasyonunuzu bu alana yapıştırın.
     const firebaseConfig = {
         apiKey: "AIzaSyATqhJsWJGv3AxdvLmCKS-T9UlDycwhXys",       // ⬅️ KENDİ ANAHTARINIZI EKLEYİN
         authDomain: "baki-s2-hosting.firebaseapp.com",   // ⬅️ KENDİ ALAN ADINIZI EKLEYİN
@@ -526,7 +526,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     
-    // YÖNETİCİ AYARI VE DEĞİŞKENLER
+    // 🔥 YÖNETİCİ AYARI VE DEĞİŞKENLER
     // LÜTFEN BU EMAIL ADRESİNİ KENDİ YÖNETİCİ EMAIL ADRESİNİZLE DEĞİŞTİRİN
     const ADMIN_EMAIL = "mehmeteminacan13@gmail.com"; 
     
@@ -743,9 +743,19 @@
         table.style.display = 'none';
         errorMessage.style.display = 'none';
 
-        const usersRef = collection(db, "users");
+        // Koleksiyon adının 'users' olduğundan emin olun
+        const usersRef = collection(db, "users"); 
         
         const unsubscribe = onSnapshot(query(usersRef), (snapshot) => {
+            
+            // 🔥 DEBUG KODU BAŞLANGIÇ - KONSOLE KONTROLÜ 🔥
+            console.log("Firestore Bağlantısı Başarılı. Çekilen belge sayısı:", snapshot.docs.length);
+            
+            if (snapshot.docs.length === 0) {
+                 console.warn("UYARI: Çekilen veri kümesi boş. Koleksiyon adının (users) doğru olup olmadığını ve Firebase Güvenlik Kurallarının yöneticiye okuma izni verip vermediğini kontrol edin.");
+            }
+            // 🔥 DEBUG KODU BİTİŞ 🔥
+
             try {
                 loading.style.display = 'none';
                 table.style.display = 'table';
@@ -768,7 +778,8 @@
 
                 // Özet Kartları Güncelle
                 const activeCount = allCustomers.filter(u => u.serviceStatus === 'ACTIVE').length;
-                const pendingCount = allCustomers.filter(u => u.serviceStatus === 'PENDING' || u.serviceStatus === 'FILE_WAITING').length;
+                // Dosya bekleyenler (FILE_WAITING) de onay bekleyen olarak sayılır
+                const pendingCount = allCustomers.filter(u => u.serviceStatus === 'PENDING' || u.serviceStatus === 'FILE_WAITING').length; 
                 
                 totalCustomersSpan.innerText = allCustomers.length;
                 activeCustomersSpan.innerText = activeCount;
