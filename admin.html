@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght(400);700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         /* TEMA RENKLERİ */
         :root {
@@ -506,29 +508,24 @@
     </div>
 </div>
 <script type="module">
-    // Firebase SDK Importları 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-    import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-    import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-
-    // 🔥 GÜVENLİK UYARISI: Firebase konfigürasyonunuzu bu alana yapıştırın.
-    const firebaseConfig = {
-        apiKey: "AIzaSyATqhJsWJGv3AxdvLmCKS-T9UlDycwhXys",       // ⬅️ KENDİ ANAHTARINIZI EKLEYİN
-        authDomain: "baki-s2-hosting.firebaseapp.com",   // ⬅️ KENDİ ALAN ADINIZI EKLEYİN
-        projectId: "baki-s2-hosting",        // ⬅️ KENDİ PROJE ID'NİZİ EKLEYİN
-        storageBucket: "baki-s2-hosting.firebasestorage.app", 
-        messagingSenderId: "1096636788468", 
-        appId: "1:1096636788468:web:ef3365f47930ab98a738a1",    
-        measurementId: "G-3QDCRYR2RE"
-    };
-
-    // Firebase'i Başlat
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    // ----------------------------------------------------------------------
+    // 🔥 ADIM 1: SUPABASE BAĞLANTI AYARLARI
+    // Bu iki satırı Supabase panelinizdeki API Ayarları bölümünden aldığınız URL ve Anahtar ile DEĞİŞTİRMELİSİNİZ!
+    // ----------------------------------------------------------------------
+    const SUPABASE_URL = 'https://rqbbxjuncwwgtkbcqtet.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxYmJ4anVuY3d3Z3RrYmNxdGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzM1NjAsImV4cCI6MjA3ODAwOTU2MH0.8dzDoL8MEgbrL7b-ocJ79c9ts9qtSbFT3EashQZXyZQ'; 
     
-    // 🔥 YÖNETİCİ AYARI VE DEĞİŞKENLER
-    // LÜTFEN BU EMAIL ADRESİNİ KENDİ YÖNETİCİ EMAIL ADRESİNİZLE DEĞİŞTİRİN
+    // CDN üzerinden global olarak eklenen Supabase client'ı başlat
+    const { createClient } = supabase; 
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { 
+            // Geçici olarak Auth persistSession özelliğini kapatıyoruz. 
+            // Yönetici girişi için bu kısım sonradan Supabase Auth ile değiştirilmelidir.
+            persistSession: false 
+        }
+    });
+
+    // 🔥 DİKKAT: Yönetici Kontrolü geçici olarak devre dışı bırakılmıştır.
     const ADMIN_EMAIL = "mehmeteminacan13@gmail.com"; 
     
     const loading = document.getElementById('loading');
@@ -547,7 +544,7 @@
     let sortDirection = 'desc'; 
 
     // ----------------------------------------------------------------------
-    // 1. ÖZEL MODAL İŞLEVLERİ (Alert/Confirm Yerine)
+    // 1. ÖZEL MODAL İŞLEVLERİ (Aynı kaldı)
     // ----------------------------------------------------------------------
 
     /**
@@ -585,7 +582,7 @@
 
 
     // ----------------------------------------------------------------------
-    // 2. MÜŞTERİ TABLOSU ve FİLTRE/SIRA İŞLEVLERİ
+    // 2. MÜŞTERİ TABLOSU ve FİLTRE/SIRA İŞLEVLERİ (Küçük düzenlemelerle aynı kaldı)
     // ----------------------------------------------------------------------
     
     /**
@@ -632,8 +629,9 @@
 
             // Tarih ve Bakiye alanları için dönüşüm
             if (sortKey === 'createdAt') {
-                if (aVal && aVal.toDate) aVal = aVal.toDate().getTime();
-                if (bVal && bVal.toDate) bVal = bVal.toDate().getTime();
+                // Supabase'den gelen tarih string'ini Date nesnesine çevir
+                aVal = aVal ? new Date(aVal).getTime() : 0;
+                bVal = bVal ? new Date(bVal).getTime() : 0;
             }
             if (sortKey === 'balance') {
                 aVal = parseFloat(aVal) || 0;
@@ -668,7 +666,8 @@
             const userEmail = user.email || 'Bilinmiyor';
             const username = userEmail.split('@')[0];
             const siteUrl = `bakikara.xyz/${user.site_adi || username}`; // Site adı varsa onu kullan
-            const regDate = user.createdAt && user.createdAt.toDate ? user.createdAt.toDate().toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Bilinmiyor';
+            // Supabase'den gelen ISO tarih formatını yerel formata çevir
+            const regDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Bilinmiyor';
             const status = user.serviceStatus || 'FILE_WAITING'; 
             const balance = (user.balance || 0).toFixed(2); // Bakiye değeri
 
@@ -684,10 +683,10 @@
                 <td data-label="Site Adresi (Öneri)"><a href="http://${siteUrl}" target="_blank" style="color:var(--info-color);">${siteUrl}</a></td>
                 <td data-label="Durum">${getStatusBadge(status)}</td>
                 <td data-label="İşlemler">
-                    <button class="action-btn detail-btn" onclick="window.showCustomerDetailModal('${user.userId}')"><i class="fas fa-search"></i> Detay/Düzenle</button>
+                    <button class="action-btn detail-btn" onclick="window.showCustomerDetailModal('${user.user_id}')"><i class="fas fa-search"></i> Detay/Düzenle</button>
                     <button class="action-btn open-site-btn" onclick="window.openCustomerSite('${siteUrl}')"><i class="fas fa-external-link-alt"></i> Siteyi Aç</button>
-                    <button class="action-btn" onclick="window.updateCustomerStatus('${user.userId}', 'ACTIVE')"><i class="fas fa-check"></i> Yayına Al</button>
-                    <button class="action-btn delete-btn" onclick="window.deleteCustomer('${user.userId}')"><i class="fas fa-trash-alt"></i> Sil</button>
+                    <button class="action-btn" onclick="window.updateCustomerStatus('${user.user_id}', 'ACTIVE')"><i class="fas fa-check"></i> Yayına Al</button>
+                    <button class="action-btn delete-btn" onclick="window.deleteCustomer('${user.user_id}')"><i class="fas fa-trash-alt"></i> Sil</button>
                 </td>
             `;
         });
@@ -733,12 +732,67 @@
     }
 
     // ----------------------------------------------------------------------
-    // 3. GERÇEK ZAMANLI VERİ ÇEKME (onSnapshot)
+    // 3. GERÇEK ZAMANLI VERİ ÇEKME (SUPABASE REALTIME)
     // ----------------------------------------------------------------------
 
     /**
-     * Müşteri Verilerini Gerçek Zamanlı Dinleme ve Özet Kartları Güncelleme
+     * Veriyi bir kez çeken ana fonksiyon (Firestore'daki getDocs'a karşılık gelir)
      */
+    async function fetchAndRenderCustomers() {
+        loading.style.display = 'block';
+
+        try {
+            // Supabase'den tüm müşterileri çek
+            const { data: customers, error } = await supabaseClient
+                .from('customers') // Oluşturduğumuz tablo adı
+                .select('*') 
+                .order('createdAt', { ascending: false }); 
+
+            if (error) {
+                throw error;
+            }
+
+            loading.style.display = 'none';
+            table.style.display = 'table';
+            
+            if (!customers || customers.length === 0) {
+                loading.innerText = 'Henüz kayıtlı müşteri bulunmamaktadır.';
+                loading.style.display = 'block';
+                allCustomers = [];
+                renderTable([]);
+                
+                totalCustomersSpan.innerText = '0';
+                activeCustomersSpan.innerText = '0';
+                pendingCustomersSpan.innerText = '0';
+                return;
+            }
+
+            // user_id Firestore'da doc.id iken, Supabase'de tablo sütun adımızdır
+            allCustomers = customers.map(doc => ({
+                userId: doc.user_id, // Firestore'daki userId yerine Supabase'deki user_id sütunu
+                ...doc
+            }));
+
+            // Özet Kartları Güncelle
+            const activeCount = allCustomers.filter(u => u.serviceStatus === 'ACTIVE').length;
+            const pendingCount = allCustomers.filter(u => u.serviceStatus === 'PENDING' || u.serviceStatus === 'FILE_WAITING').length; 
+            
+            totalCustomersSpan.innerText = allCustomers.length;
+            activeCustomersSpan.innerText = activeCount;
+            pendingCustomersSpan.innerText = pendingCount; 
+
+            // Mevcut filtre ve sıralama ayarlarını kullanarak tabloyu yeniden çiz
+            filterCustomers();
+
+        } catch (error) {
+            console.error("Supabase Veri Çekme Hatası:", error.message);
+            loading.style.display = 'none';
+            errorMessage.innerText = `Veri dinleme hatası: ${error.message}`;
+            errorMessage.style.display = 'block';
+        }
+    }
+
+
     /**
      * Müşteri Verilerini Gerçek Zamanlı Dinleme ve Özet Kartları Güncelleme
      */
@@ -746,85 +800,52 @@
         loading.style.display = 'block';
         table.style.display = 'none';
         errorMessage.style.display = 'none';
-
-        // Koleksiyon adının 'users' olduğundan emin olun
-        const usersRef = collection(db, "users"); 
         
-        // onSnapshot dinleyicisini doğru şekilde başlatıp kapatıyoruz
-        const unsubscribe = onSnapshot(query(usersRef), (snapshot) => {
-            
-            // 🔥 DEBUG KODU BAŞLANGIÇ - KONSOLE KONTROLÜ 🔥
-            console.log("Firestore Bağlantısı Başarılı. Çekilen belge sayısı:", snapshot.docs.length);
-            
-            if (snapshot.docs.length === 0) {
-                 console.warn("UYARI: Çekilen veri kümesi boş. Koleksiyon adının (users) doğru olup olmadığını ve Firebase Güvenlik Kurallarının yöneticiye okuma izni verip vermediğini kontrol edin.");
-            }
-            // 🔥 DEBUG KODU BİTİŞ 🔥
-
-            try {
-                loading.style.display = 'none';
-                table.style.display = 'table';
-                
-                if (snapshot.empty) {
-                    loading.innerText = 'Henüz kayıtlı müşteri bulunmamaktadır.';
-                    loading.style.display = 'block';
-                    totalCustomersSpan.innerText = '0';
-                    activeCustomersSpan.innerText = '0';
-                    pendingCustomersSpan.innerText = '0';
-                    allCustomers = [];
-                    renderTable([]);
-                    return;
+        // Supabase Realtime Dinleyicisini Başlat
+        const channel = supabaseClient
+            .channel('customer_changes') 
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'customers' }, // customers tablosundaki her değişikliği dinle
+                (payload) => {
+                    console.log('Gerçek Zamanlı Veri Değişikliği Algılandı:', payload);
+                    // Değişiklik olduğunda tüm listeyi yeniden çekip render et
+                    fetchAndRenderCustomers();
                 }
+            )
+            .subscribe(); 
 
-                allCustomers = snapshot.docs.map(doc => ({
-                    userId: doc.id,
-                    ...doc.data()
-                }));
+        // İlk veriyi çekme fonksiyonunu çağır
+        fetchAndRenderCustomers();
 
-                // Özet Kartları Güncelle
-                const activeCount = allCustomers.filter(u => u.serviceStatus === 'ACTIVE').length;
-                // Dosya bekleyenler (FILE_WAITING) de onay bekleyen olarak sayılır
-                const pendingCount = allCustomers.filter(u => u.serviceStatus === 'PENDING' || u.serviceStatus === 'FILE_WAITING').length; 
-                
-                totalCustomersSpan.innerText = allCustomers.length;
-                activeCustomersSpan.innerText = activeCount;
-                pendingCustomersSpan.innerText = pendingCount; 
-
-                // Mevcut filtre ve sıralama ayarlarını kullanarak tabloyu yeniden çiz
-                filterCustomers();
-
-            } catch (error) {
-                console.error("Gerçek zamanlı veri dinlenirken hata oluştu:", error);
-                loading.style.display = 'none';
-                errorMessage.innerText = `Veri dinleme hatası: ${error.message}`;
-                errorMessage.style.display = 'block';
-            }
-        }); // <-- onSnapshot parantezi ve callback'i burada BİTİYOR
-        
-        return unsubscribe; // <-- return ifadesi şimdi fonksiyonun içinde ve DOĞRU YERDE
+        return channel;
     };
     
     /**
-     * En son yayınlanan duyuruları (aktivite) dinler.
+     * En son yayınlanan duyuruları (aktivite) çeker ve dinler. (Şimdilik sadece çeker)
      */
-    function listenForRecentActivity() {
+    async function listenForRecentActivity() {
         console.log("Aktivite dinleyicisi başlatıldı...");
         
-        const announcementsRef = collection(db, "announcements");
-        // En son 5 duyuruyu çekmek için sorgu
-        const q = query(announcementsRef, orderBy('createdAt', 'desc'), limit(5));
-        
-        onSnapshot(q, (snapshot) => {
+        try {
+            // Supabase'den son 5 duyuruyu çek
+            const { data: announcements, error } = await supabaseClient
+                .from('announcements')
+                .select('text, createdAt') // Sadece metin ve oluşturulma tarihi
+                .order('createdAt', { ascending: false })
+                .limit(5);
+
+            if (error) throw error;
+            
             announcementList.innerHTML = ''; 
             
-            if (snapshot.empty) {
+            if (announcements.length === 0) {
                 announcementList.innerHTML = `<li><i class="fas fa-info-circle"></i> Henüz yayınlanmış bir duyuru yok.</li>`;
                 return;
             }
 
-            snapshot.docs.forEach(doc => {
-                const announcement = doc.data();
-                const date = announcement.createdAt.toDate ? announcement.createdAt.toDate().toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Bilinmiyor';
+            announcements.forEach(announcement => {
+                const date = announcement.createdAt ? new Date(announcement.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Bilinmiyor';
                 
                 const listItem = document.createElement('li');
                 listItem.innerHTML = `
@@ -834,14 +855,14 @@
                 announcementList.appendChild(listItem);
             });
 
-        }, (error) => {
+        } catch (error) {
             console.error("Aktivite dinlenirken hata oluştu:", error);
             announcementList.innerHTML = `<li><i class="fas fa-exclamation-triangle" style="color:var(--danger-color);"></i> Aktivite yüklenirken hata oluştu.</li>`;
-        });
+        }
     }
 
     // ----------------------------------------------------------------------
-    // 4. DUYURU YÖNETİMİ
+    // 4. DUYURU YÖNETİMİ (SUPABASE INSERT)
     // ----------------------------------------------------------------------
 
     /**
@@ -864,12 +885,18 @@
         btn.disabled = true;
 
         try {
-            const announcementRef = collection(db, "announcements"); 
-            await addDoc(announcementRef, {
-                text: announcementText,
-                createdAt: new Date(),
-                publishedBy: ADMIN_EMAIL 
-            });
+            // Supabase ile Duyuru Ekleme
+            const { error } = await supabaseClient
+                .from('announcements') // announcements tablosuna ekle
+                .insert([
+                    {
+                        text: announcementText,
+                        // createdAt alanı Supabase'de otomatik eklenebilir
+                        publishedBy: ADMIN_EMAIL 
+                    }
+                ]);
+
+            if (error) throw error;
 
             messageElement.style.color = 'var(--success-color)';
             messageElement.innerText = '✅ Duyuru başarıyla yayınlandı! (Müşteri sitelerinde görünecek)';
@@ -886,7 +913,7 @@
     }
     
     // ----------------------------------------------------------------------
-    // 5. MÜŞTERİ İŞLEM FONKSİYONLARI
+    // 5. MÜŞTERİ İŞLEM FONKSİYONLARI (SUPABASE UPDATE/DELETE)
     // ----------------------------------------------------------------------
 
     /**
@@ -905,8 +932,14 @@
             async (isConfirmed) => {
                 if (isConfirmed) {
                     try {
-                        const userDocRef = doc(db, "users", userId);
-                        await updateDoc(userDocRef, { serviceStatus: newStatus });
+                        // Supabase ile Güncelleme
+                        const { error } = await supabaseClient
+                            .from('customers')
+                            .update({ serviceStatus: newStatus, lastUpdated: new Date().toISOString() })
+                            .eq('user_id', userId); // user_id'si eşleşeni bul
+
+                        if (error) throw error;
+
                         showModal("Başarılı", `Durum başarıyla ${statusText} olarak güncellendi.`, 'alert');
                     } catch (error) {
                         console.error("Durum güncellenirken hata oluştu:", error);
@@ -928,7 +961,14 @@
             async (isConfirmed) => {
                 if (isConfirmed) {
                     try {
-                        await deleteDoc(doc(db, "users", userId));
+                        // Supabase ile Silme
+                        const { error } = await supabaseClient
+                            .from('customers')
+                            .delete()
+                            .eq('user_id', userId); // user_id'si eşleşeni sil
+
+                        if (error) throw error;
+                            
                         showModal("Başarılı", `Kullanıcı başarıyla silindi.`, 'alert');
                     } catch (error) {
                         console.error("Kullanıcı silinirken hata oluştu:", error);
@@ -947,11 +987,12 @@
     }
 
     // ----------------------------------------------------------------------
-    // 6. DETAY/DÜZENLE MODALI İŞLEVLERİ
+    // 6. DETAY/DÜZENLE MODALI İŞLEVLERİ (SUPABASE UPDATE)
     // ----------------------------------------------------------------------
     
     window.showCustomerDetailModal = function(userId) {
-        const user = allCustomers.find(u => u.userId === userId);
+        // userId artık Firestore doc.id yerine Supabase'deki user_id sütunudur
+        const user = allCustomers.find(u => u.userId === userId); 
         if (!user) return;
 
         currentEditingUser = user;
@@ -977,18 +1018,22 @@
         messageElement.innerText = 'Kaydediliyor...';
 
         try {
-            const userDocRef = doc(db, "users", currentEditingUser.userId);
-            
             // Bakiye alanını float olarak kaydetmek için parse et
             const newBalance = parseFloat(document.getElementById('detailBalance').value) || 0; 
+            
+            // Supabase ile Toplu Güncelleme
+            const { error } = await supabaseClient
+                .from('customers')
+                .update({
+                    site_adi: document.getElementById('detailSiteName').value.trim(),
+                    serviceStatus: document.getElementById('detailStatus').value,
+                    admin_notes: document.getElementById('detailNotes').value.trim(),
+                    balance: newBalance,
+                    lastUpdated: new Date().toISOString() // Supabase timestamp formatı
+                })
+                .eq('user_id', currentEditingUser.userId); // Doğru user_id ile eşleştir
 
-            await updateDoc(userDocRef, {
-                site_adi: document.getElementById('detailSiteName').value.trim(),
-                serviceStatus: document.getElementById('detailStatus').value,
-                admin_notes: document.getElementById('detailNotes').value.trim(),
-                balance: newBalance, // Güncel bakiye eklendi
-                lastUpdated: new Date()
-            });
+            if (error) throw error;
 
             messageElement.style.color = 'var(--success-color)';
             messageElement.innerText = '✅ Detaylar başarıyla güncellendi!';
@@ -1015,37 +1060,25 @@
     document.getElementById('saveDetailsBtn').addEventListener('click', saveCustomerDetails);
 
     // ----------------------------------------------------------------------
-    // 7. YETKİLENDİRME ve BAŞLATMA
+    // 7. YETKİLENDİRME ve BAŞLATMA (GEÇİCİ OLARAK GÜVENSİZ YÖNTEM)
     // ----------------------------------------------------------------------
 
     /**
-     * Çıkış Yapma İşlemi
+     * Çıkış Yapma İşlemi (Şimdilik yönlendirme yapar)
      */
     window.handleLogout = function() {
-        signOut(auth).then(() => {
-            window.location.href = 'login.html';
-        }).catch((error) => {
-            console.error("Çıkış hatası:", error);
-            showModal("Hata", "Çıkış yaparken bir hata oluştu.", 'alert');
+        showModal("GÜVENSİZ KULLANIM", "Şu anda yönetici yetkilendirme sistemi (Auth) devre dışıdır. Çıkış yapmak için login.html sayfasına yönlendiriliyorsunuz.", 'alert', () => {
+             // Supabase Auth entegre edilene kadar yönlendirme yapar
+             window.location.href = 'login.html';
         });
     }
 
-    // Auth Listener
-    onAuthStateChanged(auth, (user) => {
-        if (user && user.email === ADMIN_EMAIL) {
-            // Yönetici Girişi Başarılı: Gerçek zamanlı dinlemeyi başlat
-            listenForCustomers();
-            listenForRecentActivity(); // Aktivite loglarını başlat
-            
-            // Duyuru butonunu bağla
-            document.getElementById('publishAnnouncementBtn').addEventListener('click', publishAnnouncement);
-        } else {
-            // Yönetici Değil: Yönlendir
-            showModal("Erişim Reddedildi", "Bu sayfa sadece yöneticilere aittir.", 'alert', () => {
-                window.location.href = 'login.html'; 
-            });
-        }
-    });
+    // ⛔️ Güvenlik Uyarısı: Firebase Auth kaldırıldığı için, sayfa açılır açılmaz veri çekme başlatılır.
+    listenForCustomers();
+    listenForRecentActivity(); // Aktivite loglarını başlat
+    
+    // Duyuru butonunu bağla
+    document.getElementById('publishAnnouncementBtn').addEventListener('click', publishAnnouncement);
 </script>
 </body>
 </html>
