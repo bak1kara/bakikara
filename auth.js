@@ -4,12 +4,13 @@
 // kütüphanesinin yüklenmiş olması gerekmektedir.
 
 // --- KRİTİK SABİTLER (DEĞİŞMEYENLER) ---
+// Not: Bu bilgiler size özeldir.
 const SUPABASE_URL = 'https://ywxhworspkocuzsygsgc.supabase.co'; 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl3eGh3b3JzcGtvY3V6c3lnc2djIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzEzMTcsImV4cCI6MjA3ODAwNzMxN30.x7IMaG9C1bF8_RIbv50NfyeymsTu5cwsBRnQy9ZRa8Y'; 
 const RENDER_API_URL = 'https://sosyalpro-api-1.onrender.com'; 
 
 // Supabase istemcisini oluştur
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
 // =========================================================================
@@ -42,29 +43,68 @@ function updateUIForAuth(session) {
     }
 }
 
+// =========================================================================
+// MODAL YÖNETİMİ
+// =========================================================================
+
+/**
+ * Giriş/Kayıt Modalını açar.
+ */
+function openModal() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden'); // Sayfa kaydırmasını engelle
+        document.getElementById('auth-email')?.focus(); // E-posta alanına odaklan
+    }
+}
+
+/**
+ * Giriş/Kayıt Modalını kapatır.
+ */
+function closeModal() {
+    const modal = document.getElementById('auth-modal');
+    const authForm = document.getElementById('auth-form');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+    if (authForm) {
+        authForm.reset(); // Formu temizle
+    }
+}
+
 
 // =========================================================================
 // YETKİLENDİRME (AUTH) İŞLEMLERİ
 // =========================================================================
 
 /**
- * Supabase Magic Link ile kullanıcı girişi sağlar.
+ * Supabase Magic Link ile kullanıcı girişi/kaydı sağlar (Modal'dan gelen e-posta ile).
  */
-async function signInWithMagicLink() {
-    const email = prompt("Lütfen e-posta adresinizi giriniz:");
-    if (!email) return;
+async function handleModalSignIn(e) {
+    e.preventDefault();
+
+    const emailInput = document.getElementById('auth-email').value;
+
+    if (!emailInput) {
+        showAlert('Lütfen e-posta adresinizi girin.', 'red');
+        return;
+    }
 
     const { error } = await supabase.auth.signInWithOtp({ 
-        email, 
+        email: emailInput, 
         options: {
-            emailRedirectTo: window.location.origin + window.location.pathname // Aynı sayfaya geri yönlendir
+            // Giriş tamamlandığında kullanıcıyı kaldığı sayfaya yönlendir
+            emailRedirectTo: window.location.origin + window.location.pathname 
         }
     });
 
     if (error) {
         showAlert(`Giriş hatası: ${error.message}`, 'red');
     } else {
-        showAlert('E-posta adresinize bir giriş bağlantısı gönderildi. Lütfen gelen kutunuzu kontrol edin.');
+        showAlert('E-posta adresinize bir giriş/kayıt bağlantısı gönderildi. Lütfen gelen kutunuzu kontrol edin. Bağlantıya tıklayarak giriş yapabilirsiniz.');
+        closeModal(); // Modalı kapat
     }
 }
 
@@ -96,12 +136,15 @@ async function signOut() {
  */
 async function sendComment(pageSlug, userId, userName, content) {
     try {
+        // Supabase session'ı (JWT) al
+        const { data: { session } } = await supabase.auth.getSession();
+        
         const response = await fetch(`${RENDER_API_URL}/comments`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // Supabase JWT'yi de header olarak gönderebilirsiniz (Opsiyonel)
-                'Authorization': `Bearer ${supabase.auth.session()?.access_token || ''}`
+                // API'ye yetkilendirme (authorization) için JWT'yi gönder
+                'Authorization': `Bearer ${session?.access_token || ''}`
             },
             body: JSON.stringify({
                 page_slug: pageSlug,
@@ -145,15 +188,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     // C. Giriş/Çıkış Buton Listener'ları
     const loginCta = document.getElementById('login-cta');
     if (loginCta) {
-        loginCta.addEventListener('click', signInWithMagicLink);
+        // Eski prompt() yerine modalı aç
+        loginCta.addEventListener('click', openModal);
     }
 
     const logoutCta = document.getElementById('logout-cta');
     if (logoutCta) {
         logoutCta.addEventListener('click', signOut);
     }
+    
+    // D. YENİ: Modal Formu ve Kapatma Butonu Listener'ları
+    const authForm = document.getElementById('auth-form');
+    if (authForm) {
+        authForm.addEventListener('submit', handleModalSignIn);
+    }
 
-    // D. Yorum Gönderme Formu Listener'ı
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
+    }
+    
+    // Esc tuşu ile kapatma
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !document.getElementById('auth-modal').classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+    
+    // Modal dışına tıklayarak kapatma (Backdrop)
+    const modalBackdrop = document.getElementById('auth-modal');
+    if (modalBackdrop) {
+        modalBackdrop.addEventListener('click', (e) => {
+            if (e.target.id === 'auth-modal') {
+                closeModal();
+            }
+        });
+    }
+
+    // E. Yorum Gönderme Formu Listener'ı
     const commentForm = document.getElementById('yorum-gonder-formu');
     
     // **CRITICAL CHECK** : Eğer CURRENT_PAGE_SLUG tanımlıysa formu dinlemeye başla.
@@ -165,7 +237,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const { data: { user } } = await supabase.auth.getSession();
             
             if (!user) {
-                // Bu durum teorik olarak oluşmamalı (UI gizleniyor), ama bir güvenlik kontrolü.
                 showAlert('Yorum göndermek için lütfen önce giriş yapın.', 'red');
                 return;
             }
@@ -185,10 +256,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
-    // E. Sayfa Yüklendiğinde Yorumları Çekme
+    // F. Sayfa Yüklendiğinde Yorumları Çekme
     if (window.CURRENT_PAGE_SLUG) {
         // loadComments(window.CURRENT_PAGE_SLUG);
         // NOT: Yorum listesini HTML'de nasıl göstereceğiniz (renderComments) 
         // fonksiyonu tanımlanmadığı için bu satır şimdilik yorum satırı olarak bırakılmıştır.
     }
 });
+```<ctrl63>
