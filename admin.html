@@ -540,7 +540,7 @@
     
     let allCustomers = [];
     let currentEditingUser = null; 
-    let sortKey = 'createdAt'; 
+    let sortKey = 'created_at'; 
     let sortDirection = 'desc'; 
 
     // ----------------------------------------------------------------------
@@ -628,7 +628,7 @@
             let bVal = b[sortKey];
 
             // Tarih ve Bakiye alanları için dönüşüm
-            if (sortKey === 'createdAt') {
+            if (sortKey === 'created_at') {
                 // Supabase'den gelen tarih string'ini Date nesnesine çevir
                 aVal = aVal ? new Date(aVal).getTime() : 0;
                 bVal = bVal ? new Date(bVal).getTime() : 0;
@@ -667,7 +667,7 @@
             const username = userEmail.split('@')[0];
             const siteUrl = `bakikara.xyz/${user.site_adi || username}`; // Site adı varsa onu kullan
             // Supabase'den gelen ISO tarih formatını yerel formata çevir
-            const regDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Bilinmiyor';
+            const regDate = user.created_at ? new Date(user.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Bilinmiyor';
             const status = user.serviceStatus || 'FILE_WAITING'; 
             const balance = (user.balance || 0).toFixed(2); // Bakiye değeri
 
@@ -701,7 +701,7 @@
         } else {
             sortKey = key;
             sortDirection = 'asc'; 
-            if (key === 'createdAt' || key === 'balance') sortDirection = 'desc'; 
+            if (key === 'created_at' || key === 'balance') sortDirection = 'desc'; 
         }
         filterCustomers(); // Veriyi yeniden render et
     }
@@ -746,7 +746,7 @@
             const { data: customers, error } = await supabaseClient
                 .from('customers') // Oluşturduğumuz tablo adı
                 .select('*') 
-                .order('createdAt', { ascending: false }); 
+                .order('created_at', { ascending: false }); 
 
             if (error) {
                 throw error;
@@ -831,8 +831,8 @@
             // Supabase'den son 5 duyuruyu çek
             const { data: announcements, error } = await supabaseClient
                 .from('announcements')
-                .select('text, createdAt') // Sadece metin ve oluşturulma tarihi
-                .order('createdAt', { ascending: false })
+                .select('text, created_t') // Sadece metin ve oluşturulma tarihi
+                .order('created_at', { ascending: false })
                 .limit(5);
 
             if (error) throw error;
@@ -845,7 +845,7 @@
             }
 
             announcements.forEach(announcement => {
-                const date = announcement.createdAt ? new Date(announcement.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Bilinmiyor';
+                const date = announcement.created_at ? new Date(announcement.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Bilinmiyor';
                 
                 const listItem = document.createElement('li');
                 listItem.innerHTML = `
