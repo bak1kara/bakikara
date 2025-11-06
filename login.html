@@ -63,7 +63,6 @@
 <script type="module">
     // ----------------------------------------------------------------------
     // 🔥 ADIM 1: SUPABASE BAĞLANTI AYARLARI
-    // Bu iki satırı admin.html dosyasında kullandığınız bilgilerle AYNI olmalıdır!
     // ----------------------------------------------------------------------
     const SUPABASE_URL = 'https://rqbbxjuncwwgtkbcqtet.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxYmJ4anVuY3d3Z3RrYmNxdGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzM1NjAsImV4cCI6MjA3ODAwOTU2MH0.8dzDoL8MEgbrL7b-ocJ79c9ts9qtSbFT3EashQZXyZQ'; 
@@ -71,10 +70,10 @@
     const { createClient } = supabase; 
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Yönetici E-posta Adresi (Sadece bu e-posta admin.html'e erişebilir)
+    // Yönetici E-posta Adresi
     const ADMIN_EMAIL = "mehmeteminacan13@gmail.com"; 
     
-    // Tab geçiş işlevi (AYNI KALDI)
+    // Tab geçiş ve mesaj gösterme işlevleri
     window.showTab = function(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.getElementById(tabId).classList.remove('hidden');
@@ -83,7 +82,6 @@
         document.getElementById('authMessage').style.display = 'none';
     }
 
-    // Mesaj gösterme işlevi (AYNI KALDI)
     function displayMessage(message, isError) {
         const msgEl = document.getElementById('authMessage');
         msgEl.innerText = message;
@@ -93,7 +91,7 @@
     }
 
     // ----------------------------------------------------------------------
-    // SUPABASE KAYIT İŞLEMİ (DÜZELTİLMİŞ VERSİYON)
+    // SUPABASE KAYIT İŞLEMİ (SON ÇALIŞAN DÜZELTME)
     // ----------------------------------------------------------------------
     window.handleRegister = async function() {
         const email = document.getElementById('registerEmail').value;
@@ -112,37 +110,29 @@
 
             if (authError) throw authError;
 
-            // 2. Supabase'de Auth başarılıysa, kullanıcı verilerini "customers" tablosuna ekle
+            // 2. Auth başarılıysa, kullanıcı verilerini "customers" tablosuna ekle
             const user = authData.user;
             
-            // 🔥 KRİTİK DÜZELTME: createdAt alanı eklendi
+            // 🔥 KRİTİK DÜZELTME: Sadece veritabanının istediği zorunlu alanlar gönderiliyor.
             const { error: dbError } = await supabaseClient
                 .from('customers') 
                 .insert([
                     {
-                        user_id: user.id, // Supabase user ID'yi kullan
+                        user_id: user.id, // Supabase user ID
                         email: user.email,
                         balance: 0.0,
                         serviceStatus: 'PENDING',
-                        createdAt: new Date().toISOString() // 🔴 KRİTİK: Kayıt tarihini ekle
+                        // createdAt alanı veritabanı tarafından otomatik atanacak.
                     }
                 ]);
 
             if (dbError) {
-                // 3. DÜZELTME: Eğer veritabanı eklemesi BAŞARISIZ olursa kullanıcıyı bilgilendir
+                // Veritabanı hatası durumunda hata mesajını konsola yazdır.
                 console.error("Müşteri kaydı veritabanına eklenemedi:", dbError);
-                let dbErrorMessage = "Veritabanı kaydı başarısız oldu. Lütfen Yöneticinize başvurun veya RLS ayarlarınızı kontrol edin.";
-                
-                // Hatanın detayını konsola yazdır
-                if (dbError.message) {
-                    console.error("Veritabanı Hata Mesajı:", dbError.message);
-                }
-                
-                // Başarısız olduğu için yönlendirmeyi durdur ve hata göster
-                return displayMessage(dbErrorMessage, true); 
+                return displayMessage("Veritabanı kaydı başarısız oldu. RLS ayarlarınızı kontrol edin.", true); 
             }
             
-            // 4. Kayıt başarılı, yönlendirmeye geç
+            // 3. Kayıt başarılı, yönlendirmeye geç
             if (email === ADMIN_EMAIL) {
                 displayMessage("Yönetici kaydı başarılı! Admin paneline yönlendiriliyorsunuz...", false);
                 setTimeout(() => { window.location.href = 'admin.html'; }, 1500);
@@ -157,6 +147,8 @@
             let errorMessage = "Kayıt hatası: " + error.message;
             if (error.message.includes('User already registered')) {
                 errorMessage = "Bu e-posta adresi zaten kayıtlı.";
+            } else if (error.message.includes('rate limit exceeded')) {
+                 errorMessage = "E-posta hız sınırı aşıldı. Lütfen bir dakika sonra tekrar deneyin.";
             } else if (error.message.includes('Email not confirmed')) {
                  errorMessage = "E-posta onaylanmadı. Lütfen gelen kutunuzu kontrol edin.";
             }
@@ -165,14 +157,13 @@
     }
 
     // ----------------------------------------------------------------------
-    // SUPABASE GİRİŞ İŞLEMİ (signInWithEmailAndPassword yerine)
+    // SUPABASE GİRİŞ İŞLEMİ
     // ----------------------------------------------------------------------
     window.handleLogin = async function() {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
 
         try {
-            // Supabase ile oturum açma
             const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: password,
@@ -182,25 +173,19 @@
             
             const user = authData.user;
             
-            // Giriş başarılı! E-posta adresini yönetici e-postasıyla kontrol et
             if (user && user.email === ADMIN_EMAIL) {
-                // Yönetici girişi
                 displayMessage("Yönetici girişi başarılı! Admin paneline yönlendiriliyorsunuz...", false);
-                // Başarılıysa admin paneline yönlendir
                 setTimeout(() => {
                     window.location.href = 'admin.html'; 
                 }, 1000);
             } else {
-                // Standart kullanıcı girişi
                 displayMessage("Giriş başarılı! Müşteri paneline yönlendiriliyorsunuz...", false);
                 setTimeout(() => { 
-                    // Müşteri dashboard'una yönlendir
                     window.location.href = 'dashboard'; 
                 }, 1000); 
             }
 
         } catch (error) {
-            // Supabase Auth hatalarını daha kullanıcı dostu göster
             let errorMessage = "Giriş hatası. Lütfen e-posta ve şifrenizi kontrol edin.";
             if (error.message.includes('Invalid login credentials')) {
                 errorMessage = "Geçersiz giriş bilgileri. Lütfen e-posta veya şifrenizi kontrol edin.";
@@ -210,7 +195,6 @@
     }
     
     // Sayfa açıldığında oturum kontrolü yap
-    // Eğer zaten oturum açıksa admin paneline yönlendir (ÖNEMLİ: Sadece ADMIN_EMAIL için)
     supabaseClient.auth.onAuthStateChange((event, session) => {
         if (session && session.user && session.user.email === ADMIN_EMAIL) {
             window.location.href = 'admin.html';
