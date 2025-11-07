@@ -445,7 +445,7 @@
                 <th onclick="sortCustomers('created_at')">Kayıt Tarihi <span id="sortCreated_at" class="sort-icon fas fa-sort-down"></span></th> 
                 <th onclick="sortCustomers('balance')">Bakiye (₺) <span id="sortBalance" class="sort-icon fas fa-sort"></span></th>
                 <th>Site Adresi (Öneri)</th>
-                <th onclick="sortCustomers('serviceStatus')">Durum <span id="sortServiceStatus" class="sort-icon fas fa-sort"></span></th>
+                <th onclick="sortCustomers('service_status')">Durum <span id="sortService_status" class="sort-icon fas fa-sort"></span></th> 
                 <th>İşlemler</th>
             </tr>
         </thead>
@@ -511,15 +511,13 @@
     // ----------------------------------------------------------------------
     // 🔥 ADIM 1: SUPABASE BAĞLANTI AYARLARI
     // ----------------------------------------------------------------------
-    // ⚠️ Lütfen kendi Supabase ayarlarınızı buraya girin
     const SUPABASE_URL = 'https://rqbbxjuncwwgtkbcqtet.supabase.co'; 
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxYmJ4anVuY3d3Z3RrYmNxdGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0MzM1NjAsImV4cCI6MjA3ODAwOTU2MH0.8dzDoL8MEgbrL7b-ocJ79c9ts9qtSbFT3EashQZXyZQ'; 
     
     const { createClient } = supabase; 
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: { 
-            // Auth persistSession varsayılan olarak bırakıldı.
-            persistSession: true 
+            persistSession: false 
         }
     });
 
@@ -624,7 +622,16 @@
             icon.classList.add('fa-sort');
         });
         
-        const activeIconId = sortKey === 'created_at' ? 'sortCreated_at' : `sort${sortKey.charAt(0).toUpperCase() + sortKey.slice(1)}`;
+        // 🔥 DÜZELTME: service_status alanını dinamik olarak bulmak için mantık güncellendi
+        let activeIconId;
+        if (sortKey === 'created_at') {
+            activeIconId = 'sortCreated_at';
+        } else if (sortKey === 'service_status') {
+            activeIconId = 'sortService_status'; // HTML'deki yeni ID'miz
+        } else {
+            activeIconId = `sort${sortKey.charAt(0).toUpperCase() + sortKey.slice(1)}`;
+        }
+
         const currentSortIcon = document.getElementById(activeIconId);
         
         if (currentSortIcon) {
@@ -639,13 +646,12 @@
 
         customers.forEach(user => {
             const userEmail = user.email || 'Bilinmiyor';
-            // Site adının boş olması durumunda kullanıcı adını veya bir placeholder kullan
             const siteName = user.site_adi || userEmail.split('@')[0] || 'site-adı-yok';
-            // Sitenin tam URL'sini oluştur
             const siteUrl = `bakikara.xyz/${siteName}`; 
 
             const regDate = user.created_at ? new Date(user.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Bilinmiyor';
-            const status = user.serviceStatus || 'FILE_WAITING'; 
+            // 🔥 DÜZELTME: user.service_status kullanılıyor
+            const status = user.service_status || 'FILE_WAITING'; 
             const balance = (user.balance || 0).toFixed(2); 
 
             const row = tableBody.insertRow();
@@ -687,7 +693,8 @@
         const filtered = allCustomers.filter(user => {
             const userEmail = (user.email || '').toLowerCase();
             const siteAdi = (user.site_adi || '').toLowerCase();
-            const status = (user.serviceStatus || 'FILE_WAITING');
+            // 🔥 DÜZELTME: user.service_status kullanılıyor
+            const status = (user.service_status || 'FILE_WAITING');
             
             const textMatch = userEmail.includes(searchText) || siteAdi.includes(searchText);
             const statusMatch = statusFilter === 'ALL' || status === statusFilter;
@@ -723,7 +730,11 @@
             loading.style.display = 'none';
             table.style.display = 'table';
             
-            allCustomers = customers;
+            // user_id'yi userId olarak eşle
+            allCustomers = customers.map(doc => ({
+                userId: doc.user_id, 
+                ...doc
+            }));
 
             if (allCustomers.length === 0) {
                 loading.innerText = 'Henüz kayıtlı müşteri bulunmamaktadır.';
@@ -732,8 +743,9 @@
             }
 
             // Özet Kartları Güncelle
-            const activeCount = allCustomers.filter(u => u.serviceStatus === 'ACTIVE').length;
-            const pendingCount = allCustomers.filter(u => u.serviceStatus === 'PENDING' || u.serviceStatus === 'FILE_WAITING').length; 
+            // 🔥 DÜZELTME: service_status kullanılıyor
+            const activeCount = allCustomers.filter(u => u.service_status === 'ACTIVE').length;
+            const pendingCount = allCustomers.filter(u => u.service_status === 'PENDING' || u.service_status === 'FILE_WAITING').length; 
             
             totalCustomersSpan.innerText = allCustomers.length;
             activeCustomersSpan.innerText = activeCount;
@@ -751,10 +763,8 @@
 
 
     function listenForCustomers() {
-        // İlk veriyi çek
         fetchAndRenderCustomers();
         
-        // Gerçek zamanlı dinleyiciyi başlat
         const channel = supabaseClient
             .channel('customer_changes') 
             .on(
@@ -762,7 +772,6 @@
                 { event: '*', schema: 'public', table: 'customers' },
                 (payload) => {
                     console.log('Gerçek Zamanlı Veri Değişikliği Algılandı:', payload);
-                    // Değişiklik olduğunda tüm listeyi yeniden çekip render et
                     fetchAndRenderCustomers();
                 }
             )
@@ -853,7 +862,7 @@
     // ----------------------------------------------------------------------
 
     /**
-     * Müşteri Durumunu Güncelleme (lastUpdated kaldırıldı)
+     * Müşteri Durumunu Güncelleme (lastUpdated kaldırıldı, serviceStatus -> service_status yapıldı)
      */
     window.updateCustomerStatus = function(userId, newStatus) {
         let statusText = '';
@@ -870,8 +879,8 @@
                     try {
                         const { error } = await supabaseClient
                             .from('customers')
-                            // 🔥 DÜZELTME: lastUpdated kaldırıldı
-                            .update({ serviceStatus: newStatus }) 
+                            // 🔥 DÜZELTME: lastUpdated kaldırıldı ve serviceStatus -> service_status yapıldı
+                            .update({ service_status: newStatus }) 
                             .eq('user_id', userId);
 
                         if (error) throw error;
@@ -919,7 +928,7 @@
     // ----------------------------------------------------------------------
     
     window.showCustomerDetailModal = function(userId) {
-        const user = allCustomers.find(u => u.user_id === userId); 
+        const user = allCustomers.find(u => u.userId === userId); 
         if (!user) return;
 
         currentEditingUser = user;
@@ -927,7 +936,8 @@
         document.getElementById('detailEmail').value = user.email || '';
         document.getElementById('detailSiteName').value = user.site_adi || '';
         document.getElementById('detailBalance').value = (user.balance || 0);
-        document.getElementById('detailStatus').value = user.serviceStatus || 'FILE_WAITING';
+        // 🔥 DÜZELTME: user.service_status kullanılıyor
+        document.getElementById('detailStatus').value = user.service_status || 'FILE_WAITING';
         document.getElementById('detailNotes').value = user.admin_notes || '';
         document.getElementById('detailMessage').innerText = ''; 
         
@@ -935,10 +945,10 @@
     }
     
     /**
-     * Müşteri Detaylarını Kaydetme Fonksiyonu (lastUpdated kaldırıldı)
+     * Müşteri Detaylarını Kaydetme Fonksiyonu (lastUpdated kaldırıldı, serviceStatus -> service_status yapıldı)
      */
     window.saveCustomerDetails = async function() {
-        if (!currentEditingUser || !currentEditingUser.user_id) return;
+        if (!currentEditingUser || !currentEditingUser.userId) return;
 
         const btn = document.getElementById('saveDetailsBtn');
         const messageElement = document.getElementById('detailMessage');
@@ -952,21 +962,20 @@
             
             const { error } = await supabaseClient
                 .from('customers')
-                // 🔥 DÜZELTME: lastUpdated kaldırıldı
+                // 🔥 DÜZELTME: lastUpdated kaldırıldı ve serviceStatus -> service_status yapıldı
                 .update({
                     site_adi: document.getElementById('detailSiteName').value.trim(),
-                    serviceStatus: document.getElementById('detailStatus').value,
+                    service_status: document.getElementById('detailStatus').value,
                     admin_notes: document.getElementById('detailNotes').value.trim(),
                     balance: newBalance
                 })
-                .eq('user_id', currentEditingUser.user_id); 
+                .eq('user_id', currentEditingUser.userId); 
 
             if (error) throw error;
 
             messageElement.style.color = 'var(--success-color)';
             messageElement.innerText = '✅ Detaylar başarıyla güncellendi!';
             
-            // Veri güncellendikten sonra modalı kapat
             setTimeout(() => {
                 document.getElementById('detailModal').style.display = 'none';
                 currentEditingUser = null;
