@@ -33,6 +33,26 @@
             overflow-x: hidden;
         }
 
+        /* YENİ: VPN UYARI STİLİ */
+        #vpn-uyari {
+            background-color: var(--danger-color); /* Kırmızı Arka Plan */
+            color: white;
+            padding: 15px 30px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-bottom: 5px solid darkred;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            display: none; /* Varsayılan olarak gizli */
+        }
+        #vpn-uyari strong {
+            font-weight: 900;
+            color: #fff0b3; /* Hafif Sarı Vurgu */
+        }
+        #vpn-uyari i {
+            margin-right: 10px;
+        }
+
         /* FADE-IN ANIMASYONU */
         .fade-in {
             opacity: 0;
@@ -325,6 +345,10 @@
 </head>
 <body>
 
+<div id="vpn-uyari">
+    <i class="fas fa-exclamation-triangle"></i>
+    Şu anda **VPN** veya **Proxy** kullanarak giriş yaptınız. Site güvenliği ve yasal gereklilikler açısından, bu oturum **kayıt ve izleme altındadır**. Lütfen bu durumu dikkate alınız.
+</div>
 <div class="header-banner fade-in">
     <h1>Hızlı ve Özellikli Barındırma Çözümleri</h1>
     <p>Projeniz ne olursa olsun, doğru planla hemen yayına başlayın.</p>
@@ -450,7 +474,33 @@
 </div>
 
 <script>
+    // YENİ: VPN Kontrol Fonksiyonu
+    async function vpnKontrolVeUyariGoster() {
+        const uyariDiv = document.getElementById('vpn-uyari');
+        
+        // ip-api.com servisini kullanarak IP bilgilerini alıyoruz.
+        // **ÖNEMLİ NOT:** Bu API, VPN/Proxy tespiti için %100 güvenilir değildir 
+        // ve profesyonel kullanım için uygun olmayabilir. Daha güvenilir bir 
+        // hizmet (örneğin IP2Proxy, IPLocate) kullanmanız önerilir.
+        try {
+            const response = await fetch('http://ip-api.com/json/?fields=proxy,hosting');
+            const data = await response.json();
+            
+            // proxy veya hosting (veri merkezi IP'si) alanı 'true' ise VPN/Proxy kullanılıyor varsayılır.
+            if (data.proxy === true || data.hosting === true) {
+                uyariDiv.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('VPN/Proxy kontrol hatası:', error);
+            // Hata durumunda uyarı göstermemek genellikle daha iyidir.
+        }
+    }
+
+
     document.addEventListener('DOMContentLoaded', function() {
+        // VPN kontrolünü sayfa yüklenir yüklenmez başlat
+        vpnKontrolVeUyariGoster(); 
+        
         const freeCard = document.getElementById('paketFree');
         const premiumCard = document.getElementById('paketPremium');
         const hiddenPackageInput = document.getElementById('hiddenPackageName');
@@ -731,7 +781,6 @@
         document.getElementById('newDomain').checked = true;
         updatePackageSelection('Ücretsiz Statik Başlangıç', 0.00); 
     });
-</script>
-
+            </script>
 </body>
 </html>
