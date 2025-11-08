@@ -649,7 +649,7 @@
                 if (RESERVED_SLUGS.includes(siteAdi) || siteAdi === '') {
                     domainStatus.className = 'status-warning';
                     // **KALIN YAZI GÜNCELLEMESİ**
-                    domainStatus.innerHTML = `❌ Üzgünüz, ${siteAdi || 'boş'} takma adı (URL) *yrılmış veya kullanılamaz durumdadır. Lütfen başka bir isim girin.`;
+                    domainStatus.innerHTML = `❌ Üzgünüz, ${siteAdi || 'boş'} takma adı (URL) ayrılmış veya kullanılamaz durumdadır. Lütfen başka bir isim girin.`;
                     isDomainChecked = false;
                     proceedToOrderBtn.disabled = true;
                     return;
